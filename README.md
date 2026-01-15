@@ -1,154 +1,135 @@
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/@qwen-code/qwen-code.svg)](https://www.npmjs.com/package/@qwen-code/qwen-code)
-[![License](https://img.shields.io/github/license/QwenLM/qwen-code.svg)](./LICENSE)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Downloads](https://img.shields.io/npm/dm/@qwen-code/qwen-code.svg)](https://www.npmjs.com/package/@qwen-code/qwen-code)
+# Saken Code - TypeScript Development
 
-**An open-source AI agent that lives in your terminal.**
+![GitHub Stars](https://img.shields.io/github/stars/saken78/saken-code-ts.svg)
+![License](https://img.shields.io/github/license/saken78/saken-code-ts.svg)
+![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
+![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
 
-<a href="https://qwenlm.github.io/qwen-code-docs/zh/users/overview">中文</a> |
-<a href="https://qwenlm.github.io/qwen-code-docs/de/users/overview">Deutsch</a> |
-<a href="https://qwenlm.github.io/qwen-code-docs/fr/users/overview">français</a> |
-<a href="https://qwenlm.github.io/qwen-code-docs/ja/users/overview">日本語</a> |
-<a href="https://qwenlm.github.io/qwen-code-docs/ru/users/overview">Русский</a> |
-<a href="https://qwenlm.github.io/qwen-code-docs/pt-BR/users/overview">Português (Brasil)</a>
+**A personalized development fork of Qwen Code with custom agents, skills, and intelligent prompt injection.**
 
 </div>
 
-Qwen Code is an open-source AI agent for the terminal, optimized for [Qwen3-Coder](https://github.com/QwenLM/Qwen3-Coder). It helps you understand large codebases, automate tedious work, and ship faster.
+## About This Project
 
-![](https://gw.alicdn.com/imgextra/i1/O1CN01D2DviS1wwtEtMwIzJ_!!6000000006373-2-tps-1600-900.png)
+This is a **personal development repository** for experimenting with Qwen Code enhancements, including:
 
-## Why Qwen Code?
+- ✅ **Custom Agents & Skills Integration** - High-priority agents/skills in core system prompt
+- ✅ **Intelligent Prompt Injection** - Multi-factor analysis replaces naive "every 20 turns" approach
+- ✅ **Hallucination Detection** - Pattern-based detection for speculation without data
+- ✅ **Advanced Metrics Tracking** - Conversation complexity, error patterns, tool usage
+- ✅ **Data-Driven Responses** - Critical protocol for config files (YAML/TOML/XML)
 
-- **OpenAI-compatible, OAuth free tier**: use an OpenAI-compatible API, or sign in with Qwen OAuth to get 2,000 free requests/day.
-- **Open-source, co-evolving**: both the framework and the Qwen3-Coder model are open-source—and they ship and evolve together.
-- **Agentic workflow, feature-rich**: rich built-in tools (Skills, SubAgents, Plan Mode) for a full agentic workflow and a Claude Code-like experience.
-- **Terminal-first, IDE-friendly**: built for developers who live in the command line, with optional integration for VS Code and Zed.
+**Status:** Development phase - testing and optimizing core enhancements
+
+## Quick Links
+
+- 📄 [Development Summary](./plans/SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md) - Complete implementation details
+- 🔧 [Installation Guide](#installation)
+- 📖 [Usage](#usage)
+- 🎯 [Development Goals](#development-goals)
+
+## Features
+
+### 1. Intelligent Prompt Injection Service
+
+Replaces naive "every 20 turns" with multi-factor analysis:
+
+- **Conversation Depth** - Detects 4+ consecutive assistant turns
+- **Complexity Spike** - Monitors complexity score (threshold: 50)
+- **Error Pattern** - Tracks 2+ errors encountered
+- **Hallucination Indicators** - Detects 5 pattern types (speculation, config analysis, etc.)
+- **Tool Usage Spike** - Alerts on 8+ tools used rapidly
+- **Extended Conversation** - Fallback injection at ~25 turns
+
+### 2. Custom Agents (HIGH PRIORITY)
+
+```
+explorer           - Codebase navigation & discovery
+planner            - Task decomposition & planning
+debugger           - Error analysis & fixing
+reviewer           - Code quality & security review
+content-analyzer   - Config file analysis
+shadcn-migrator    - Component migration
+java-gui           - Java GUI development
+```
+
+### 3. Custom Skills (Data-Driven)
+
+```
+/format-validator       - Config validation (YAML/TOML/XML)
+/git-analyzer          - Git history analysis
+/error-parser          - Stack trace parsing
+/type-safety-analyzer  - TypeScript type checking
+/security-audit        - Vulnerability scanning
+/file-structure-analyzer - Architecture analysis
+```
+
+### 4. Hallucination Prevention
+
+Detects patterns that indicate speculation:
+
+- Speculation without verification
+- Config analysis without validation
+- Error analysis without /error-parser
+- Type claims without /type-safety-analyzer
+- Security claims without /security-audit
 
 ## Installation
 
-#### Prerequisites
+### Prerequisites
 
 ```bash
 # Node.js 20+
-curl -qL https://www.npmjs.com/install.sh | sh
+node --version
 ```
 
-#### NPM (recommended)
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/saken78/saken-code-ts.git
+cd saken-code-ts
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# (Optional) Link for local testing
+npm link
+```
+
+### Global Installation
 
 ```bash
 npm install -g @qwen-code/qwen-code@latest
 ```
 
-#### Homebrew (macOS, Linux)
-
-```bash
-brew install qwen-code
-```
-
-## Quick Start
-
-```bash
-# Start Qwen Code (interactive)
-qwen
-
-# Then, in the session:
-/help
-/auth
-```
-
-On first use, you'll be prompted to sign in. You can run `/auth` anytime to switch authentication methods.
-
-Example prompts:
-
-```text
-What does this project do?
-Explain the codebase structure.
-Help me refactor this function.
-Generate unit tests for this module.
-```
-
-<details>
-<summary>Click to watch a demo video</summary>
-
-<video src="https://cloud.video.taobao.com/vod/HLfyppnCHplRV9Qhz2xSqeazHeRzYtG-EYJnHAqtzkQ.mp4" controls>
-Your browser does not support the video tag.
-</video>
-
-</details>
-
-## Authentication
-
-Qwen Code supports two authentication methods:
-
-- **Qwen OAuth (recommended & free)**: sign in with your `qwen.ai` account in a browser.
-- **OpenAI-compatible API**: use `OPENAI_API_KEY` (and optionally a custom base URL / model).
-
-#### Qwen OAuth (recommended)
-
-Start `qwen`, then run:
-
-```bash
-/auth
-```
-
-Choose **Qwen OAuth** and complete the browser flow. Your credentials are cached locally so you usually won't need to log in again.
-
-#### OpenAI-compatible API (API key)
-
-Environment variables (recommended for CI / headless environments):
-
-```bash
-export OPENAI_API_KEY="your-api-key-here"
-export OPENAI_BASE_URL="https://api.openai.com/v1"  # optional
-export OPENAI_MODEL="gpt-4o"                        # optional
-```
-
-For details (including `.qwen/.env` loading and security notes), see the [authentication guide](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/).
-
 ## Usage
 
-As an open-source terminal agent, you can use Qwen Code in four primary ways:
-
-1. Interactive mode (terminal UI)
-2. Headless mode (scripts, CI)
-3. IDE integration (VS Code, Zed)
-4. TypeScript SDK
-
-#### Interactive mode
+### Interactive Mode
 
 ```bash
 cd your-project/
 qwen
 ```
 
-Run `qwen` in your project folder to launch the interactive terminal UI. Use `@` to reference local files (for example `@src/main.ts`).
-
-#### Headless mode
+### Headless Mode
 
 ```bash
-cd your-project/
 qwen -p "your question"
 ```
 
-Use `-p` to run Qwen Code without the interactive UI—ideal for scripts, automation, and CI/CD. Learn more: [Headless mode](https://qwenlm.github.io/qwen-code-docs/en/users/features/headless).
+### Quick Commands
 
-#### IDE integration
-
-Use Qwen Code inside your editor (VS Code and Zed):
-
-- [Use in VS Code](https://qwenlm.github.io/qwen-code-docs/en/users/integration-vscode/)
-- [Use in Zed](https://qwenlm.github.io/qwen-code-docs/en/users/integration-zed/)
-
-#### TypeScript SDK
-
-Build on top of Qwen Code with the TypeScript SDK:
-
-- [Use the Qwen Code SDK](./packages/sdk-typescript/README.md)
-
-## Commands & Shortcuts
+```bash
+qwen --help          # Show all commands
+qwen --version       # Show version
+qwen --clear-cache   # Clear cache
+```
 
 ### Session Commands
 
@@ -156,50 +137,219 @@ Build on top of Qwen Code with the TypeScript SDK:
 - `/clear` - Clear conversation history
 - `/compress` - Compress history to save tokens
 - `/stats` - Show current session information
-- `/bug` - Submit a bug report
-- `/exit` or `/quit` - Exit Qwen Code
-
-### Keyboard Shortcuts
-
-- `Ctrl+C` - Cancel current operation
-- `Ctrl+D` - Exit (on empty line)
-- `Up/Down` - Navigate command history
-
-> Learn more about [Commands](https://qwenlm.github.io/qwen-code-docs/en/users/features/commands/)
->
-> **Tip**: In YOLO mode (`--yolo`), vision switching happens automatically without prompts when images are detected. Learn more about [Approval Mode](https://qwenlm.github.io/qwen-code-docs/en/users/features/approval-mode/)
+- `/auth` - Switch authentication methods
+- `/exit` - Exit Qwen Code
 
 ## Configuration
 
-Qwen Code can be configured via `settings.json`, environment variables, and CLI flags.
+### User Settings
 
-- **User settings**: `~/.qwen/settings.json`
-- **Project settings**: `.qwen/settings.json`
+```bash
+~/.qwen/settings.json
+```
 
-See [settings](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/settings/) for available options and precedence.
+### Project Settings
 
-## Benchmark Results
+```bash
+./.qwen/settings.json
+```
 
-### Terminal-Bench Performance
+### Environment Variables
 
-| Agent     | Model              | Accuracy |
-| --------- | ------------------ | -------- |
-| Qwen Code | Qwen3-Coder-480A35 | 37.5%    |
-| Qwen Code | Qwen3-Coder-30BA3B | 31.3%    |
+```bash
+# OpenAI-compatible API
+export OPENAI_API_KEY="your-key"
+export OPENAI_BASE_URL="https://api.openai.com/v1"
+export OPENAI_MODEL="gpt-4o"
 
-## Ecosystem
+# Qwen OAuth (if using Qwen API)
+# Sign in with /auth command
+```
 
-Looking for a graphical interface?
+## Development Goals
 
-- [**AionUi**](https://github.com/iOfficeAI/AionUi) A modern GUI for command-line AI tools including Qwen Code
-- [**Gemini CLI Desktop**](https://github.com/Piebald-AI/gemini-cli-desktop) A cross-platform desktop/web/mobile UI for Qwen Code
+### Phase 1: Core Implementation ✅
 
-## Troubleshooting
+- [x] Integrate agents/skills into system prompt
+- [x] Implement prompt injection service
+- [x] Add hallucination pattern detection
+- [x] Create metrics tracking system
+- [x] Document architecture
 
-If you encounter issues, check the [troubleshooting guide](https://qwenlm.github.io/qwen-code-docs/en/users/support/troubleshooting/).
+### Phase 2: Testing & Validation (In Progress)
 
-To report a bug from within the CLI, run `/bug` and include a short title and repro steps.
+- [ ] Unit tests for PromptInjectionService
+- [ ] Integration tests for client
+- [ ] Manual testing scenarios
+- [ ] Performance profiling
+- [ ] Threshold tuning
 
-## Acknowledgments
+### Phase 3: Monitoring & Optimization
 
-This project is based on [Google Gemini CLI](https://github.com/google-gemini/gemini-cli). We acknowledge and appreciate the excellent work of the Gemini CLI team. Our main contribution focuses on parser-level adaptations to better support Qwen-Coder models.
+- [ ] Add metrics logging
+- [ ] Performance monitoring dashboard
+- [ ] Adaptive threshold learning
+- [ ] User feedback loop
+
+### Phase 4: Documentation & Release
+
+- [ ] Developer guide
+- [ ] User guide for agents/skills
+- [ ] Best practices documentation
+- [ ] Release notes
+
+## Project Structure
+
+```
+saken-code-ts/
+├── packages/
+│   ├── cli/                    # Command-line interface
+│   ├── core/                   # Core agent logic
+│   │   ├── src/
+│   │   │   ├── core/
+│   │   │   │   ├── client.ts           # Main client with injection
+│   │   │   │   └── prompts.ts          # System prompt integration
+│   │   │   ├── prompts/
+│   │   │   │   ├── agents-skills/      # NEW: Agents/skills docs
+│   │   │   │   └── reminders/          # Reminder system
+│   │   │   ├── services/
+│   │   │   │   └── promptInjectionService.ts  # NEW: Injection logic
+│   │   │   └── subagents/              # Agent definitions
+│   │   └── dist/                       # Compiled output
+│   └── sdk-typescript/         # TypeScript SDK
+├── plans/
+│   └── SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md
+└── README.md                   # This file
+```
+
+## Key Files
+
+### Core Implementation
+
+- **`packages/core/src/services/promptInjectionService.ts`**
+  - Multi-factor hallucination detection
+  - Metrics tracking
+  - Smart injection logic
+
+- **`packages/core/src/prompts/agents-skills/index.ts`**
+  - HIGH PRIORITY agents documentation
+  - Custom skills reference
+  - Critical protocol for config files
+
+- **`packages/core/src/core/client.ts`**
+  - Integration point for prompt injection
+  - Metrics collection
+  - Tool usage tracking
+
+- **`packages/core/src/core/prompts.ts`**
+  - Core system prompt
+  - Agents/skills integration
+  - Data-driven response protocol
+
+## Metrics & Thresholds
+
+### Prompt Injection Triggers
+
+```typescript
+MIN_TURNS_BETWEEN_INJECTION = 5
+COMPLEXITY_THRESHOLD = 50
+ERROR_THRESHOLD = 2
+CONSECUTIVE_ASSISTANT_TURNS_THRESHOLD = 4
+TOOL_USAGE_SPIKE_THRESHOLD = 8
+EXTENDED_CONVERSATION_FALLBACK = ~25 turns
+```
+
+### Complexity Score Calculation
+
+```
+Base: conversation_length (max 50 points)
++ Complex keywords × 5 points each
++ Tool usage × 2 points
++ Agent delegation × 3 points
+= Final score (capped at 100)
+```
+
+## Building from Source
+
+```bash
+# Install dependencies
+npm install
+
+# Build TypeScript
+npm run build
+
+# Build specific package
+npm run build -- packages/core
+npm run build -- packages/cli
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+
+# Testing
+npm run test
+```
+
+## Contributing
+
+This is a personal development project. If you want to:
+
+- **Fork**: Create your own fork and make improvements
+- **Share Ideas**: Open an issue with suggestions
+- **Report Issues**: Use GitHub issues for bugs
+
+## Progress Tracking
+
+**Goal:** 1000 GitHub contributions by maintaining active development
+
+**Current Stats:**
+
+- Repository: saken-code-ts
+- Active Development: Yes
+- Focus: Agent/skill integration + intelligent prompt injection
+
+## License
+
+This project is based on [Qwen Code](https://github.com/QwenLM/qwen-code) by QwenLM.
+
+Modifications and enhancements are personal development work.
+
+## Resources
+
+- 📖 [Qwen Code Documentation](https://qwenlm.github.io/qwen-code-docs/)
+- 🔗 [Original Qwen Code Repository](https://github.com/QwenLM/qwen-code)
+- 💬 [Qwen Team Discussion](https://github.com/QwenLM/Qwen3-Coder)
+
+## Session Notes
+
+### Latest Session (January 14, 2025)
+
+**Status:** Complete & Compiled
+
+**Achievements:**
+
+- ✅ Integrated custom agents/skills with HIGH PRIORITY markers
+- ✅ Implemented intelligent prompt injection (multi-factor analysis)
+- ✅ Added hallucination pattern detection (5 types)
+- ✅ Created metrics tracking system
+- ✅ All code compiled without errors
+- ✅ Comprehensive documentation
+
+**Next:** Testing, validation, and performance tuning
+
+See [Full Session Summary](./plans/SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md) for details.
+
+## Support
+
+For questions about this personal development project:
+
+- Check the [Session Summary](./plans/SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md)
+- Review code comments and documentation
+- Check GitHub issues
+
+---
+
+**Last Updated:** January 15, 2026
+**Maintained by:** saken78
