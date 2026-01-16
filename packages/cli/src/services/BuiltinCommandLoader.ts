@@ -38,6 +38,14 @@ import { themeCommand } from '../ui/commands/themeCommand.js';
 import { toolsCommand } from '../ui/commands/toolsCommand.js';
 import { vimCommand } from '../ui/commands/vimCommand.js';
 import { setupGithubCommand } from '../ui/commands/setupGithubCommand.js';
+import { codingCommand } from '../ui/commands/codingCommand.js';
+import { debugCommand } from '../ui/commands/debugCommand.js';
+import { reviewCommand } from '../ui/commands/reviewCommand.js';
+import { designCommand } from '../ui/commands/designCommand.js';
+import { visionCommand } from '../ui/commands/visionCommand.js';
+import { productCommand } from '../ui/commands/productCommand.js';
+import { progressCommand } from '../ui/commands/progressCommand.js';
+import { skillsCommand } from '../ui/commands/skillsCommand.js';
 
 /**
  * Loads the core, hard-coded slash commands that are an integral part
@@ -85,6 +93,14 @@ export class BuiltinCommandLoader implements ICommandLoader {
       settingsCommand,
       vimCommand,
       setupGithubCommand,
+      codingCommand,
+      debugCommand,
+      reviewCommand,
+      designCommand,
+      visionCommand,
+      productCommand,
+      progressCommand,
+      ...(this.config?.getExperimentalSkills() ? [skillsCommand] : []),
       terminalSetupCommand,
     ];
 

@@ -9,6 +9,18 @@ export * from './config/config.js';
 export * from './output/types.js';
 export * from './output/json-formatter.js';
 
+// Export context commands for focused work modes
+export * from './prompts/context-commands/coding-context.js';
+export * from './prompts/context-commands/debug-context.js';
+export * from './prompts/context-commands/review-context.js';
+export * from './prompts/context-commands/design-context.js';
+
+// Export BMAD document-aware prompts
+export * from './prompts/bmad-prompts/document-prompts.js';
+
+// Export document loader service
+export * from './services/documentLoaderService.js';
+
 // Export models
 export {
   type ModelCapabilities,
@@ -109,7 +121,11 @@ export * from './subagents/index.js';
 // Export skills
 export * from './skills/index.js';
 
+// Export agent-skill integration service
+export { AgentSkillIntegrationService } from './agent-skill-integration-service.js';
+
 // Export prompt logic
+// eslint-disable-next-line import/no-internal-modules
 export * from './prompts/mcp-prompts.js';
 
 // Export specific tool logic
