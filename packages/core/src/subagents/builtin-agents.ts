@@ -12,6 +12,7 @@ import { reviewerAgent } from './builtin/reviewer-agent.js';
 import { contentAnalyzerAgent } from './builtin/content-analyzer-agent.js';
 import { shadcnMigratorAgent } from './builtin/shadcn-migrator-agent.js';
 import { javaGuiAgent } from './builtin/java-gui-agent.js';
+import { toolCreatorAgent } from './builtin/tool-creator-agent.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -57,6 +58,7 @@ Notes:
     contentAnalyzerAgent,
     shadcnMigratorAgent,
     javaGuiAgent,
+    toolCreatorAgent,
   ];
 
   /**

@@ -10,6 +10,7 @@ import { reviewerAgent } from './reviewer-agent.js';
 import { debuggerAgent } from './debugger-agent.js';
 import { shadcnMigratorAgent } from './shadcn-migrator-agent.js';
 import { contentAnalyzerAgent } from './content-analyzer-agent.js';
+import { toolCreatorAgent } from './tool-creator-agent.js';
 import type { SubagentConfig } from '../types.js';
 
 /**
@@ -22,6 +23,7 @@ export const builtinSubagents: Record<string, SubagentConfig> = {
   debugger: debuggerAgent,
   'shadcn-migrator': shadcnMigratorAgent,
   'content-analyzer': contentAnalyzerAgent,
+  'tool-creator': toolCreatorAgent,
 };
 
 /**
@@ -47,5 +49,5 @@ export function getAllBuiltinSubagents(): SubagentConfig[] {
  * @returns True if the name corresponds to a built-in subagent, false otherwise
  */
 export function isBuiltinSubagent(name: string): boolean {
-  return builtinSubagents.hasOwnProperty(name);
+  return name in builtinSubagents;
 }

@@ -149,6 +149,8 @@ export * from './tools/task.js';
 export * from './tools/skill.js';
 export * from './tools/todoWrite.js';
 export * from './tools/exitPlanMode.js';
+export * from './tools/bat.js';
+export * from './tools/eza.js';
 
 // MCP OAuth
 export { MCPOAuthProvider } from './mcp/oauth-provider.js';

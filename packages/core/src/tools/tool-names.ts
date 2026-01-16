@@ -26,6 +26,9 @@ export const ToolNames = {
   WEB_FETCH: 'web_fetch',
   WEB_SEARCH: 'web_search',
   LS: 'list_directory',
+  FD: 'fd',
+  BAT: 'bat',
+  EZA: 'eza',
 } as const;
 
 /**
@@ -50,6 +53,9 @@ export const ToolDisplayNames = {
   WEB_FETCH: 'WebFetch',
   WEB_SEARCH: 'WebSearch',
   LS: 'ListFiles',
+  FD: 'Fd',
+  BAT: 'Bat',
+  EZA: 'Eza',
 } as const;
 
 // Migration from old tool names to new tool names
@@ -90,4 +96,7 @@ export const ToolAliases: Record<string, string> = {
   list: ToolNames.LS, // 'list' -> 'list_directory'
   memory: ToolNames.MEMORY, // 'memory' -> 'save_memory'
   save: ToolNames.MEMORY, // 'save' -> 'save_memory'
+  fd: ToolNames.FD, // 'fd' -> 'fd'
+  bat: ToolNames.BAT, // 'bat' -> 'bat'
+  eza: ToolNames.EZA, // 'eza' -> 'eza'
 } as const;

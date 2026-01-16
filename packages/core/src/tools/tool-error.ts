@@ -40,8 +40,17 @@ export enum ToolErrorType {
   // Glob-specific Errors
   GLOB_EXECUTION_ERROR = 'glob_execution_error',
 
+  // FD-specific Errors
+  FD_EXECUTION_ERROR = 'fd_execution_error',
+
+  // BAT-specific Errors
+  BAT_EXECUTION_ERROR = 'bat_execution_error',
+
   // Grep-specific Errors
   GREP_EXECUTION_ERROR = 'grep_execution_error',
+
+  // Eza
+  EZA_EXECUTION_ERROR = 'eza_execution_error',
 
   // Ls-specific Errors
   LS_EXECUTION_ERROR = 'ls_execution_error',

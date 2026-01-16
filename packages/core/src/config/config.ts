@@ -43,6 +43,7 @@ import { GitService } from '../services/gitService.js';
 // Tools
 import { EditTool } from '../tools/edit.js';
 import { ExitPlanModeTool } from '../tools/exitPlanMode.js';
+import { FdTool } from '../tools/fd.js';
 import { GlobTool } from '../tools/glob.js';
 import { GrepTool } from '../tools/grep.js';
 import { LSTool } from '../tools/ls.js';
@@ -62,6 +63,8 @@ import { ToolRegistry } from '../tools/tool-registry.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
 import { WebSearchTool } from '../tools/web-search/index.js';
 import { WriteFileTool } from '../tools/write-file.js';
+import { BatTool } from '../tools/bat.js';
+import { EzaTool } from '../tools/eza.js';
 
 // Other modules
 import { ideContextStore } from '../ide/ideContext.js';
@@ -1523,6 +1526,7 @@ export class Config {
     }
 
     registerCoreTool(GlobTool, this);
+    registerCoreTool(FdTool, this);
     if (this.getUseSmartEdit()) {
       registerCoreTool(SmartEditTool, this);
     } else {
@@ -1536,6 +1540,8 @@ export class Config {
     registerCoreTool(TodoWriteTool, this);
     !this.sdkMode && registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
+    registerCoreTool(BatTool, this);
+    registerCoreTool(EzaTool, this);
     // Conditionally register web search tool if web search provider is configured
     // buildWebSearchConfig ensures qwen-oauth users get dashscope provider, so
     // if tool is registered, config must exist
