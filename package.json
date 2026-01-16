@@ -1,6 +1,6 @@
 {
   "name": "@qwen-code/qwen-code",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -13,10 +13,10 @@
     "url": "git+https://github.com/QwenLM/qwen-code.git"
   },
   "config": {
-    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.7.0"
+    "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.7.1"
   },
   "scripts": {
-    "start": "cross-env node scripts/start.js",
+    "start": "cross-env node scripts/start.js --experimental-skills",
     "debug": "cross-env DEBUG=1 node --inspect-brk scripts/start.js",
     "generate": "node scripts/generate-git-commit-info.js",
     "build": "node scripts/build.js",
@@ -65,7 +65,7 @@
     }
   },
   "bin": {
-    "qwen": "dist/cli.js"
+    "stest": "dist/cli.js"
   },
   "files": [
     "dist/",

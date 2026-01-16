@@ -40,6 +40,7 @@ import {
   COMPRESSION_TOKEN_THRESHOLD,
 } from '../services/chatCompressionService.js';
 import { LoopDetectionService } from '../services/loopDetectionService.js';
+import { PromptInjectionService } from '../services/promptInjectionService.js';
 
 // Tools
 import { TaskTool } from '../tools/task.js';
@@ -80,6 +81,7 @@ export class GeminiClient {
   private sessionTurnCount = 0;
 
   private readonly loopDetector: LoopDetectionService;
+  private readonly promptInjectionService: PromptInjectionService;
   private lastPromptId: string | undefined = undefined;
   private lastSentIdeContext: IdeContext | undefined;
   private forceFullIdeContext = true;
@@ -92,6 +94,7 @@ export class GeminiClient {
 
   constructor(private readonly config: Config) {
     this.loopDetector = new LoopDetectionService(config);
+    this.promptInjectionService = new PromptInjectionService();
   }
 
   async initialize() {
@@ -176,6 +179,7 @@ export class GeminiClient {
   async startChat(extraHistory?: Content[]): Promise<GeminiChat> {
     this.forceFullIdeContext = true;
     this.hasFailedCompressionAttempt = false;
+    this.promptInjectionService.resetMetrics();
 
     const toolRegistry = this.config.getToolRegistry();
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
@@ -548,8 +552,40 @@ export class GeminiClient {
         );
       }
 
+      // INTELLIGENT PROMPT INJECTION: Analyze conversation and inject core prompt if needed
+      const currentHistory = this.getChat().getHistory(true);
+      this.promptInjectionService.updateMetrics(currentHistory);
+
+      if (this.promptInjectionService.shouldInjectCorePrompt()) {
+        const userMemory = this.config.getUserMemory();
+        const model = this.config.getModel();
+        const corePrompt = getCoreSystemPrompt(userMemory, model);
+
+        systemReminders.push(
+          `<system-reminder type="core-prompt-reinforcement">\nCore system prompt reinforcement injected to minimize hallucination and ensure adherence to best practices.\n\n${corePrompt}\n</system-reminder>`,
+        );
+
+        // Record that we've injected the core prompt
+        this.promptInjectionService.recordCorePromptInjection();
+
+        // Also add targeted reminder if there are specific hallucination patterns detected
+        const targetedReminder = this.promptInjectionService.getTargetedReminderForInjection();
+        if (targetedReminder) {
+          systemReminders.push(targetedReminder);
+        }
+      }
+
       requestToSent = [...systemReminders, ...requestToSent];
     }
+
+    // Record tool usage and error patterns for prompt injection service
+    const handleToolUsageAndErrors = (event: ServerGeminiStreamEvent) => {
+      if (event.type === GeminiEventType.ToolCallRequest || event.type === GeminiEventType.ToolCallResponse) {
+        this.promptInjectionService.recordToolUsage();
+      } else if (event.type === GeminiEventType.Error) {
+        this.promptInjectionService.recordErrorEncounter();
+      }
+    };
 
     const resultStream = turn.run(
       this.config.getModel(),
@@ -563,6 +599,7 @@ export class GeminiClient {
           return turn;
         }
       }
+      handleToolUsageAndErrors(event);
       yield event;
       if (event.type === GeminiEventType.Error) {
         return turn;

@@ -18,12 +18,12 @@ const getContainerWidth = (terminalWidth: number): string => {
     return '98%';
   }
   if (terminalWidth >= 132) {
-    return '90%';
+    return '98%';
   }
 
-  // Linearly interpolate between 80 columns (98%) and 132 columns (90%).
+  // Linearly interpolate between 80 columns (100%) and 132 columns (100%).
   const t = (terminalWidth - 80) / (132 - 80);
-  const percentage = lerp(98, 90, t);
+  const percentage = lerp(98, 98, t);
 
   return `${Math.round(percentage)}%`;
 };

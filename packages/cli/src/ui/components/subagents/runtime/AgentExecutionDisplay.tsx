@@ -5,7 +5,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { Box, Text } from 'ink';
+import { Box, Spacer, Text } from 'ink';
 import type {
   TaskResultDisplay,
   SubagentStatsSummary,
@@ -148,17 +148,16 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
           <>
             {/* Current tool call */}
             {data.toolCalls && data.toolCalls.length > 0 && (
-              <Box flexDirection="column">
+              <Box flexDirection="column" marginBottom={1}>
                 <ToolCallItem
-                  toolCall={data.toolCalls[data.toolCalls.length - 1]}
+                  toolCall={data.toolCalls.at(-1)!}
                   compact={true}
                 />
                 {/* Show count of additional tool calls if there are more than 1 */}
                 {data.toolCalls.length > 1 && !data.pendingConfirmation && (
-                  <Box flexDirection="row" paddingLeft={4}>
+                  <Box flexDirection="row" paddingLeft={1}>
                     <Text color={theme.text.secondary}>
-                      +{data.toolCalls.length - 1} more tool calls (ctrl+e to
-                      expand)
+                      +{data.toolCalls.length - 1} tools
                     </Text>
                   </Box>
                 )}
@@ -167,7 +166,7 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
 
             {/* Inline approval prompt when awaiting confirmation */}
             {data.pendingConfirmation && (
-              <Box flexDirection="column" marginTop={1} paddingLeft={1}>
+              <Box flexDirection="column" paddingLeft={1}>
                 <ToolConfirmationMessage
                   confirmationDetails={data.pendingConfirmation}
                   isFocused={true}
@@ -183,7 +182,7 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
 
         {/* Completed state: Show summary line */}
         {data.status === 'completed' && data.executionSummary && (
-          <Box flexDirection="row" marginTop={1}>
+          <Box flexDirection="row" marginBottom={1}>
             <Text color={theme.text.secondary}>
               Execution Summary: {data.executionSummary.totalToolCalls} tool
               uses · {data.executionSummary.totalTokens.toLocaleString()} tokens
@@ -194,7 +193,7 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
 
         {/* Failed/Cancelled state: Show error reason */}
         {data.status === 'failed' && (
-          <Box flexDirection="row" marginTop={1}>
+          <Box flexDirection="row" marginBottom={1}>
             <Text color={theme.status.error}>
               Failed: {data.terminateReason}
             </Text>
@@ -206,9 +205,9 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
 
   // Default and verbose modes use normal layout
   return (
-    <Box flexDirection="column" paddingX={1} gap={1}>
+    <Box flexDirection="column" width="100%">
       {/* Header with subagent name and status */}
-      <Box flexDirection="row">
+      <Box flexDirection="row" width="100%" flexShrink={1}>
         <Text bold color={agentColor}>
           {data.subagentName}
         </Text>
@@ -226,7 +225,7 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
       {data.status === 'running' &&
         data.toolCalls &&
         data.toolCalls.length > 0 && (
-          <Box flexDirection="column">
+          <Box flexDirection="column" width="100%">
             <ToolCallsList
               toolCalls={data.toolCalls}
               displayMode={displayMode}
@@ -236,7 +235,7 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
 
       {/* Inline approval prompt when awaiting confirmation */}
       {data.pendingConfirmation && (
-        <Box flexDirection="column">
+        <Box flexDirection="column" width="100%">
           <ToolConfirmationMessage
             confirmationDetails={data.pendingConfirmation}
             config={config}
@@ -257,8 +256,10 @@ export const AgentExecutionDisplay: React.FC<AgentExecutionDisplayProps> = ({
 
       {/* Footer with keyboard shortcuts */}
       {footerText && (
-        <Box flexDirection="row">
-          <Text color={theme.text.secondary}>{footerText}</Text>
+        <Box flexDirection="row" width="100%">
+          <Text color={theme.text.secondary} wrap="truncate-end">
+            {footerText}
+          </Text>
         </Box>
       )}
     </Box>
@@ -278,7 +279,7 @@ const TaskPromptSection: React.FC<{
   const displayLines = showFull ? lines : lines.slice(0, MAX_TASK_PROMPT_LINES);
 
   return (
-    <Box flexDirection="column" gap={1}>
+    <Box flexDirection="column">
       <Box flexDirection="row">
         <Text color={theme.text.primary}>Task Detail: </Text>
         {shouldTruncate && displayMode === 'default' && (
@@ -288,7 +289,7 @@ const TaskPromptSection: React.FC<{
           </Text>
         )}
       </Box>
-      <Box paddingLeft={1}>
+      <Box paddingLeft={1} flexShrink={1}>
         <Text wrap="wrap">
           {displayLines.join('\n') + (shouldTruncate && !showFull ? '...' : '')}
         </Text>
@@ -335,11 +336,11 @@ const ToolCallsList: React.FC<{
   const reversedDisplayCalls = [...displayCalls].reverse();
 
   return (
-    <Box flexDirection="column">
-      <Box flexDirection="row" marginBottom={1}>
+    <Box flexDirection="column" width="100%">
+      <Box flexDirection="row" width="100%">
         <Text color={theme.text.primary}>Tools:</Text>
         {shouldTruncate && displayMode === 'default' && (
-          <Text color={theme.text.secondary}>
+          <Text color={theme.text.secondary} wrap="truncate-end">
             {' '}
             Showing the last {MAX_TOOL_CALLS} of {calls.length} tools.
           </Text>
@@ -408,9 +409,9 @@ const ToolCallItem: React.FC<{
   }, [toolCall.resultDisplay]);
 
   return (
-    <Box flexDirection="column" paddingLeft={1} marginBottom={0}>
+    <Box flexDirection="column" paddingLeft={1}>
       {/* First line: status icon + tool name + description (consistent with ToolInfo) */}
-      <Box flexDirection="row">
+      <Box flexDirection="row" width="100%" flexShrink={1}>
         <Box minWidth={STATUS_INDICATOR_WIDTH}>{statusIcon}</Box>
         <Text wrap="truncate-end">
           <Text>{toolCall.name}</Text>{' '}
@@ -423,8 +424,14 @@ const ToolCallItem: React.FC<{
 
       {/* Second line: truncated returnDisplay output - hidden in compact mode */}
       {!compact && truncatedOutput && (
-        <Box flexDirection="row" paddingLeft={STATUS_INDICATOR_WIDTH}>
-          <Text color={theme.text.secondary}>{truncatedOutput}</Text>
+        <Box
+          flexDirection="row"
+          paddingLeft={STATUS_INDICATOR_WIDTH}
+          flexShrink={1}
+        >
+          <Text color={theme.text.secondary} wrap="truncate-end">
+            {truncatedOutput}
+          </Text>
         </Box>
       )}
     </Box>
@@ -442,23 +449,27 @@ const ExecutionSummaryDetails: React.FC<{
 
   if (!stats) {
     return (
-      <Box flexDirection="column" paddingLeft={1}>
-        <Text color={theme.text.secondary}>• No summary available</Text>
+      <Box flexDirection="column" paddingLeft={1} width="100%">
+        <Text color={theme.text.secondary} wrap="truncate-end">
+          • No summary available
+        </Text>
+        <Spacer />
       </Box>
     );
   }
 
   return (
-    <Box flexDirection="column" paddingLeft={1}>
-      <Text>
+    <Box flexDirection="column" paddingLeft={1} width="100%">
+      <Text wrap="truncate-end">
         • <Text>Duration: {fmtDuration(stats.totalDurationMs)}</Text>
       </Text>
-      <Text>
+      <Text wrap="truncate-end">
         • <Text>Rounds: {stats.rounds}</Text>
       </Text>
-      <Text>
+      <Text wrap="truncate-end">
         • <Text>Tokens: {stats.totalTokens.toLocaleString()}</Text>
       </Text>
+      <Spacer />
     </Box>
   );
 };
@@ -471,32 +482,35 @@ const ToolUsageStats: React.FC<{
 }> = ({ executionSummary }) => {
   if (!executionSummary) {
     return (
-      <Box flexDirection="column" paddingLeft={1}>
-        <Text color={theme.text.secondary}>• No tool usage data available</Text>
+      <Box flexDirection="column" paddingLeft={1} width="100%">
+        <Text color={theme.text.secondary} wrap="truncate-end">
+          • No tool usage data available
+        </Text>
+        <Spacer />
       </Box>
     );
   }
 
   return (
-    <Box flexDirection="column" paddingLeft={1}>
-      <Text>
+    <Box flexDirection="column" paddingLeft={1} width="100%">
+      <Text wrap="truncate-end">
         • <Text>Total Calls:</Text> {executionSummary.totalToolCalls}
       </Text>
-      <Text>
+      <Text wrap="truncate-end">
         • <Text>Success Rate:</Text>{' '}
         <Text color={theme.status.success}>
           {executionSummary.successRate.toFixed(1)}%
-        </Text>{' '}
+        </Text>
         (
         <Text color={theme.status.success}>
           {executionSummary.successfulToolCalls} success
         </Text>
-        ,{' '}
         <Text color={theme.status.error}>
           {executionSummary.failedToolCalls} failed
         </Text>
         )
       </Text>
+      <Spacer />
     </Box>
   );
 };
@@ -508,7 +522,7 @@ const ResultsSection: React.FC<{
   data: TaskResultDisplay;
   displayMode: DisplayMode;
 }> = ({ data, displayMode }) => (
-  <Box flexDirection="column" gap={1}>
+  <Box flexDirection="column" width="100%">
     {/* Tool calls section - clean list format */}
     {data.toolCalls && data.toolCalls.length > 0 && (
       <ToolCallsList toolCalls={data.toolCalls} displayMode={displayMode} />
@@ -516,34 +530,42 @@ const ResultsSection: React.FC<{
 
     {/* Execution Summary section - hide when cancelled */}
     {data.status === 'completed' && (
-      <Box flexDirection="column">
-        <Box flexDirection="row" marginBottom={1}>
+      <Box flexDirection="column" width="100%">
+        <Box flexDirection="row" width="100%">
           <Text color={theme.text.primary}>Execution Summary:</Text>
         </Box>
         <ExecutionSummaryDetails data={data} displayMode={displayMode} />
+        <Spacer />
       </Box>
     )}
 
     {/* Tool Usage section - hide when cancelled */}
     {data.status === 'completed' && data.executionSummary && (
-      <Box flexDirection="column">
-        <Box flexDirection="row" marginBottom={1}>
+      <Box flexDirection="column" width="100%">
+        <Box flexDirection="row" width="100%">
           <Text color={theme.text.primary}>Tool Usage:</Text>
         </Box>
         <ToolUsageStats executionSummary={data.executionSummary} />
+        <Spacer />
       </Box>
     )}
 
     {/* Error reason for failed tasks */}
     {data.status === 'cancelled' && (
-      <Box flexDirection="row">
-        <Text color={theme.status.warning}>⏹ User Cancelled</Text>
+      <Box flexDirection="row" width="100%">
+        <Text color={theme.status.warning} wrap="truncate-end">
+          ⏹ User Cancelled
+        </Text>
       </Box>
     )}
     {data.status === 'failed' && (
-      <Box flexDirection="row">
-        <Text color={theme.status.error}>Task Failed: </Text>
-        <Text color={theme.status.error}>{data.terminateReason}</Text>
+      <Box flexDirection="row" width="100%">
+        <Text color={theme.status.error} wrap="truncate-end">
+          Task Failed:{' '}
+        </Text>
+        <Text color={theme.status.error} wrap="truncate-end">
+          {data.terminateReason}
+        </Text>
       </Box>
     )}
   </Box>

@@ -9,10 +9,11 @@ import { Box, Text } from 'ink';
 import { theme } from '../semantic-colors.js';
 import { shortenPath, tildeifyPath } from '@qwen-code/qwen-code-core';
 import { ConsoleSummaryDisplay } from './ConsoleSummaryDisplay.js';
-import process from 'node:process';
+
 import Gradient from 'ink-gradient';
 import { MemoryUsageDisplay } from './MemoryUsageDisplay.js';
 import { ContextUsageDisplay } from './ContextUsageDisplay.js';
+import { ContextSummaryDisplay } from './ContextSummaryDisplay.js';
 import { DebugProfiler } from './DebugProfiler.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 
@@ -37,7 +38,6 @@ export const Footer: React.FC = () => {
     showErrorDetails,
     promptTokenCount,
     nightly,
-    isTrustedFolder,
   } = {
     model: config.getModel(),
     targetDir: config.getTargetDir(),
@@ -48,14 +48,11 @@ export const Footer: React.FC = () => {
     showErrorDetails: uiState.showErrorDetails,
     promptTokenCount: uiState.sessionStats.lastPromptTokenCount,
     nightly: uiState.nightly,
-    isTrustedFolder: uiState.isTrustedFolder,
   };
 
   const showMemoryUsage =
     config.getDebugMode() || settings.merged.ui?.showMemoryUsage || false;
   const hideCWD = settings.merged.ui?.footer?.hideCWD || false;
-  const hideSandboxStatus =
-    settings.merged.ui?.footer?.hideSandboxStatus || false;
   const hideModelInfo = settings.merged.ui?.footer?.hideModelInfo || false;
 
   const { columns: terminalWidth } = useTerminalSize();
@@ -66,12 +63,15 @@ export const Footer: React.FC = () => {
   const justifyContent = hideCWD && hideModelInfo ? 'center' : 'space-between';
   const displayVimMode = vimEnabled ? vimMode : undefined;
 
+  const { contextFileNames } = uiState;
+
   return (
     <Box
       justifyContent={justifyContent}
       width="100%"
       flexDirection="row"
       alignItems="center"
+      paddingX={1}
     >
       {(debugMode || displayVimMode || !hideCWD) && (
         <Box>
@@ -103,54 +103,23 @@ export const Footer: React.FC = () => {
         </Box>
       )}
 
-      {/* Middle Section: Centered Trust/Sandbox Info */}
-      {!hideSandboxStatus && (
-        <Box
-          flexGrow={1}
-          alignItems="center"
-          justifyContent="center"
-          display="flex"
-        >
-          {isTrustedFolder === false ? (
-            <Text color={theme.status.warning}>untrusted</Text>
-          ) : process.env['SANDBOX'] &&
-            process.env['SANDBOX'] !== 'sandbox-exec' ? (
-            <Text color="green">
-              {process.env['SANDBOX'].replace(/^gemini-(?:cli-)?/, '')}
-            </Text>
-          ) : process.env['SANDBOX'] === 'sandbox-exec' ? (
-            <Text color={theme.status.warning}>
-              macOS Seatbelt{' '}
-              <Text color={theme.text.secondary}>
-                ({process.env['SEATBELT_PROFILE']})
-              </Text>
-            </Text>
-          ) : (
-            <Text color={theme.status.error}>
-              no sandbox
-              {terminalWidth >= 100 && (
-                <Text color={theme.text.secondary}> (see /docs)</Text>
-              )}
-            </Text>
-          )}
-        </Box>
-      )}
-
       {/* Right Section: Gemini Label and Console Summary */}
       {!hideModelInfo && (
         <Box alignItems="center" justifyContent="flex-end">
           <Box alignItems="center">
-            <Text color={theme.text.accent}>
-              {model}{' '}
-              <ContextUsageDisplay
-                promptTokenCount={promptTokenCount}
-                model={model}
-                terminalWidth={terminalWidth}
-              />
-            </Text>
+            <Text color={theme.text.accent}>{'saken'} </Text>
+            <ContextUsageDisplay
+              promptTokenCount={promptTokenCount}
+              model={model}
+            />
             {showMemoryUsage && <MemoryUsageDisplay />}
+            <Text color={theme.text.secondary}>{' |'} </Text>
+            <ContextSummaryDisplay
+              geminiMdFileCount={uiState.geminiMdFileCount}
+              contextFileNames={contextFileNames}
+            />
           </Box>
-          <Box alignItems="center" paddingLeft={2}>
+          <Box alignItems="center">
             {!showErrorDetails && errorCount > 0 && (
               <Box>
                 <Text color={theme.ui.symbol}>| </Text>

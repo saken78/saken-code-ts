@@ -11,16 +11,16 @@ import { tokenLimit } from '@qwen-code/qwen-code-core';
 export const ContextUsageDisplay = ({
   promptTokenCount,
   model,
-  terminalWidth,
+  // terminalWidth,
 }: {
   promptTokenCount: number;
   model: string;
-  terminalWidth: number;
+  // terminalWidth: number;
 }) => {
   const percentage = promptTokenCount / tokenLimit(model);
   const percentageLeft = ((1 - percentage) * 100).toFixed(0);
 
-  const label = terminalWidth < 100 ? '%' : '% context left';
+  const label = '%';
 
   return (
     <Text color={theme.text.secondary}>

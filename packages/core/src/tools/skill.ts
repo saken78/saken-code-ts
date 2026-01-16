@@ -49,7 +49,7 @@ export class SkillTool extends BaseDeclarativeTool<SkillParams, ToolResult> {
       'Execute a skill within the main conversation. Loading available skills...', // Initial description
       Kind.Read,
       initialSchema,
-      true, // isOutputMarkdown
+      false, // isOutputMarkdown
       false, // canUpdateOutput
     );
 
@@ -68,16 +68,23 @@ export class SkillTool extends BaseDeclarativeTool<SkillParams, ToolResult> {
    */
   async refreshSkills(): Promise<void> {
     try {
+      console.debug('[Skills] Starting to refresh skills...');
       this.availableSkills = await this.skillManager.listSkills();
+      console.debug(
+        `[Skills] Found ${this.availableSkills.length} skills:`,
+        this.availableSkills.map((s) => s.name),
+      );
       this.updateDescriptionAndSchema();
+      console.debug('[Skills] Skills refreshed and schema updated');
     } catch (error) {
-      console.warn('Failed to load skills for Skills tool:', error);
+      console.error('[Skills] Failed to load skills for Skills tool:', error);
       this.availableSkills = [];
       this.updateDescriptionAndSchema();
     } finally {
       // Update the client with the new tools
       const geminiClient = this.config.getGeminiClient();
       if (geminiClient && geminiClient.isInitialized()) {
+        console.debug('[Skills] Updating client tools after skill refresh');
         await geminiClient.setTools();
       }
     }
@@ -128,6 +135,11 @@ Important:
 - Only use skills listed in <available_skills> below
 - Do not invoke a skill that is already running
 - Do not use this tool for built-in CLI commands (like /help, /clear, etc.)
+- When executing scripts or loading referenced files, ALWAYS resolve absolute paths from skill's base directory. Examples:
+  - \`bash scripts/init.sh\` -> \`bash /path/to/skill/scripts/init.sh\`
+  - \`python scripts/helper.py\` -> \`python /path/to/skill/scripts/helper.py\`
+  - \`reference.md\` -> \`/path/to/skill/reference.md\`
+
 </skills_instructions>
 
 <available_skills>
@@ -183,7 +195,7 @@ class SkillToolInvocation extends BaseToolInvocation<SkillParams, ToolResult> {
   }
 
   getDescription(): string {
-    return `Launching skill: "${this.params.skill}"`;
+    return `Use skill: "${this.params.skill}"`;
   }
 
   override async shouldConfirmExecute(): Promise<false> {
@@ -238,16 +250,15 @@ class SkillToolInvocation extends BaseToolInvocation<SkillParams, ToolResult> {
       const baseDir = path.dirname(skill.filePath);
 
       // Build markdown content for LLM (show base dir, then body)
-      const llmContent = `Base directory for this skill: ${baseDir}\n\n${skill.body}\n`;
-
+      const llmContent = `Base directory for this skill: ${baseDir}\nImportant: ALWAYS resolve absolute paths from this base directory when working with skills.\n\n${skill.body}\n`;
       return {
         llmContent: [{ text: llmContent }],
-        returnDisplay: `Launching skill: ${skill.name}`,
+        returnDisplay: skill.description,
       };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error(`[SkillsTool] Error launching skill: ${errorMessage}`);
+      console.error(`[SkillsTool] Error using skill: ${errorMessage}`);
 
       // Log failed skill launch
       logSkillLaunch(

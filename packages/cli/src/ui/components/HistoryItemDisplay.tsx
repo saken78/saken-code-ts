@@ -21,6 +21,7 @@ import { CompressionMessage } from './messages/CompressionMessage.js';
 import { SummaryMessage } from './messages/SummaryMessage.js';
 import { WarningMessage } from './messages/WarningMessage.js';
 import { Box } from 'ink';
+import { SkillsList } from './views/SkillsList.js';
 import { AboutBox } from './AboutBox.js';
 import { StatsDisplay } from './StatsDisplay.js';
 import { ModelStatsDisplay } from './ModelStatsDisplay.js';
@@ -152,6 +153,9 @@ const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
           tools={itemForDisplay.tools}
           showDescriptions={itemForDisplay.showDescriptions}
         />
+      )}
+      {itemForDisplay.type === 'skills_list' && (
+        <SkillsList skills={itemForDisplay.skills} />
       )}
       {itemForDisplay.type === 'mcp_status' && (
         <McpStatus {...itemForDisplay} serverStatus={getMCPServerStatus} />

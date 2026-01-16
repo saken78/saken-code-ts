@@ -34,6 +34,7 @@ import type {
 import { ShellExecutionService } from '../services/shellExecutionService.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
 import type { AnsiOutput } from '../utils/terminalSerializer.js';
+import { isSubpath } from '../utils/paths.js';
 import {
   getCommandRoots,
   isCommandAllowed,
@@ -130,7 +131,6 @@ export class ShellToolInvocation extends BaseToolInvocation<
       };
     }
 
-    const isWindows = os.platform() === 'win32';
     const tempFileName = `shell_pgrep_${crypto
       .randomBytes(6)
       .toString('hex')}.tmp`;
@@ -143,33 +143,15 @@ export class ShellToolInvocation extends BaseToolInvocation<
       const shouldRunInBackground = this.params.is_background;
       let finalCommand = processedCommand;
 
-      // On non-Windows, use & to run in background.
-      // On Windows, we don't use start /B because it creates a detached process that
-      // doesn't die when the parent dies. Instead, we rely on the race logic below
-      // to return early while keeping the process attached (detached: false).
-      if (
-        !isWindows &&
-        shouldRunInBackground &&
-        !finalCommand.trim().endsWith('&')
-      ) {
+      // Use & to run in background on Linux
+      if (shouldRunInBackground && !finalCommand.trim().endsWith('&')) {
         finalCommand = finalCommand.trim() + ' &';
       }
 
-      // On Windows, we rely on the race logic below to handle background tasks.
-      // We just ensure the command string is clean.
-      if (isWindows && shouldRunInBackground) {
-        finalCommand = finalCommand.trim().replace(/&+$/, '').trim();
-      }
-
-      // pgrep is not available on Windows, so we can't get background PIDs
-      const commandToExecute = isWindows
-        ? finalCommand
-        : (() => {
-            // wrap command to append subprocess pids (via pgrep) to temporary file
-            let command = finalCommand.trim();
-            if (!command.endsWith('&')) command += ';';
-            return `{ ${command} }; __code=$?; pgrep -g 0 >${tempFilePath} 2>&1; exit $__code;`;
-          })();
+      // Wrap command to append subprocess pids (via pgrep) to temporary file
+      let commandToExecute = finalCommand.trim();
+      if (!commandToExecute.endsWith('&')) commandToExecute += ';';
+      commandToExecute = `{ ${commandToExecute} }; __code=$?; pgrep -g 0 >${tempFilePath} 2>&1; exit $__code;`;
 
       const cwd = this.params.directory || this.config.getTargetDir();
 
@@ -233,9 +215,7 @@ export class ShellToolInvocation extends BaseToolInvocation<
         // Note: We cannot reliably detect startup errors for background processes
         // since their stdio is typically detached/ignored
         const pidMsg = pid ? ` PID: ${pid}` : '';
-        const killHint = isWindows
-          ? ' (Use taskkill /F /T /PID <pid> to stop)'
-          : ' (Use kill <pid> to stop)';
+        const killHint = ' (Use kill <pid> to stop)';
 
         return {
           llmContent: `Background command started.${pidMsg}${killHint}`,
@@ -246,25 +226,23 @@ export class ShellToolInvocation extends BaseToolInvocation<
       const result = await resultPromise;
 
       const backgroundPIDs: number[] = [];
-      if (os.platform() !== 'win32') {
-        if (fs.existsSync(tempFilePath)) {
-          const pgrepLines = fs
-            .readFileSync(tempFilePath, 'utf8')
-            .split(EOL)
-            .filter(Boolean);
-          for (const line of pgrepLines) {
-            if (!/^\d+$/.test(line)) {
-              console.error(`pgrep: ${line}`);
-            }
-            const pid = Number(line);
-            if (pid !== result.pid) {
-              backgroundPIDs.push(pid);
-            }
+      if (fs.existsSync(tempFilePath)) {
+        const pgrepLines = fs
+          .readFileSync(tempFilePath, 'utf8')
+          .split(EOL)
+          .filter(Boolean);
+        for (const line of pgrepLines) {
+          if (!/^\d+$/.test(line)) {
+            console.error(`pgrep: ${line}`);
           }
-        } else {
-          if (!signal.aborted) {
-            console.error('missing pgrep output');
+          const pid = Number(line);
+          if (pid !== result.pid) {
+            backgroundPIDs.push(pid);
           }
+        }
+      } else {
+        if (!signal.aborted) {
+          console.error('missing pgrep output');
         }
       }
 
@@ -407,57 +385,52 @@ Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
 
 function getShellToolDescription(): string {
   const toolDescription = `
-
-      **Background vs Foreground Execution:**
-      You should decide whether commands should run in background or foreground based on their nature:
-      
-      **Use background execution (is_background: true) for:**
-      - Long-running development servers: \`npm run start\`, \`npm run dev\`, \`yarn dev\`, \`bun run start\`
-      - Build watchers: \`npm run watch\`, \`webpack --watch\`
-      - Database servers: \`mongod\`, \`mysql\`, \`redis-server\`
-      - Web servers: \`python -m http.server\`, \`php -S localhost:8000\`
-      - Any command expected to run indefinitely until manually stopped
-      
-      **Use foreground execution (is_background: false) for:**
-      - One-time commands: \`ls\`, \`cat\`, \`grep\`
-      - Build commands: \`npm run build\`, \`make\`
-      - Installation commands: \`npm install\`, \`pip install\`
-      - Git operations: \`git commit\`, \`git push\`
-      - Test runs: \`npm test\`, \`pytest\`
-      
-      The following information is returned:
-
-      Command: Executed command.
-      Directory: Directory where command was executed, or \`(root)\`.
-      Stdout: Output on stdout stream. Can be \`(empty)\` or partial on error and for any unwaited background processes.
-      Stderr: Output on stderr stream. Can be \`(empty)\` or partial on error and for any unwaited background processes.
-      Error: Error or \`(none)\` if no error was reported for the subprocess.
-      Exit Code: Exit code or \`(none)\` if terminated by signal.
-      Signal: Signal number or \`(none)\` if no signal was received.
-      Background PIDs: List of background processes started or \`(none)\`.
-      Process Group PGID: Process group started or \`(none)\``;
-
-  if (os.platform() === 'win32') {
-    return `This tool executes a given shell command as \`cmd.exe /c <command>\`. Command can start background processes using \`start /b\`.${toolDescription}`;
-  } else {
-    return `This tool executes a given shell command as \`bash -c <command>\`. Command can start background processes using \`&\`. Command is executed as a subprocess that leads its own process group. Command process group can be terminated as \`kill -- -PGID\` or signaled as \`kill -s SIGNAL -- -PGID\`.${toolDescription}`;
-  }
+**Usage notes**:
+- The command argument is required.
+- It is very helpful if you write a clear, concise description of what this command does in 5-10 words.
+- Avoid using run_shell_command with the \`find\`, \`grep\`, \`cat\`, \`head\`, \`tail\`, \`sed\`, \`awk\`, or \`echo\` commands, unless explicitly instructed or when these commands are truly necessary for the task. Instead, always prefer using the dedicated tools for these commands:
+  - File search: Use glob (NOT find or ls)
+  - Content search: Use grep_search (NOT grep or rg)
+  - Read files: Use read_file (NOT cat/head/tail)
+  - Edit files: Use edit (NOT sed/awk)
+  - Write files: Use write_file (NOT echo >/cat <<EOF)
+  - Communication: Output text directly (NOT echo/printf)
+- When issuing multiple commands:
+  - If the commands are independent and can run in parallel, make multiple run_shell_command tool calls in a single message. For example, if you need to run "git status" and "git diff", send a single message with two run_shell_command tool calls in parallel.
+  - If the commands depend on each other and must run sequentially, use a single run_shell_command call with '&&' to chain them together (e.g., \`git add . && git commit -m "message" && git push\`). For instance, if one operation must complete before another starts (like mkdir before cp, Write before run_shell_command for git operations, or git add before git commit), run these operations sequentially instead.
+  - Use ';' only when you need to run commands sequentially but don't care if earlier commands fail
+  - DO NOT use newlines to separate commands (newlines are ok in quoted strings)
+- Try to maintain your current working directory throughout the session by using absolute paths and avoiding usage of \`cd\`. You may use \`cd\` if the User explicitly requests it.
+  <good-example>
+  pytest /foo/bar/tests
+  </good-example>
+  <bad-example>
+  cd /foo/bar && pytest tests
+  </bad-example>
+**Background vs Foreground Execution:**
+You should decide whether commands should run in background or foreground based on their nature:
+**Use background execution (is_background: true) for:**
+- Long-running development servers: \`npm run start\`, \`npm run dev\`, \`yarn dev\`, \`bun run start\`
+- Build watchers: \`npm run watch\`, \`webpack --watch\`
+- Database servers: \`mongod\`, \`mysql\`, \`redis-server\`
+- Web servers: \`python -m http.server\`, \`php -S localhost:8000\`
+- Any command expected to run indefinitely until manually stopped
+**Use foreground execution (is_background: false) for:**
+- One-time commands: \`ls\`, \`cat\`, \`grep\`
+- Build commands: \`npm run build\`, \`make\`
+- Installation commands: \`npm install\`, \`pip install\`
+- Git operations: \`git commit\`, \`git push\`
+- Test runs: \`npm test\`, \`pytest\``;
+  return `This tool executes a given shell command as \`bash -c <command>\`. Command can start background processes using \`&\`. Command is executed as a subprocess that leads its own process group. Command process group can be terminated as \`kill -- -PGID\` or signaled as \`kill -s SIGNAL -- -PGID\`.${toolDescription}`;
 }
 
 function getCommandDescription(): string {
   const cmd_substitution_warning =
     '\n*** WARNING: Command substitution using $(), `` ` ``, <(), or >() is not allowed for security reasons.';
-  if (os.platform() === 'win32') {
-    return (
-      'Exact command to execute as `cmd.exe /c <command>`' +
-      cmd_substitution_warning
-    );
-  } else {
-    return (
-      'Exact bash command to execute as `bash -c <command>`' +
-      cmd_substitution_warning
-    );
-  }
+  return (
+    'Exact bash command to execute as `bash -c <command>`' +
+    cmd_substitution_warning
+  );
 }
 
 export class ShellTool extends BaseDeclarativeTool<
@@ -526,6 +499,16 @@ export class ShellTool extends BaseDeclarativeTool<
       if (!path.isAbsolute(params.directory)) {
         return 'Directory must be an absolute path.';
       }
+      const userSkillsDir = this.config.storage.getUserSkillsDir();
+      const resolvedDirectoryPath = path.resolve(params.directory);
+      const isWithinUserSkills = isSubpath(
+        userSkillsDir,
+        resolvedDirectoryPath,
+      );
+      if (isWithinUserSkills) {
+        return `Explicitly running shell commands from within the user skills directory is not allowed. Please use absolute paths for command parameter instead.`;
+      }
+
       const workspaceDirs = this.config.getWorkspaceContext().getDirectories();
       const isWithinWorkspace = workspaceDirs.some((wsDir) =>
         params.directory!.startsWith(wsDir),

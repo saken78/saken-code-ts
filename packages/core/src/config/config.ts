@@ -53,6 +53,7 @@ import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { canUseRipgrep } from '../utils/ripgrepUtils.js';
 import { RipGrepTool } from '../tools/ripGrep.js';
 import { ShellTool } from '../tools/shell.js';
+import { BashTool } from '../tools/bash.js';
 import { SmartEditTool } from '../tools/smart-edit.js';
 import { SkillTool } from '../tools/skill.js';
 import { TaskTool } from '../tools/task.js';
@@ -673,6 +674,7 @@ export class Config {
     this.promptRegistry = new PromptRegistry();
     this.subagentManager = new SubagentManager(this);
     this.skillManager = new SkillManager(this);
+    await this.skillManager.startWatching();
 
     // Load session subagents if they were provided before initialization
     if (this.sessionSubagents.length > 0) {
@@ -771,6 +773,13 @@ export class Config {
 
   getSessionId(): string {
     return this.sessionId;
+  }
+
+  /**
+   * Releases resources owned by the config instance.
+   */
+  async shutdown(): Promise<void> {
+    this.skillManager?.stopWatching();
   }
 
   /**
@@ -1478,7 +1487,11 @@ export class Config {
 
     registerCoreTool(TaskTool, this);
     if (this.getExperimentalSkills()) {
+      console.debug('[Skills] Experimental skills feature is enabled');
       registerCoreTool(SkillTool, this);
+      console.debug('[Skills] SkillTool has been registered');
+    } else {
+      console.debug('[Skills] Experimental skills feature is disabled');
     }
     registerCoreTool(LSTool, this);
     registerCoreTool(ReadFileTool, this);
@@ -1518,6 +1531,7 @@ export class Config {
     registerCoreTool(WriteFileTool, this);
     registerCoreTool(ReadManyFilesTool, this);
     registerCoreTool(ShellTool, this);
+    registerCoreTool(BashTool, this);
     registerCoreTool(MemoryTool);
     registerCoreTool(TodoWriteTool, this);
     !this.sdkMode && registerCoreTool(ExitPlanModeTool, this);

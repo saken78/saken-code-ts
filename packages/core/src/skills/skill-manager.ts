@@ -5,8 +5,10 @@
  */
 
 import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { watch as watchFs, type FSWatcher } from 'chokidar';
 import { parse as parseYaml } from '../utils/yaml-parser.js';
 import type {
   SkillConfig,
@@ -29,7 +31,9 @@ export class SkillManager {
   private skillsCache: Map<SkillLevel, SkillConfig[]> | null = null;
   private readonly changeListeners: Set<() => void> = new Set();
   private parseErrors: Map<string, SkillError> = new Map();
-
+  private readonly watchers: Map<string, FSWatcher> = new Map();
+  private watchStarted = false;
+  private refreshTimer: NodeJS.Timeout | null = null;
   constructor(private readonly config: Config) {}
 
   /**
@@ -71,6 +75,7 @@ export class SkillManager {
    * @returns Array of skill configurations
    */
   async listSkills(options: ListSkillsOptions = {}): Promise<SkillConfig[]> {
+    console.debug('[SkillManager] Starting listSkills with options:', options);
     const skills: SkillConfig[] = [];
     const seenNames = new Set<string>();
 
@@ -78,21 +83,38 @@ export class SkillManager {
       ? [options.level]
       : ['project', 'user'];
 
+    console.debug('[SkillManager] Checking levels:', levelsToCheck);
+
     // Check if we should use cache or force refresh
     const shouldUseCache = !options.force && this.skillsCache !== null;
+    console.debug(
+      '[SkillManager] Should use cache:',
+      shouldUseCache,
+      'cache exists:',
+      this.skillsCache !== null,
+    );
 
     // Initialize cache if it doesn't exist or we're forcing a refresh
     if (!shouldUseCache) {
+      console.debug(
+        '[SkillManager] Cache not available or force refresh requested, refreshing cache...',
+      );
       await this.refreshCache();
     }
 
     // Collect skills from each level (project takes precedence over user)
     for (const level of levelsToCheck) {
       const levelSkills = this.skillsCache?.get(level) || [];
+      console.debug(
+        `[SkillManager] Found ${levelSkills.length} skills at level ${level}`,
+      );
 
       for (const skill of levelSkills) {
         // Skip if we've already seen this name (precedence: project > user)
         if (seenNames.has(skill.name)) {
+          console.debug(
+            `[SkillManager] Skipping duplicate skill name: ${skill.name}`,
+          );
           continue;
         }
 
@@ -103,6 +125,10 @@ export class SkillManager {
 
     // Sort by name for consistent ordering
     skills.sort((a, b) => a.name.localeCompare(b.name));
+    console.debug(
+      '[SkillManager] Final skills list:',
+      skills.map((s) => s.name),
+    );
 
     return skills;
   }
@@ -207,18 +233,64 @@ export class SkillManager {
    * Refreshes the skills cache by loading all skills from disk.
    */
   async refreshCache(): Promise<void> {
+    console.debug('[SkillManager] Starting refreshCache...');
     const skillsCache = new Map<SkillLevel, SkillConfig[]>();
     this.parseErrors.clear();
+    console.debug('[SkillManager] Cleared parse errors');
 
     const levels: SkillLevel[] = ['project', 'user'];
+    console.debug('[SkillManager] Processing levels:', levels);
 
     for (const level of levels) {
+      console.debug(`[SkillManager] Listing skills at level: ${level}`);
       const levelSkills = await this.listSkillsAtLevel(level);
+      console.debug(
+        `[SkillManager] Found ${levelSkills.length} skills at level ${level}`,
+      );
       skillsCache.set(level, levelSkills);
     }
 
     this.skillsCache = skillsCache;
+    console.debug(
+      '[SkillManager] Updated skills cache with:',
+      [...skillsCache.entries()].map(
+        ([level, skills]) => `${level}: ${skills.length} skills`,
+      ),
+    );
     this.notifyChangeListeners();
+    console.debug(
+      '[SkillManager] Notified change listeners after cache refresh',
+    );
+  }
+
+  /**
+   * Starts watching skill directories for changes.
+   */
+  async startWatching(): Promise<void> {
+    if (this.watchStarted) {
+      return;
+    }
+
+    this.watchStarted = true;
+    await this.refreshCache();
+    this.updateWatchersFromCache();
+  }
+
+  /**
+   * Stops watching skill directories for changes.
+   */
+  stopWatching(): void {
+    for (const watcher of this.watchers.values()) {
+      void watcher.close().catch((error) => {
+        console.warn('Failed to close skills watcher:', error);
+      });
+    }
+    this.watchers.clear();
+    this.watchStarted = false;
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
   }
 
   /**
@@ -366,38 +438,67 @@ export class SkillManager {
    * @returns Array of skill configurations
    */
   private async listSkillsAtLevel(level: SkillLevel): Promise<SkillConfig[]> {
+    console.debug(
+      `[SkillManager] listSkillsAtLevel called for level: ${level}`,
+    );
     const projectRoot = this.config.getProjectRoot();
     const homeDir = os.homedir();
     const isHomeDirectory = path.resolve(projectRoot) === path.resolve(homeDir);
 
+    console.debug(
+      `[SkillManager] Project root: ${projectRoot}, Home dir: ${homeDir}, Same directory: ${isHomeDirectory}`,
+    );
+
     // If project level is requested but project root is same as home directory,
     // return empty array to avoid conflicts between project and global skills
     if (level === 'project' && isHomeDirectory) {
+      console.debug(
+        '[SkillManager] Project root is home directory, skipping project level to avoid conflicts',
+      );
       return [];
     }
 
     const baseDir = this.getSkillsBaseDir(level);
+    console.debug(
+      `[SkillManager] Base directory for level ${level}: ${baseDir}`,
+    );
 
     try {
       const entries = await fs.readdir(baseDir, { withFileTypes: true });
+      console.debug(
+        `[SkillManager] Found ${entries.length} entries in ${baseDir}`,
+      );
       const skills: SkillConfig[] = [];
 
       for (const entry of entries) {
+        console.debug(
+          `[SkillManager] Processing entry: ${entry.name}, isDirectory: ${entry.isDirectory()}`,
+        );
+
         // Only process directories (each skill is a directory)
         if (!entry.isDirectory()) continue;
 
         const skillDir = path.join(baseDir, entry.name);
         const skillManifest = path.join(skillDir, SKILL_MANIFEST_FILE);
+        console.debug(
+          `[SkillManager] Checking for skill manifest at: ${skillManifest}`,
+        );
 
         try {
           // Check if SKILL.md exists
           await fs.access(skillManifest);
+          console.debug(
+            `[SkillManager] Found skill manifest at: ${skillManifest}`,
+          );
 
           const config = await this.parseSkillFileInternal(
             skillManifest,
             level,
           );
           skills.push(config);
+          console.debug(
+            `[SkillManager] Successfully parsed skill: ${config.name}`,
+          );
         } catch (error) {
           // Skip directories without valid SKILL.md
           if (error instanceof SkillError) {
@@ -405,14 +506,24 @@ export class SkillManager {
             console.warn(
               `Failed to parse skill at ${skillDir}: ${error.message}`,
             );
+          } else {
+            console.debug(
+              `[SkillManager] No SKILL.md found or inaccessible at: ${skillDir}`,
+            );
           }
           continue;
         }
       }
 
+      console.debug(
+        `[SkillManager] Completed processing level ${level}, found ${skills.length} skills`,
+      );
       return skills;
-    } catch (_error) {
+    } catch (error) {
       // Directory doesn't exist or can't be read
+      console.debug(
+        `[SkillManager] Could not read directory ${baseDir}, returning empty array. Error: ${error}`,
+      );
       return [];
     }
   }
@@ -448,5 +559,78 @@ export class SkillManager {
       const levelSkills = await this.listSkillsAtLevel(level);
       this.skillsCache.set(level, levelSkills);
     }
+  }
+
+  private updateWatchersFromCache(): void {
+    const desiredPaths = new Set<string>();
+
+    for (const level of ['project', 'user'] as const) {
+      const baseDir = this.getSkillsBaseDir(level);
+      const parentDir = path.dirname(baseDir);
+      if (fsSync.existsSync(parentDir)) {
+        desiredPaths.add(parentDir);
+      }
+      if (fsSync.existsSync(baseDir)) {
+        desiredPaths.add(baseDir);
+      }
+
+      const levelSkills = this.skillsCache?.get(level) || [];
+      for (const skill of levelSkills) {
+        const skillDir = path.dirname(skill.filePath);
+        if (fsSync.existsSync(skillDir)) {
+          desiredPaths.add(skillDir);
+        }
+      }
+    }
+
+    for (const existingPath of this.watchers.keys()) {
+      if (!desiredPaths.has(existingPath)) {
+        void this.watchers
+          .get(existingPath)
+          ?.close()
+          .catch((error) => {
+            console.warn(
+              `Failed to close skills watcher for ${existingPath}:`,
+              error,
+            );
+          });
+        this.watchers.delete(existingPath);
+      }
+    }
+
+    for (const watchPath of desiredPaths) {
+      if (this.watchers.has(watchPath)) {
+        continue;
+      }
+
+      try {
+        const watcher = watchFs(watchPath, {
+          ignoreInitial: true,
+        })
+          .on('all', () => {
+            this.scheduleRefresh();
+          })
+          .on('error', (error) => {
+            console.warn(`Skills watcher error for ${watchPath}:`, error);
+          });
+        this.watchers.set(watchPath, watcher);
+      } catch (error) {
+        console.warn(
+          `Failed to watch skills directory at ${watchPath}:`,
+          error,
+        );
+      }
+    }
+  }
+
+  private scheduleRefresh(): void {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+    }
+
+    this.refreshTimer = setTimeout(() => {
+      this.refreshTimer = null;
+      void this.refreshCache().then(() => this.updateWatchersFromCache());
+    }, 150);
   }
 }

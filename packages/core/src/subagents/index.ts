@@ -73,3 +73,7 @@ export type {
   SubagentStatsSummary,
   ToolUsageStats,
 } from './subagent-statistics.js';
+
+// Detection and integration services
+export { SubagentDetectionService } from './subagent-detection-service.js';
+export { SubagentSkillIntegrationService } from './subagent-skill-integration-service.js';

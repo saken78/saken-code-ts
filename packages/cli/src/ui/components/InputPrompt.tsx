@@ -58,8 +58,8 @@ export interface InputPromptProps {
 
 // The input content, input container, and input suggestions list may have different widths
 export const calculatePromptWidths = (terminalWidth: number) => {
-  const widthFraction = 0.9;
-  const FRAME_PADDING_AND_BORDER = 4; // Border (2) + padding (2)
+  const widthFraction = 1.0;
+  const FRAME_PADDING_AND_BORDER = 2; // Border (2) + padding (0)
   const PROMPT_PREFIX_WIDTH = 2; // '> ' or '! '
   const MIN_CONTENT_WIDTH = 2;
 
@@ -715,13 +715,14 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   return (
     <>
       <Box
-        borderStyle="single"
-        borderTop={true}
-        borderBottom={true}
-        borderLeft={false}
-        borderRight={false}
+        // borderStyle="round"
+        // borderTop={false}
+        // borderBottom={false}
+        // borderLeft={false}
+        // borderRight={false}
         borderColor={borderColor}
         paddingX={1}
+        marginTop={1}
       >
         <Text
           color={statusColor ?? theme.text.accent}
@@ -741,9 +742,9 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           ) : commandSearchActive ? (
             <Text color={theme.text.accent}>(r:) </Text>
           ) : showYoloStyling ? (
-            '*'
+            ''
           ) : (
-            '>'
+            ''
           )}{' '}
         </Text>
         <Box flexGrow={1} flexDirection="column">

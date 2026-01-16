@@ -1,0 +1,15 @@
+appName: Sample Application
+version: "1.0.0"
+database:
+  host: localhost
+  port: 5432
+  username: admin
+  password: secret
+features:
+  authentication: true
+  logging: true
+  caching: false
+endpoints:
+  - /api/users
+  - /api/products
+  - /api/orders

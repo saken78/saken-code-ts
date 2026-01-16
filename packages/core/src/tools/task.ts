@@ -129,7 +129,7 @@ export class TaskTool extends BaseDeclarativeTool<TaskParams, ToolResult> {
         .join('\n');
     }
 
-    const baseDescription = `Launch a new agent to handle complex, multi-step tasks autonomously. 
+    const baseDescription = `Launch a new agent to handle complex, multi-step tasks autonomously.
 
 Available agent types and the tools they have access to:
 ${subagentDescriptions}
@@ -174,7 +174,7 @@ function isPrime(n) {
 Since a signficant piece of code was written and the task was completed, now use the code-reviewer agent to review the code
 </commentary>
 assistant: Now let me use the code-reviewer agent to review the code
-assistant: Uses the Task tool to launch the with the code-reviewer agent 
+assistant: Uses the Task tool to launch the with the code-reviewer agent
 </example>
 
 <example>

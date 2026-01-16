@@ -65,11 +65,11 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
     const allNamesTheSame = new Set(contextFileNames).size < 2;
     const name = allNamesTheSame ? contextFileNames[0] : 'context';
     return geminiMdFileCount === 1
-      ? t('{{count}} {{name}} file', {
+      ? t('{{count}}SMD', {
           count: String(geminiMdFileCount),
           name,
         })
-      : t('{{count}} {{name}} files', {
+      : t('{{count}}SMD', {
           count: String(geminiMdFileCount),
           name,
         });
@@ -123,10 +123,10 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
   if (isNarrow) {
     return (
       <Box flexDirection="column">
-        <Text color={theme.text.secondary}>{t('Using:')}</Text>
+        <Text color={theme.text.secondary}></Text>
         {summaryParts.map((part, index) => (
           <Text key={index} color={theme.text.secondary}>
-            {'  '}- {part}
+            {part}
           </Text>
         ))}
       </Box>
@@ -135,9 +135,7 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
 
   return (
     <Box>
-      <Text color={theme.text.secondary}>
-        {t('Using:')} {summaryParts.join(' | ')}
-      </Text>
+      <Text color={theme.text.secondary}>{summaryParts.join(' | ')}</Text>
     </Box>
   );
 };

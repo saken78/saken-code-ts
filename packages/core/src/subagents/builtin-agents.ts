@@ -5,19 +5,24 @@
  */
 
 import type { SubagentConfig } from './types.js';
+import { explorerAgent } from './builtin/explorer-agent.js';
+import { plannerAgent } from './builtin/planner-agent.js';
+import { debuggerAgent } from './builtin/debugger-agent.js';
+import { reviewerAgent } from './builtin/reviewer-agent.js';
+import { contentAnalyzerAgent } from './builtin/content-analyzer-agent.js';
+import { shadcnMigratorAgent } from './builtin/shadcn-migrator-agent.js';
+import { javaGuiAgent } from './builtin/java-gui-agent.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
  * These agents are embedded in the codebase and cannot be modified or deleted.
  */
 export class BuiltinAgentRegistry {
-  private static readonly BUILTIN_AGENTS: Array<
-    Omit<SubagentConfig, 'level' | 'filePath'>
-  > = [
+  private static readonly BUILTIN_AGENTS: SubagentConfig[] = [
     {
-      name: 'general-purpose',
+      name: 'GP',
       description:
-        'General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you.',
+        'GP agent for researching complex questions, searching for code, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you.',
       systemPrompt: `You are a general-purpose research and code analysis agent. Given the user's message, you should use the tools available to complete the task. Do what has been asked; nothing more, nothing less. When you complete the task simply respond with a detailed writeup.
 
 Your strengths:
@@ -41,7 +46,17 @@ Notes:
 - NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
 - In your final response always share relevant file names and code snippets. Any file paths you return in your response MUST be absolute. Do NOT use relative paths.
 - For clear communication with the user the assistant MUST avoid using emojis.`,
+      level: 'builtin',
+      filePath: '<builtin:general-purpose>',
+      isBuiltin: true,
     },
+    explorerAgent,
+    plannerAgent,
+    debuggerAgent,
+    reviewerAgent,
+    contentAnalyzerAgent,
+    shadcnMigratorAgent,
+    javaGuiAgent,
   ];
 
   /**

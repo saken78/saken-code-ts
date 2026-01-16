@@ -64,6 +64,20 @@ export interface SubagentConfig {
   color?: string;
 
   /**
+   * Optional keywords that trigger automatic delegation to this subagent.
+   * Used by the agent detection service for intelligent task routing.
+   * Examples: ['explore', 'find', 'search', 'navigate']
+   */
+  triggerKeywords?: string[];
+
+  /**
+   * Optional capabilities that this subagent can handle.
+   * Used for matching against user requests and system requirements.
+   * Examples: ['document_analysis', 'code_review', 'debugging']
+   */
+  capabilities?: string[];
+
+  /**
    * Indicates whether this is a built-in agent.
    * Built-in agents cannot be modified or deleted.
    */

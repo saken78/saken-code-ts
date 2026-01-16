@@ -17,6 +17,7 @@ export const ToolNames = {
   GREP: 'grep_search',
   GLOB: 'glob',
   SHELL: 'run_shell_command',
+  BASH: 'bash',
   TODO_WRITE: 'todo_write',
   MEMORY: 'save_memory',
   TASK: 'task',
@@ -40,6 +41,7 @@ export const ToolDisplayNames = {
   GREP: 'Grep',
   GLOB: 'Glob',
   SHELL: 'Shell',
+  BASH: 'Bash',
   TODO_WRITE: 'TodoWrite',
   MEMORY: 'SaveMemory',
   TASK: 'Task',
@@ -64,4 +66,28 @@ export const ToolDisplayNamesMigration = {
   SearchFiles: ToolDisplayNames.GREP, // Old display name for Grep
   FindFiles: ToolDisplayNames.GLOB, // Old display name for Glob
   ReadFolder: ToolDisplayNames.LS, // Old display name for ListFiles
+} as const;
+
+/**
+ * Tool name aliases for backward compatibility and user convenience.
+ * Maps short/common names to canonical tool names.
+ * Used by agent configurations and tool resolution logic.
+ */
+export const ToolAliases: Record<string, string> = {
+  // Common short names mapping to canonical names
+  grep: ToolNames.GREP, // 'grep' -> 'grep_search'
+  shell: ToolNames.SHELL, // 'shell' -> 'run_shell_command'
+  bash: ToolNames.BASH, // 'bash' -> 'bash'
+  todo_write: ToolNames.TODO_WRITE,
+  todo: ToolNames.TODO_WRITE, // Alternative name
+  edit: ToolNames.EDIT,
+  write: ToolNames.WRITE_FILE, // 'write' -> 'write_file'
+  read: ToolNames.READ_FILE, // 'read' -> 'read_file'
+  glob: ToolNames.GLOB,
+  search: ToolNames.GREP, // 'search' -> 'grep_search'
+  find: ToolNames.GLOB, // 'find' -> 'glob'
+  ls: ToolNames.LS, // 'ls' -> 'list_directory'
+  list: ToolNames.LS, // 'list' -> 'list_directory'
+  memory: ToolNames.MEMORY, // 'memory' -> 'save_memory'
+  save: ToolNames.MEMORY, // 'save' -> 'save_memory'
 } as const;

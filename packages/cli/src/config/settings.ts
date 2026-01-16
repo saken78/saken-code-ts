@@ -405,15 +405,15 @@ function mergeSettings(
   // Settings are merged with the following precedence (last one wins for
   // single values):
   // 1. System Defaults
-  // 2. User Settings
-  // 3. Workspace Settings
+  // 2. Workspace Settings
+  // 3. User Settings
   // 4. System Settings (as overrides)
   return customDeepMerge(
     getMergeStrategyForPath,
     {}, // Start with an empty object
     systemDefaults,
-    user,
     safeWorkspace,
+    user,
     system,
   ) as Settings;
 }

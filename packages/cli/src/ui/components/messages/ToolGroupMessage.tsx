@@ -89,7 +89,7 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
   return (
     <Box
       flexDirection="column"
-      borderStyle="round"
+      // borderStyle="round"
       /*
         This width constraint is highly important and protects us from an Ink rendering bug.
         Since the ToolGroup can typically change rendering states frequently, it can cause
@@ -102,7 +102,7 @@ export const ToolGroupMessage: React.FC<ToolGroupMessageProps> = ({
         hasPending && (!isShellCommand || !isEmbeddedShellFocused)
       }
       borderColor={borderColor}
-      gap={1}
+      // gap={1}
     >
       {toolCalls.map((tool) => {
         const isConfirming = toolAwaitingApproval?.callId === tool.callId;

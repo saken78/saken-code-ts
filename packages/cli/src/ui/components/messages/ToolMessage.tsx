@@ -305,8 +305,8 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
   const displayRenderer = useResultDisplayRenderer(resultDisplay);
 
   return (
-    <Box paddingX={1} paddingY={0} flexDirection="column">
-      <Box minHeight={1}>
+    <Box paddingX={1} paddingY={0} flexDirection="column" width="100%">
+      <Box minHeight={1} width="100%">
         <ToolStatusIndicator status={status} name={name} />
         <ToolInfo
           name={name}
@@ -324,8 +324,8 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         {emphasis === 'high' && <TrailingIndicator />}
       </Box>
       {displayRenderer.type !== 'none' && (
-        <Box paddingLeft={STATUS_INDICATOR_WIDTH} width="100%" marginTop={1}>
-          <Box flexDirection="column">
+        <Box paddingLeft={STATUS_INDICATOR_WIDTH} width="100%" marginBottom={1}>
+          <Box flexDirection="column" width="100%">
             {displayRenderer.type === 'todo' && (
               <TodoResultRenderer data={displayRenderer.data} />
             )}
@@ -369,7 +369,7 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
         </Box>
       )}
       {isThisShellFocused && config && (
-        <Box paddingLeft={STATUS_INDICATOR_WIDTH} marginTop={1}>
+        <Box paddingLeft={STATUS_INDICATOR_WIDTH} marginTop={1} width="100%">
           <ShellInputPrompt
             activeShellPtyId={activeShellPtyId ?? null}
             focus={embeddedShellFocused}
@@ -454,7 +454,7 @@ const ToolInfo: React.FC<ToolInfo> = ({
     }
   }, [emphasis]);
   return (
-    <Box>
+    <Box flexShrink={1}>
       <Text
         wrap="truncate-end"
         strikethrough={status === ToolCallStatus.Canceled}

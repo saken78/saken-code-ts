@@ -14,7 +14,7 @@ import { ExitWarning } from '../components/ExitWarning.js';
 import { useUIState } from '../contexts/UIStateContext.js';
 
 export const DefaultAppLayout: React.FC<{ width?: string }> = ({
-  width = '90%',
+  width = '100%',
 }) => {
   const uiState = useUIState();
 

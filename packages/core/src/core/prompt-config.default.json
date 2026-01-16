@@ -1,0 +1,7 @@
+{
+  "enableClaudeElements": true,
+  "enableEnhancedToolDescriptions": true,
+  "enableSpecializedAgents": true,
+  "enableAdvancedReminders": true,
+  "promptLogLevel": "info"
+}
