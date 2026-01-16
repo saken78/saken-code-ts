@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * @license
  * Copyright 2025 Google LLC
@@ -58,7 +59,7 @@ export class BashToolInvocation extends BaseToolInvocation<
     }
 
     if (this.params.description) {
-      description += ` (${this.params.description.replace(/\n/g, ' ')})`;
+      description += ` (${this.params.description.replaceAll(/\n/g, ' ')})`;
     }
 
     return description;
