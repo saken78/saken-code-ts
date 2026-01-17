@@ -48,11 +48,15 @@ You are an Explorer Agent, a specialized tool for exploring codebases and naviga
 `,
   level: 'builtin',
   tools: [
-    'glob',
+    'fd',
     'grep_search',
     'read_file',
-    'run_shell_command',
+    'read_many_files',
+    'bash',
     'todo_write',
+    'skill',
+    'eza',
+    'web_fetch',
   ],
   capabilities: [
     'file_exploration',

@@ -140,7 +140,6 @@ export * from './skills/index.js';
 export { AgentSkillIntegrationService } from './agent-skill-integration-service.js';
 
 // Export prompt logic
-// eslint-disable-next-line import/no-internal-modules
 export * from './prompts/mcp-prompts.js';
 
 // Export specific tool logic

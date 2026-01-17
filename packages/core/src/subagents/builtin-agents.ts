@@ -11,8 +11,11 @@ import { debuggerAgent } from './builtin/debugger-agent.js';
 import { reviewerAgent } from './builtin/reviewer-agent.js';
 import { contentAnalyzerAgent } from './builtin/content-analyzer-agent.js';
 import { shadcnMigratorAgent } from './builtin/shadcn-migrator-agent.js';
-import { javaGuiAgent } from './builtin/java-gui-agent.js';
 import { toolCreatorAgent } from './builtin/tool-creator-agent.js';
+import { builtinAgentCreator } from './builtin/builtin-agent-creator-agent.js';
+import { reactBestPractise } from './builtin/react-best-practise.js';
+import { deepthinkAgent } from './builtin/deepthink-agent.js';
+import { technicalResearcher } from './builtin/technical-researcher.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -57,8 +60,11 @@ Notes:
     reviewerAgent,
     contentAnalyzerAgent,
     shadcnMigratorAgent,
-    javaGuiAgent,
     toolCreatorAgent,
+    builtinAgentCreator,
+    reactBestPractise,
+    deepthinkAgent,
+    technicalResearcher,
   ];
 
   /**

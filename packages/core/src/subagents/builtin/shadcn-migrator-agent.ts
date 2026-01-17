@@ -64,7 +64,7 @@ You are an expert React developer specializing in migrating legacy UI implementa
     'run_shell_command',
     'todo_write',
     'grep_search',
-    'glob',
+    'fd',
   ],
   capabilities: [
     'ui_migration',

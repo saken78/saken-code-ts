@@ -65,8 +65,11 @@ You are a Planner Agent, a specialized tool for creating detailed development pl
     'todo_write',
     'read_file',
     'read_many_files',
-    'run_shell_command',
+    'bash',
+    'eza',
+    'fd',
     'save_memory',
+    'skill',
   ],
   capabilities: [
     'task_breakdown',

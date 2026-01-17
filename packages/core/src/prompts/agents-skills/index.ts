@@ -48,10 +48,6 @@ You have access to powerful specialized agents and custom skills that significan
 **Capabilities:** Component analysis, migration planning, API compatibility
 **Trigger:** "Migrate shadcn", "update components", "component compatibility"
 
-### 7. **java-gui** - NetBeans Java GUI Development
-**When to use:** Java Swing forms, NetBeans GUI designer, JFrame development
-**Capabilities:** Designer compatibility preservation, form validation, best practices
-**Trigger:** Java GUI code, Swing forms, NetBeans designer, JFrame, button events
 
 ## Custom Skills (Data-Driven, Hallucination-Reducing)
 

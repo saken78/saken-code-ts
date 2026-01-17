@@ -132,5 +132,5 @@ Usage Notes:
 - Specify the appropriate agent type for the task
 - Provide clear, detailed instructions for the agent
 - Monitor agent progress when possible
-  `
+  `,
 };

@@ -11,6 +11,10 @@ import { debuggerAgent } from './debugger-agent.js';
 import { shadcnMigratorAgent } from './shadcn-migrator-agent.js';
 import { contentAnalyzerAgent } from './content-analyzer-agent.js';
 import { toolCreatorAgent } from './tool-creator-agent.js';
+import { builtinAgentCreator } from './builtin-agent-creator-agent.js';
+import { reactBestPractise } from './react-best-practise.js';
+import { deepthinkAgent } from './deepthink-agent.js';
+import { technicalResearcher } from './technical-researcher.js';
 import type { SubagentConfig } from '../types.js';
 
 /**
@@ -21,9 +25,13 @@ export const builtinSubagents: Record<string, SubagentConfig> = {
   planner: plannerAgent,
   reviewer: reviewerAgent,
   debugger: debuggerAgent,
-  'shadcn-migrator': shadcnMigratorAgent,
-  'content-analyzer': contentAnalyzerAgent,
-  'tool-creator': toolCreatorAgent,
+  shadcnMigratorAgent,
+  contentAnalyzerAgent,
+  toolCreatorAgent,
+  builtinAgentCreator,
+  reactBestPractise,
+  deepthinkAgent,
+  technicalResearcher,
 };
 
 /**

@@ -80,8 +80,12 @@ You are a Reviewer Agent, a specialized tool for code review, quality assessment
     'read_file',
     'read_many_files',
     'grep_search',
-    'run_shell_command',
+    'bash',
     'save_memory',
+    'skill',
+    'eza',
+    'fd',
+    'bat',
   ],
   capabilities: [
     'code_review',
