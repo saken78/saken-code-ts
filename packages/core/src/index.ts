@@ -21,6 +21,9 @@ export * from './prompts/bmad-prompts/document-prompts.js';
 // Export document loader service
 export * from './services/documentLoaderService.js';
 
+// Export memory injection service
+export * from './services/memoryInjectionService.js';
+
 // Export models
 export {
   type ModelCapabilities,

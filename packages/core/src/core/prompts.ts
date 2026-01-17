@@ -734,6 +734,21 @@ Adapt behavior based on mode:
 
 All modes still obey Core Mandates.
 
+# Memory-Injected Context
+
+Your decisions and code must respect the project's documented memory:
+
+- **Architectural Decisions** (from decisions-log.md) are binding constraints — don't contradict them without discussion
+- **Known Bugs** (from bug-log.md) are documented failure patterns — reference them when writing similar code
+- **Lessons Learned** (from insights.md) inform better implementation approaches
+
+Before making decisions or writing code:
+1. What architectural decisions already exist for this area?
+2. What bugs have occurred in similar code before?
+3. What patterns are documented as working or failing?
+
+Use \`/refresh-memory\` to reload this context during long conversations. When memory is injected, reference it proactively in your reasoning.
+
 # Primary Workflows
 
 ## For Software Engineering Tasks (Fix, Add, Refactor)
