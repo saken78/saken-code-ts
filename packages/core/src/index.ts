@@ -33,6 +33,9 @@ export * from './services/phaseDetectionService.js';
 // Export compression service
 export * from './services/compressionService.js';
 
+// Export Definition-of-Done service
+export * from './services/definitionOfDoneService.js';
+
 // Export models
 export {
   type ModelCapabilities,
