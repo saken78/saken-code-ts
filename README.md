@@ -20,6 +20,7 @@ This is a **personal development repository** for experimenting with Qwen Code e
 - ✅ **Hallucination Detection** - Pattern-based detection for speculation without data
 - ✅ **Advanced Metrics Tracking** - Conversation complexity, error patterns, tool usage
 - ✅ **Data-Driven Responses** - Critical protocol for config files (YAML/TOML/XML)
+- ✅ **Enhanced Built-in Agents** - Improved deepthink, react-best-practise, and technical-researcher agents
 
 **Status:** Development phase - testing and optimizing core enhancements
 
@@ -53,6 +54,9 @@ reviewer           - Code quality & security review
 content-analyzer   - Config file analysis
 shadcn-migrator    - Component migration
 java-gui           - Java GUI development
+deepthink          - Deep analysis and problem solving
+react-best-practise - React/Next.js performance optimization
+technical-researcher - Code repository analysis
 ```
 
 ### 3. Custom Skills (Data-Driven)
@@ -66,7 +70,30 @@ java-gui           - Java GUI development
 /file-structure-analyzer - Architecture analysis
 ```
 
-### 4. Hallucination Prevention
+### 4. Enhanced Built-in Agents
+
+#### Deep Think Agent
+
+- Comprehensive multi-dimensional analysis
+- Strategic planning and problem solving
+- Multi-perspective evaluation (technical, business, user, system)
+- Structured recommendations with risk assessment
+
+#### React Best Practices Agent
+
+- Performance optimization for React/Next.js applications
+- Bundle size reduction and waterfall elimination
+- Rendering optimization and re-render minimization
+- 40+ optimization rules across 8 categories
+
+#### Technical Researcher Agent
+
+- Code repository analysis and evaluation
+- Technical documentation review
+- Implementation comparison and solution evaluation
+- Architecture and code quality assessment
+
+### 5. Hallucination Prevention
 
 Detects patterns that indicate speculation:
 
@@ -175,6 +202,7 @@ export OPENAI_MODEL="gpt-4o"
 - [x] Add hallucination pattern detection
 - [x] Create metrics tracking system
 - [x] Document architecture
+- [x] Enhance built-in agents with proper descriptions and capabilities
 
 ### Phase 2: Testing & Validation (In Progress)
 
@@ -215,6 +243,13 @@ saken-code-ts/
 │   │   │   ├── services/
 │   │   │   │   └── promptInjectionService.ts  # NEW: Injection logic
 │   │   │   └── subagents/              # Agent definitions
+│   │   │   │   └── builtin/           # Built-in agent definitions
+│   │   │   │       ├── deepthink-agent.ts
+│   │   │   │       ├── react-best-practise.ts
+│   │   │   │       ├── technical-researcher.ts
+│   │   │   │       └── ...
+│   │   │   └── utils/                 # Utility functions
+│   │   │   │   └── types/             # Type definitions
 │   │   └── dist/                       # Compiled output
 │   └── sdk-typescript/         # TypeScript SDK
 ├── plans/
@@ -245,6 +280,11 @@ saken-code-ts/
   - Core system prompt
   - Agents/skills integration
   - Data-driven response protocol
+
+- **`packages/core/src/subagents/builtin/`**
+  - Built-in agent configurations
+  - Enhanced deepthink, react-best-practise, technical-researcher agents
+  - Proper descriptions, capabilities, and trigger keywords
 
 ## Metrics & Thresholds
 
@@ -308,7 +348,7 @@ This is a personal development project. If you want to:
 
 - Repository: saken-code-ts
 - Active Development: Yes
-- Focus: Agent/skill integration + intelligent prompt injection
+- Focus: Agent/skill integration + intelligent prompt injection + enhanced built-in agents
 
 ## License
 
@@ -324,18 +364,18 @@ Modifications and enhancements are personal development work.
 
 ## Session Notes
 
-### Latest Session (January 14, 2025)
+### Latest Session (January 17, 2026)
 
-**Status:** Complete & Compiled
+**Status:** Enhancement Complete
 
 **Achievements:**
 
-- ✅ Integrated custom agents/skills with HIGH PRIORITY markers
-- ✅ Implemented intelligent prompt injection (multi-factor analysis)
-- ✅ Added hallucination pattern detection (5 types)
-- ✅ Created metrics tracking system
-- ✅ All code compiled without errors
-- ✅ Comprehensive documentation
+- ✅ Enhanced deepthink agent with proper description and capabilities
+- ✅ Updated react-best-practise agent focusing on React/Next.js performance
+- ✅ Improved technical-researcher agent for code repository analysis
+- ✅ Added utility types and performance monitoring tools
+- ✅ Updated builtin-agent-creator with correct functionality
+- ✅ Comprehensive documentation updates
 
 **Next:** Testing, validation, and performance tuning
 
@@ -351,5 +391,5 @@ For questions about this personal development project:
 
 ---
 
-**Last Updated:** January 15, 2026
+**Last Updated:** January 17, 2026
 **Maintained by:** saken78
