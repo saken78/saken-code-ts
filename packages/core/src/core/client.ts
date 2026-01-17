@@ -41,6 +41,8 @@ import {
 } from '../services/chatCompressionService.js';
 // import { LoopDetectionService } from '../services/loopDetectionService.js';
 import { PromptInjectionService } from '../services/promptInjectionService.js';
+import { TokenEstimationService } from '../services/tokenEstimationService.js';
+import { EnvironmentContextCache } from '../services/environmentContextCache.js';
 
 // Tools
 import { TaskTool } from '../tools/task.js';
@@ -138,8 +140,15 @@ export class GeminiClient {
     return this.chat !== undefined;
   }
 
-  getHistory(): Content[] {
+  getHistory(): readonly Content[] {
     return this.getChat().getHistory();
+  }
+
+  /**
+   * Get mutable copy of history (use only when you need to modify)
+   */
+  getHistoryMutable(): Content[] {
+    return this.getChat().getHistoryMutable();
   }
 
   stripThoughtsFromHistory() {
@@ -159,6 +168,8 @@ export class GeminiClient {
   }
 
   async resetChat(): Promise<void> {
+    // Invalidate cache when resetting chat
+    EnvironmentContextCache.invalidate();
     this.chat = await this.startChat();
   }
 
@@ -186,7 +197,16 @@ export class GeminiClient {
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
     const tools: Tool[] = [{ functionDeclarations: toolDeclarations }];
 
-    const history = await getInitialChatHistory(this.config, extraHistory);
+    // ✓ OPTIMIZED: Try cache first
+    let history = EnvironmentContextCache.getCached();
+    if (!history) {
+      // Cache miss - compute and store
+      history = await getInitialChatHistory(this.config, extraHistory);
+      EnvironmentContextCache.setCached(history);
+    } else if (extraHistory) {
+      // Cache hit but we have extra history to append
+      history = [...history, ...extraHistory];
+    }
 
     try {
       const userMemory = this.config.getUserMemory();
@@ -446,47 +466,32 @@ export class GeminiClient {
       yield { type: GeminiEventType.ChatCompressed, value: compressed };
     }
 
-    // Check session token limit after compression using accurate token counting
+    // Check session token limit using fast token estimation
     const sessionTokenLimit = this.config.getSessionTokenLimit();
     if (sessionTokenLimit > 0) {
-      // Get all the content that would be sent in an API call
       const currentHistory = this.getChat().getHistory(true);
       const userMemory = this.config.getUserMemory();
       const systemPrompt = getCoreSystemPrompt(
         userMemory,
         this.config.getModel(),
       );
-      const initialHistory = await getInitialChatHistory(this.config);
 
-      // Create a mock request content to count total tokens
-      const mockRequestContent = [
-        {
-          role: 'system' as const,
-          parts: [{ text: systemPrompt }],
-        },
-        ...initialHistory,
-        ...currentHistory,
-      ];
+      // ✓ OPTIMIZED: Use fast token estimation instead of API call
+      const estimatedSystemTokens =
+        TokenEstimationService.estimateTextTokens(systemPrompt);
+      const estimatedHistoryTokens =
+        TokenEstimationService.estimateContentTokens(currentHistory);
+      const estimatedTotalTokens =
+        estimatedSystemTokens + estimatedHistoryTokens;
 
-      // Use the improved countTokens method for accurate counting
-      const { totalTokens: totalRequestTokens } = await this.config
-        .getContentGenerator()
-        .countTokens({
-          model: this.config.getModel(),
-          contents: mockRequestContent,
-        });
-
-      if (
-        totalRequestTokens !== undefined &&
-        totalRequestTokens > sessionTokenLimit
-      ) {
+      if (estimatedTotalTokens > sessionTokenLimit) {
         yield {
           type: GeminiEventType.SessionTokenLimitExceeded,
           value: {
-            currentTokens: totalRequestTokens,
+            currentTokens: estimatedTotalTokens,
             limit: sessionTokenLimit,
             message:
-              `Session token limit exceeded: ${totalRequestTokens} tokens > ${sessionTokenLimit} limit. ` +
+              `Session token limit exceeded: ~${estimatedTotalTokens} tokens (estimated) > ${sessionTokenLimit} limit. ` +
               'Please start a new session or increase the sessionTokenLimit in your settings.json.',
           },
         };

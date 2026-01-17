@@ -344,7 +344,7 @@ export class GeminiChat {
 
   private async makeApiCallAndProcessStream(
     model: string,
-    requestContents: Content[],
+    requestContents: readonly Content[],
     params: SendMessageParameters,
     prompt_id: string,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
@@ -352,7 +352,7 @@ export class GeminiChat {
       this.config.getContentGenerator().generateContentStream(
         {
           model,
-          contents: requestContents,
+          contents: [...requestContents], // Convert to mutable array for API
           config: { ...this.generationConfig, ...params.config },
         },
         prompt_id,
@@ -402,13 +402,28 @@ export class GeminiChat {
    * @return History contents alternating between user and model for the entire
    * chat session.
    */
-  getHistory(curated: boolean = false): Content[] {
+
+  /**
+   * Get read-only reference (optimized, no copy)
+   */
+  getHistoryReadOnly(curated: boolean = false): readonly Content[] {
+    return curated ? extractCuratedHistory(this.history) : this.history;
+  }
+
+  /**
+   * Get mutable copy (with deep copy)
+   */
+  getHistoryMutable(curated: boolean = false): Content[] {
     const history = curated
       ? extractCuratedHistory(this.history)
       : this.history;
-    // Deep copy the history to avoid mutating the history outside of the
-    // chat session.
     return structuredClone(history);
+  }
+
+  getHistory(curated: boolean = false): readonly Content[] {
+    // ✓ OPTIMIZED: Return read-only reference by default (no deep copy)
+    // Use getHistoryMutable() if you need to modify
+    return this.getHistoryReadOnly(curated);
   }
 
   /**

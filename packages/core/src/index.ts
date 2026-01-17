@@ -36,6 +36,12 @@ export * from './services/compressionService.js';
 // Export Definition-of-Done service
 export * from './services/definitionOfDoneService.js';
 
+// Export token estimation service (Masalah #2 optimization)
+export * from './services/tokenEstimationService.js';
+
+// Export environment context cache (Masalah #3 optimization)
+export * from './services/environmentContextCache.js';
+
 // Export models
 export {
   type ModelCapabilities,

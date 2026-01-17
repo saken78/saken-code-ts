@@ -61,7 +61,7 @@ export class PromptInjectionService {
    * Updates metrics based on the latest turn in the conversation.
    * @param history - Current conversation history
    */
-  updateMetrics(history: Content[]): void {
+  updateMetrics(history: readonly Content[]): void {
     this.metrics.turnCount = history.length;
     this.updateConsecutiveAssistantTurns(history);
     this.updateComplexityScore(history);
@@ -74,7 +74,8 @@ export class PromptInjectionService {
    * @returns true if prompt should be injected, false otherwise
    */
   shouldInjectCorePrompt(): boolean {
-    const turnsSinceLastInjection = this.metrics.turnCount - this.metrics.lastCorePromptInjectionTurn;
+    const turnsSinceLastInjection =
+      this.metrics.turnCount - this.metrics.lastCorePromptInjectionTurn;
 
     // Never inject too frequently to avoid disruption
     if (turnsSinceLastInjection < this.MIN_TURNS_BETWEEN_INJECTION) {
@@ -82,7 +83,10 @@ export class PromptInjectionService {
     }
 
     // FACTOR 1: Conversation Depth - inject after sustained reasoning
-    if (this.metrics.consecutiveAssistantTurns >= this.CONSECUTIVE_ASSISTANT_TURNS_THRESHOLD) {
+    if (
+      this.metrics.consecutiveAssistantTurns >=
+      this.CONSECUTIVE_ASSISTANT_TURNS_THRESHOLD
+    ) {
       return true;
     }
 
@@ -123,7 +127,10 @@ export class PromptInjectionService {
     // Reset hallucination indicators after injection
     this.metrics.halluccinationIndicators = [];
     // Reduce error count as we've reinforced best practices
-    this.metrics.errorEncounterCount = Math.max(0, this.metrics.errorEncounterCount - 1);
+    this.metrics.errorEncounterCount = Math.max(
+      0,
+      this.metrics.errorEncounterCount - 1,
+    );
   }
 
   /**
@@ -175,7 +182,7 @@ export class PromptInjectionService {
   /**
    * Counts consecutive assistant turns (sign of extended reasoning/hallucination risk).
    */
-  private updateConsecutiveAssistantTurns(history: Content[]): void {
+  private updateConsecutiveAssistantTurns(history: readonly Content[]): void {
     let consecutive = 0;
     for (let i = history.length - 1; i >= 0; i--) {
       if (history[i].role === 'model') {
@@ -191,7 +198,7 @@ export class PromptInjectionService {
    * Calculates complexity score based on conversation patterns.
    * Higher score = more complex reasoning happening.
    */
-  private updateComplexityScore(history: Content[]): void {
+  private updateComplexityScore(history: readonly Content[]): void {
     let score = 0;
 
     // Factor 1: Conversation length (longer = generally more complex)
@@ -204,9 +211,22 @@ export class PromptInjectionService {
     });
 
     const complexityKeywords = [
-      'plan', 'implement', 'architecture', 'design', 'refactor', 'optimize',
-      'complex', 'multi-step', 'integration', 'edge case', 'scenario',
-      'performance', 'scalability', 'maintainability', 'security', 'vulnerability'
+      'plan',
+      'implement',
+      'architecture',
+      'design',
+      'refactor',
+      'optimize',
+      'complex',
+      'multi-step',
+      'integration',
+      'edge case',
+      'scenario',
+      'performance',
+      'scalability',
+      'maintainability',
+      'security',
+      'vulnerability',
     ];
 
     for (const msg of recentMessages) {
@@ -227,7 +247,7 @@ export class PromptInjectionService {
   /**
    * Detects patterns that indicate possible hallucination.
    */
-  private detectHallucinationIndicators(history: Content[]): void {
+  private detectHallucinationIndicators(history: readonly Content[]): void {
     const indicators: string[] = [];
 
     // Look for hallucination patterns in recent assistant messages
@@ -240,7 +260,9 @@ export class PromptInjectionService {
 
       // Pattern 1: Speculation without data verification
       if (
-        (text.includes('probably') || text.includes('likely') || text.includes('assume')) &&
+        (text.includes('probably') ||
+          text.includes('likely') ||
+          text.includes('assume')) &&
         !text.includes('/format-validator') &&
         !text.includes('/git-analyzer') &&
         !text.includes('/error-parser')
@@ -258,7 +280,11 @@ export class PromptInjectionService {
       }
 
       // Pattern 3: Error analysis without error-parser
-      if (text.includes('error') && text.includes('stack') && !text.includes('/error-parser')) {
+      if (
+        text.includes('error') &&
+        text.includes('stack') &&
+        !text.includes('/error-parser')
+      ) {
         indicators.push('error-analysis-without-parser');
       }
 
@@ -272,10 +298,7 @@ export class PromptInjectionService {
       }
 
       // Pattern 5: Security claims without security-audit
-      if (
-        text.includes('vulnerab') &&
-        !text.includes('/security-audit')
-      ) {
+      if (text.includes('vulnerab') && !text.includes('/security-audit')) {
         indicators.push('security-claim-without-audit');
       }
     }
@@ -312,19 +335,24 @@ export class PromptInjectionService {
     let reminder = '<system-reminder>\nCore prompt reinforcement:\n';
 
     if (indicators.includes('speculation-without-verification')) {
-      reminder += '- Data First: When analyzing files/configs, ALWAYS use /format-validator or agent tools to get actual data instead of speculation.\n';
+      reminder +=
+        '- Data First: When analyzing files/configs, ALWAYS use /format-validator or agent tools to get actual data instead of speculation.\n';
     }
     if (indicators.includes('config-analysis-without-validation')) {
-      reminder += '- Config Files: Qwen treats YAML/TOML/XML as binary - ALWAYS validate with /format-validator or content-analyzer agent.\n';
+      reminder +=
+        '- Config Files: Qwen treats YAML/TOML/XML as binary - ALWAYS validate with /format-validator or content-analyzer agent.\n';
     }
     if (indicators.includes('error-analysis-without-parser')) {
-      reminder += '- Error Parsing: ALWAYS use /error-parser for stack traces and error messages to extract exact location and cause.\n';
+      reminder +=
+        '- Error Parsing: ALWAYS use /error-parser for stack traces and error messages to extract exact location and cause.\n';
     }
     if (indicators.includes('type-analysis-without-analyzer')) {
-      reminder += '- Type Safety: Use /type-safety-analyzer for TypeScript type checking instead of guessing type compatibility.\n';
+      reminder +=
+        '- Type Safety: Use /type-safety-analyzer for TypeScript type checking instead of guessing type compatibility.\n';
     }
     if (indicators.includes('security-claim-without-audit')) {
-      reminder += '- Security: Use /security-audit to scan code against known vulnerability patterns instead of making claims.\n';
+      reminder +=
+        '- Security: Use /security-audit to scan code against known vulnerability patterns instead of making claims.\n';
     }
 
     reminder += '</system-reminder>';
