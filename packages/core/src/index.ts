@@ -18,11 +18,17 @@ export * from './prompts/context-commands/design-context.js';
 // Export BMAD document-aware prompts
 export * from './prompts/bmad-prompts/document-prompts.js';
 
+// Export BMAD phase-aware prompts
+export * from './prompts/bmad-prompts/phase-prompts.js';
+
 // Export document loader service
 export * from './services/documentLoaderService.js';
 
 // Export memory injection service
 export * from './services/memoryInjectionService.js';
+
+// Export phase detection service
+export * from './services/phaseDetectionService.js';
 
 // Export models
 export {

@@ -48,6 +48,7 @@ import { progressCommand } from '../ui/commands/progressCommand.js';
 import { refreshMemoryCommand } from '../ui/commands/refreshMemoryCommand.js';
 import { decisionsCommand } from '../ui/commands/decisionsCommand.js';
 import { bugsCommand } from '../ui/commands/bugsCommand.js';
+import { phaseCommand } from '../ui/commands/phaseCommand.js';
 import { skillsCommand } from '../ui/commands/skillsCommand.js';
 
 /**
@@ -106,6 +107,7 @@ export class BuiltinCommandLoader implements ICommandLoader {
       refreshMemoryCommand,
       decisionsCommand,
       bugsCommand,
+      phaseCommand,
       ...(this.config?.getExperimentalSkills() ? [skillsCommand] : []),
       terminalSetupCommand,
     ];
