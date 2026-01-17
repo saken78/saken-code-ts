@@ -9,6 +9,7 @@ import { MessageType } from '../types.js';
 import type { SlashCommand } from './types.js';
 import { CommandKind } from './types.js';
 import { t } from '../../i18n/index.js';
+import { getCompressionService } from '@qwen-code/qwen-code-core';
 
 export const compressCommand: SlashCommand = {
   name: 'compress',
@@ -128,6 +129,40 @@ export const compressCommand: SlashCommand = {
           } as HistoryItemCompression,
           Date.now(),
         );
+
+        // Auto-save compression summary to docs
+        const compressionService = getCompressionService();
+        const docsExist = await compressionService.docsStructureExists();
+        if (docsExist) {
+          const summary = await compressionService.parseCompressionResult(
+            compressed.originalTokenCount,
+            compressed.newTokenCount,
+          );
+          await compressionService.appendToImplementationLog(summary);
+
+          // Show compression status and refresh prompt
+          ui.addItem(
+            {
+              type: MessageType.INFO,
+              text: t(
+                compressionService.getCompressionStatus(
+                  compressed.originalTokenCount,
+                  compressed.newTokenCount,
+                ),
+              ),
+            },
+            Date.now(),
+          );
+
+          ui.addItem(
+            {
+              type: MessageType.INFO,
+              text: t(compressionService.getContextRefreshPrompt()),
+            },
+            Date.now(),
+          );
+        }
+
         return;
       }
 

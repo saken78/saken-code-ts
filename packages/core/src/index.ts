@@ -30,6 +30,9 @@ export * from './services/memoryInjectionService.js';
 // Export phase detection service
 export * from './services/phaseDetectionService.js';
 
+// Export compression service
+export * from './services/compressionService.js';
+
 // Export models
 export {
   type ModelCapabilities,
