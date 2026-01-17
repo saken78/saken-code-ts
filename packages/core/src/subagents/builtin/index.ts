@@ -15,6 +15,7 @@ import { builtinAgentCreator } from './builtin-agent-creator-agent.js';
 import { reactBestPractise } from './react-best-practise.js';
 import { deepthinkAgent } from './deepthink-agent.js';
 import { technicalResearcher } from './technical-researcher.js';
+import { promptEngineerAgent } from './prompt-engineer-agent.js';
 import type { SubagentConfig } from '../types.js';
 
 /**
@@ -32,6 +33,7 @@ export const builtinSubagents: Record<string, SubagentConfig> = {
   reactBestPractise,
   deepthinkAgent,
   technicalResearcher,
+  'prompt-engineer': promptEngineerAgent,
 };
 
 /**

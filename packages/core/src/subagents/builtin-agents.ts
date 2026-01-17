@@ -16,6 +16,7 @@ import { builtinAgentCreator } from './builtin/builtin-agent-creator-agent.js';
 import { reactBestPractise } from './builtin/react-best-practise.js';
 import { deepthinkAgent } from './builtin/deepthink-agent.js';
 import { technicalResearcher } from './builtin/technical-researcher.js';
+import { promptEngineerAgent } from './builtin/prompt-engineer-agent.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -65,6 +66,7 @@ Notes:
     reactBestPractise,
     deepthinkAgent,
     technicalResearcher,
+    promptEngineerAgent,
   ];
 
   /**
