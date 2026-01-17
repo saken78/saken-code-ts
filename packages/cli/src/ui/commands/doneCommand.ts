@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { SlashCommand } from './types.js';
+import type { SlashCommand, CommandCompletionItem } from './types.js';
 import { CommandKind } from './types.js';
 import { t } from '../../i18n/index.js';
 import { getDefinitionOfDoneService } from '@qwen-code/qwen-code-core';
@@ -52,12 +52,10 @@ export const doneCommand: SlashCommand = {
       content: report,
     };
   },
-  get completion() {
-    return [
-      {
-        value: '/done',
-        description: 'Validate Definition-of-Done criteria',
-      },
-    ];
-  },
+  completion: async (): Promise<CommandCompletionItem[]> => [
+    {
+      value: 'done ',
+      description: 'done workflow',
+    },
+  ],
 };

@@ -65,7 +65,7 @@
     }
   },
   "bin": {
-    "stest": "dist/cli.js"
+    "saken": "dist/cli.js"
   },
   "files": [
     "dist/",
