@@ -98,7 +98,7 @@ export class BuiltinCommandLoader implements ICommandLoader {
       bugsCommand,
       phaseCommand,
       doneCommand,
-      ...(this.config?.getExperimentalSkills() ? [skillsCommand] : []),
+      ...(this.config?.getExperimentalSkills?.() ? [skillsCommand] : []),
       terminalSetupCommand,
     ];
 
