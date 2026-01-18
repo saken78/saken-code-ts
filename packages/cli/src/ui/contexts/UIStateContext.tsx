@@ -20,9 +20,9 @@ import type { CommandContext, SlashCommand } from '../commands/types.js';
 import type { TextBuffer } from '../components/shared/text-buffer.js';
 import type {
   AuthType,
-  IdeContext,
+  // IdeContext,
   ApprovalMode,
-  IdeInfo,
+  // IdeInfo,
 } from '@qwen-code/qwen-code-core';
 import type { DOMElement } from 'ink';
 import type { SessionStatsState } from '../contexts/SessionContext.js';
@@ -30,7 +30,7 @@ import type { ExtensionUpdateState } from '../state/extensions.js';
 import type { UpdateObject } from '../utils/updateCheck.js';
 
 import { type UseHistoryManagerReturn } from '../hooks/useHistoryManager.js';
-import { type RestartReason } from '../hooks/useIdeTrustListener.js';
+// import { type RestartReason } from '../hooks/useIdeTrustListener.js';
 
 export interface UIState {
   history: HistoryItem[];
@@ -71,13 +71,9 @@ export interface UIState {
   inputWidth: number;
   suggestionsWidth: number;
   isInputActive: boolean;
-  shouldShowIdePrompt: boolean;
-  isFolderTrustDialogOpen: boolean;
-  isTrustedFolder: boolean | undefined;
   constrainHeight: boolean;
   showErrorDetails: boolean;
   filteredConsoleMessages: ConsoleMessageItem[];
-  ideContextState: IdeContext | undefined;
   showToolDescriptions: boolean;
   ctrlCPressedOnce: boolean;
   ctrlDPressedOnce: boolean;
@@ -106,11 +102,7 @@ export interface UIState {
   terminalWidth: number;
   terminalHeight: number;
   mainControlsRef: React.MutableRefObject<DOMElement | null>;
-  currentIDE: IdeInfo | null;
   updateInfo: UpdateObject | null;
-  showIdeRestartPrompt: boolean;
-  ideTrustRestartReason: RestartReason;
-  isRestarting: boolean;
   extensionsUpdateState: Map<string, ExtensionUpdateState>;
   activePtyId: number | undefined;
   embeddedShellFocused: boolean;

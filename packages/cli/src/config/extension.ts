@@ -28,7 +28,7 @@ import * as os from 'node:os';
 import { SettingScope, loadSettings } from '../config/settings.js';
 import { getErrorMessage } from '../utils/errors.js';
 import { recursivelyHydrateStrings } from './extensions/variables.js';
-import { isWorkspaceTrusted } from './trustedFolders.js';
+// import { isWorkspaceTrusted } from './trustedFolders.js';
 import { resolveEnvVarsInObject } from '../utils/envVarResolver.js';
 import {
   cloneFromGit,
@@ -149,7 +149,7 @@ export function loadExtensions(
   const allExtensions = [...loadUserExtensions()];
 
   if (
-    (isWorkspaceTrusted(settings) ?? true) &&
+    (settings ?? true) &&
     // Default management setting to true
     !(settings.experimental?.extensionManagement ?? true)
   ) {
@@ -427,12 +427,12 @@ export async function installExtension(
   let localSourcePath: string | undefined;
 
   try {
-    const settings = loadSettings(cwd).merged;
-    if (!isWorkspaceTrusted(settings)) {
-      throw new Error(
-        `Could not install extension from untrusted folder at ${installMetadata.source}`,
-      );
-    }
+    // const settings = loadSettings(cwd).merged;
+    // if (!isWorkspaceTrusted(settings)) {
+    //   throw new Error(
+    //     `Could not install extension from untrusted folder at ${installMetadata.source}`,
+    //   );
+    // }
 
     const extensionsDir = ExtensionStorage.getUserExtensionsDir();
     await fs.promises.mkdir(extensionsDir, { recursive: true });

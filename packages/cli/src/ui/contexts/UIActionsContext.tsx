@@ -6,8 +6,8 @@
 
 import { createContext, useContext } from 'react';
 import { type Key } from '../hooks/useKeypress.js';
-import { type IdeIntegrationNudgeResult } from '../IdeIntegrationNudge.js';
-import { type FolderTrustChoice } from '../components/FolderTrustDialog.js';
+// import { type IdeIntegrationNudgeResult } from '../IdeIntegrationNudge.js';
+// // import { type FolderTrustChoice } from '../components/FolderTrustDialog.js';
 import {
   type AuthType,
   type EditorType,
@@ -45,8 +45,6 @@ export interface UIActions {
   closePermissionsDialog: () => void;
   setShellModeActive: (value: boolean) => void;
   vimHandleInput: (key: Key) => boolean;
-  handleIdePromptComplete: (result: IdeIntegrationNudgeResult) => void;
-  handleFolderTrustSelect: (choice: FolderTrustChoice) => void;
   setConstrainHeight: (value: boolean) => void;
   onEscapePromptChange: (show: boolean) => void;
   refreshStatic: () => void;

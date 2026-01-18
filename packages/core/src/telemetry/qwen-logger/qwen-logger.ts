@@ -383,7 +383,7 @@ export class QwenLogger {
         model: event.model,
         approval_mode: event.approval_mode,
         embedding_model: event.embedding_model,
-        sandbox_enabled: event.sandbox_enabled,
+        // sandbox_enabled: event.sandbox_enabled,
         core_tools_enabled: event.core_tools_enabled,
         api_key_enabled: event.api_key_enabled,
         vertex_ai_enabled: event.vertex_ai_enabled,

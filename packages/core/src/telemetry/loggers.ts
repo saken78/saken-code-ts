@@ -112,7 +112,7 @@ export function logStartSession(
     'event.timestamp': new Date().toISOString(),
     model: event.model,
     embedding_model: event.embedding_model,
-    sandbox_enabled: event.sandbox_enabled,
+    // sandbox_enabled: event.sandbox_enabled,
     core_tools_enabled: event.core_tools_enabled,
     approval_mode: event.approval_mode,
     api_key_enabled: event.api_key_enabled,

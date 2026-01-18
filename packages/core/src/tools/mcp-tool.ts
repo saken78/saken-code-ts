@@ -71,7 +71,7 @@ class DiscoveredMCPToolInvocation extends BaseToolInvocation<
     readonly displayName: string,
     readonly trust?: boolean,
     params: ToolParams = {},
-    private readonly cliConfig?: Config,
+    // private readonly cliConfig?: Config,
   ) {
     super(params);
   }
@@ -82,9 +82,9 @@ class DiscoveredMCPToolInvocation extends BaseToolInvocation<
     const serverAllowListKey = this.serverName;
     const toolAllowListKey = `${this.serverName}.${this.serverToolName}`;
 
-    if (this.cliConfig?.isTrustedFolder() && this.trust) {
-      return false; // server is trusted, no confirmation needed
-    }
+    // if (this.cliConfig?.isTrustedFolder() && this.trust) {
+    //   return false; // server is trusted, no confirmation needed
+    // }
 
     if (
       DiscoveredMCPToolInvocation.allowlist.has(serverAllowListKey) ||
@@ -252,7 +252,7 @@ export class DiscoveredMCPTool extends BaseDeclarativeTool<
       this.displayName,
       this.trust,
       params,
-      this.cliConfig,
+      // this.cliConfig,
     );
   }
 }

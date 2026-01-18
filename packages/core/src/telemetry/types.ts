@@ -36,7 +36,7 @@ export class StartSessionEvent implements BaseTelemetryEvent {
   session_id: string;
   model: string;
   embedding_model: string;
-  sandbox_enabled: boolean;
+  // sandbox_enabled: boolean;
   core_tools_enabled: string;
   approval_mode: string;
   api_key_enabled: boolean;
@@ -69,8 +69,8 @@ export class StartSessionEvent implements BaseTelemetryEvent {
     this.session_id = config.getSessionId();
     this.model = config.getModel();
     this.embedding_model = config.getEmbeddingModel();
-    this.sandbox_enabled =
-      typeof config.getSandbox() === 'string' || !!config.getSandbox();
+    // this.sandbox_enabled =
+    //   typeof config.getSandbox() === 'string' || !!config.getSandbox();
     this.core_tools_enabled = (config.getCoreTools() ?? []).join(',');
     this.approval_mode = config.getApprovalMode();
     this.api_key_enabled = useGemini || useVertex;

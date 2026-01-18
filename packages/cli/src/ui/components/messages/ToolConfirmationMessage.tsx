@@ -87,7 +87,7 @@ export const ToolConfirmationMessage: React.FC<
     onConfirm(outcome);
   };
 
-  const isTrustedFolder = config.isTrustedFolder();
+  // const isTrustedFolder = config.isTrustedFolder();
 
   useKeypress(
     (key) => {
@@ -200,13 +200,13 @@ export const ToolConfirmationMessage: React.FC<
       value: ToolConfirmationOutcome.ProceedOnce,
       key: 'Yes, allow once',
     });
-    if (isTrustedFolder) {
-      options.push({
-        label: t('Yes, allow always'),
-        value: ToolConfirmationOutcome.ProceedAlways,
-        key: 'Yes, allow always',
-      });
-    }
+    // if (isTrustedFolder) {
+    //   options.push({
+    //     label: t('Yes, allow always'),
+    //     value: ToolConfirmationOutcome.ProceedAlways,
+    //     key: 'Yes, allow always',
+    //   });
+    // }
     if ((!config.getIdeMode() || !isDiffingEnabled) && preferredEditor) {
       options.push({
         label: t('Modify with external editor'),
@@ -241,13 +241,13 @@ export const ToolConfirmationMessage: React.FC<
       value: ToolConfirmationOutcome.ProceedOnce,
       key: 'Yes, allow once',
     });
-    if (isTrustedFolder) {
-      options.push({
-        label: t('Yes, allow always ...'),
-        value: ToolConfirmationOutcome.ProceedAlways,
-        key: 'Yes, allow always ...',
-      });
-    }
+    // if (isTrustedFolder) {
+    //   options.push({
+    //     label: t('Yes, allow always ...'),
+    //     value: ToolConfirmationOutcome.ProceedAlways,
+    //     key: 'Yes, allow always ...',
+    //   });
+    // }
     options.push({
       label: t('No, suggest changes (esc)'),
       value: ToolConfirmationOutcome.Cancel,
@@ -314,13 +314,13 @@ export const ToolConfirmationMessage: React.FC<
       value: ToolConfirmationOutcome.ProceedOnce,
       key: 'Yes, allow once',
     });
-    if (isTrustedFolder) {
-      options.push({
-        label: t('Yes, allow always'),
-        value: ToolConfirmationOutcome.ProceedAlways,
-        key: 'Yes, allow always',
-      });
-    }
+    // if (isTrustedFolder) {
+    //   options.push({
+    //     label: t('Yes, allow always'),
+    //     value: ToolConfirmationOutcome.ProceedAlways,
+    //     key: 'Yes, allow always',
+    //   });
+    // }
     options.push({
       label: t('No, suggest changes (esc)'),
       value: ToolConfirmationOutcome.Cancel,
@@ -372,23 +372,23 @@ export const ToolConfirmationMessage: React.FC<
       value: ToolConfirmationOutcome.ProceedOnce,
       key: 'Yes, allow once',
     });
-    if (isTrustedFolder) {
-      options.push({
-        label: t('Yes, always allow tool "{{tool}}" from server "{{server}}"', {
-          tool: mcpProps.toolName,
-          server: mcpProps.serverName,
-        }),
-        value: ToolConfirmationOutcome.ProceedAlwaysTool, // Cast until types are updated
-        key: `Yes, always allow tool "${mcpProps.toolName}" from server "${mcpProps.serverName}"`,
-      });
-      options.push({
-        label: t('Yes, always allow all tools from server "{{server}}"', {
-          server: mcpProps.serverName,
-        }),
-        value: ToolConfirmationOutcome.ProceedAlwaysServer,
-        key: `Yes, always allow all tools from server "${mcpProps.serverName}"`,
-      });
-    }
+    // if (isTrustedFolder) {
+    //   options.push({
+    //     label: t('Yes, always allow tool "{{tool}}" from server "{{server}}"', {
+    //       tool: mcpProps.toolName,
+    //       server: mcpProps.serverName,
+    //     }),
+    //     value: ToolConfirmationOutcome.ProceedAlwaysTool, // Cast until types are updated
+    //     key: `Yes, always allow tool "${mcpProps.toolName}" from server "${mcpProps.serverName}"`,
+    //   });
+    //   options.push({
+    //     label: t('Yes, always allow all tools from server "{{server}}"', {
+    //       server: mcpProps.serverName,
+    //     }),
+    //     value: ToolConfirmationOutcome.ProceedAlwaysServer,
+    //     key: `Yes, always allow all tools from server "${mcpProps.serverName}"`,
+    //   });
+    // }
     options.push({
       label: t('No, suggest changes (esc)'),
       value: ToolConfirmationOutcome.Cancel,

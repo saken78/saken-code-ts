@@ -76,15 +76,15 @@ export const directoryCommand: SlashCommand = {
           return;
         }
 
-        if (config.isRestrictiveSandbox()) {
-          return {
-            type: 'message' as const,
-            messageType: 'error' as const,
-            content: t(
-              'The /directory add command is not supported in restrictive sandbox profiles. Please use --include-directories when starting the session instead.',
-            ),
-          };
-        }
+        // if (config.isRestrictiveSandbox()) {
+        //   return {
+        //     type: 'message' as const,
+        //     messageType: 'error' as const,
+        //     content: t(
+        //       'The /directory add command is not supported in restrictive sandbox profiles. Please use --include-directories when starting the session instead.',
+        //     ),
+        //   };
+        // }
 
         const added: string[] = [];
         const errors: string[] = [];
@@ -116,7 +116,7 @@ export const directoryCommand: SlashCommand = {
                 config.getDebugMode(),
                 config.getFileService(),
                 config.getExtensionContextFilePaths(),
-                config.getFolderTrust(),
+                // config.getFolderTrust(),
                 context.services.settings.merged.context?.importFormat ||
                   'tree', // Use setting or default to 'tree'
                 config.getFileFilteringOptions(),

@@ -350,10 +350,10 @@ export class ClearcutLogger {
           EventMetadataKey.GEMINI_CLI_START_SESSION_EMBEDDING_MODEL,
         value: event.embedding_model,
       },
-      {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_SANDBOX,
-        value: event.sandbox_enabled.toString(),
-      },
+      // {
+      //   gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_SANDBOX,
+      //   // value: event.sandbox_enabled.toString(),
+      // },
       {
         gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_CORE_TOOLS,
         value: event.core_tools_enabled,

@@ -18,7 +18,7 @@ const mockSettings = new LoadedSettings(
   { path: '', settings: {}, originalSettings: {} },
   { path: '', settings: {}, originalSettings: {} },
   { path: '', settings: {}, originalSettings: {} },
-  true,
+  // true,
   new Set(),
 );
 

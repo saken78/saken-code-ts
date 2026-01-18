@@ -38,7 +38,7 @@ export interface DialogCloseOptions {
   closeSettingsDialog: () => void;
 
   // Folder trust dialog
-  isFolderTrustDialogOpen: boolean;
+  // isFolderTrustDialogOpen: boolean;
 
   // Welcome back dialog
   showWelcomeBackDialog: boolean;
@@ -78,11 +78,11 @@ export function useDialogClose(options: DialogCloseOptions) {
       return true;
     }
 
-    if (options.isFolderTrustDialogOpen) {
-      // FolderTrustDialog doesn't expose close function, but ESC would prevent exit
-      // We follow the same pattern - prevent exit behavior
-      return true;
-    }
+    // if (options.isFolderTrustDialogOpen) {
+    //   // FolderTrustDialog doesn't expose close function, but ESC would prevent exit
+    //   // We follow the same pattern - prevent exit behavior
+    //   return true;
+    // }
 
     if (options.showWelcomeBackDialog) {
       // WelcomeBack has its own close handler

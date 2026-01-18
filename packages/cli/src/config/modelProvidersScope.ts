@@ -25,7 +25,7 @@ function hasOwnModelProviders(settingsObj: unknown): boolean {
 export function getModelProvidersOwnerScope(
   settings: LoadedSettings,
 ): SettingScope | undefined {
-  if (settings.isTrusted && hasOwnModelProviders(settings.workspace.settings)) {
+  if (hasOwnModelProviders(settings.workspace.settings)) {
     return SettingScope.Workspace;
   }
 

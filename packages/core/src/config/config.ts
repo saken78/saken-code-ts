@@ -67,7 +67,7 @@ import { BatTool } from '../tools/bat.js';
 import { EzaTool } from '../tools/eza.js';
 
 // Other modules
-import { ideContextStore } from '../ide/ideContext.js';
+// import { ideContextStore } from '../ide/ideContext.js';
 import { InputFormat, OutputFormat } from '../output/types.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { SkillManager } from '../skills/skill-manager.js';
@@ -269,16 +269,16 @@ export enum AuthProviderType {
   SERVICE_ACCOUNT_IMPERSONATION = 'service_account_impersonation',
 }
 
-export interface SandboxConfig {
-  command: 'docker' | 'podman' | 'sandbox-exec';
-  image: string;
-}
+// export interface SandboxConfig {
+//   command: 'docker' | 'podman' | 'sandbox-exec';
+//   image: string;
+// }
 
 export interface ConfigParameters {
   sessionId?: string;
   sessionData?: ResumedSessionData;
   embeddingModel?: string;
-  sandbox?: SandboxConfig;
+  // sandbox?: SandboxConfig;
   targetDir: string;
   debugMode: boolean;
   includePartialMessages?: boolean;
@@ -417,7 +417,7 @@ export class Config {
 
   private _modelsConfig!: ModelsConfig;
   private readonly modelProvidersConfig?: ModelProvidersConfig;
-  private readonly sandbox: SandboxConfig | undefined;
+  // private readonly sandbox: SandboxConfig | undefined;
   private readonly targetDir: string;
   private workspaceContext: WorkspaceContext;
   private readonly debugMode: boolean;
@@ -478,7 +478,7 @@ export class Config {
     | undefined;
   private readonly cliVersion?: string;
   private readonly experimentalZedIntegration: boolean = false;
-  private readonly experimentalSkills: boolean = false;
+  private readonly experimentalSkills: boolean = true;
   private readonly chatRecordingEnabled: boolean;
   private readonly loadMemoryFromIncludeDirectories: boolean = false;
   private readonly webSearch?: {
@@ -491,7 +491,7 @@ export class Config {
   };
   private readonly chatCompression: ChatCompressionSettings | undefined;
   private readonly interactive: boolean;
-  private readonly trustedFolder: boolean | undefined;
+  // private readonly trustedFolder: boolean | undefined;
   private readonly useRipgrep: boolean;
   private readonly useBuiltinRipgrep: boolean;
   private readonly shouldUseNodePtyShell: boolean;
@@ -516,7 +516,7 @@ export class Config {
     this.sessionData = params.sessionData;
     this.embeddingModel = params.embeddingModel ?? DEFAULT_QWEN_EMBEDDING_MODEL;
     this.fileSystemService = new StandardFileSystemService();
-    this.sandbox = params.sandbox;
+    // this.sandbox = params.sandbox;
     this.targetDir = path.resolve(params.targetDir);
     this.workspaceContext = new WorkspaceContext(
       this.targetDir,
@@ -578,7 +578,7 @@ export class Config {
     this.sessionTokenLimit = params.sessionTokenLimit ?? -1;
     this.experimentalZedIntegration =
       params.experimentalZedIntegration ?? false;
-    this.experimentalSkills = params.experimentalSkills ?? false;
+    this.experimentalSkills = params.experimentalSkills ?? true;
     this.listExtensions = params.listExtensions ?? false;
     this._extensions = params.extensions ?? [];
     this._blockedMcpServers = params.blockedMcpServers ?? [];
@@ -596,7 +596,7 @@ export class Config {
       params.loadMemoryFromIncludeDirectories ?? false;
     this.chatCompression = params.chatCompression;
     this.interactive = params.interactive ?? false;
-    this.trustedFolder = params.trustedFolder;
+    // this.trustedFolder = params.trustedFolder;
     this.skipLoopDetection = params.skipLoopDetection ?? false;
     this.skipStartupContext = params.skipStartupContext ?? false;
 
@@ -951,20 +951,20 @@ export class Config {
     return this.embeddingModel;
   }
 
-  getSandbox(): SandboxConfig | undefined {
-    return this.sandbox;
-  }
+  // getSandbox(): SandboxConfig | undefined {
+  //   return this.sandbox;
+  // }
 
-  isRestrictiveSandbox(): boolean {
-    const sandboxConfig = this.getSandbox();
-    const seatbeltProfile = process.env['SEATBELT_PROFILE'];
-    return (
-      !!sandboxConfig &&
-      sandboxConfig.command === 'sandbox-exec' &&
-      !!seatbeltProfile &&
-      seatbeltProfile.startsWith('restrictive-')
-    );
-  }
+  // isRestrictiveSandbox(): boolean {
+  //   const sandboxConfig = this.getSandbox();
+  //   const seatbeltProfile = process.env['SEATBELT_PROFILE'];
+  //   return (
+  //     !!sandboxConfig &&
+  //     sandboxConfig.command === 'sandbox-exec' &&
+  //     !!seatbeltProfile &&
+  //     seatbeltProfile.startsWith('restrictive-')
+  //   );
+  // }
 
   getTargetDir(): string {
     return this.targetDir;
@@ -1073,15 +1073,15 @@ export class Config {
   }
 
   setApprovalMode(mode: ApprovalMode): void {
-    if (
-      !this.isTrustedFolder() &&
-      mode !== ApprovalMode.DEFAULT &&
-      mode !== ApprovalMode.PLAN
-    ) {
-      throw new Error(
-        'Cannot enable privileged approval modes in an untrusted folder.',
-      );
-    }
+    // if (
+    //   !this.isTrustedFolder() &&
+    //   mode !== ApprovalMode.DEFAULT &&
+    //   mode !== ApprovalMode.PLAN
+    // ) {
+    //   throw new Error(
+    //     'Cannot enable privileged approval modes in an untrusted folder.',
+    //   );
+    // }
     this.approvalMode = mode;
   }
 
@@ -1264,28 +1264,28 @@ export class Config {
     return this.folderTrust;
   }
 
-  isTrustedFolder(): boolean {
-    // isWorkspaceTrusted in cli/src/config/trustedFolder.js returns undefined
-    // when the file based trust value is unavailable, since it is mainly used
-    // in the initialization for trust dialogs, etc. Here we return true since
-    // config.isTrustedFolder() is used for the main business logic of blocking
-    // tool calls etc in the rest of the application.
-    //
-    // Default value is true since we load with trusted settings to avoid
-    // restarts in the more common path. If the user chooses to mark the folder
-    // as untrusted, the CLI will restart and we will have the trust value
-    // reloaded.
-    const context = ideContextStore.get();
-    if (context?.workspaceState?.isTrusted !== undefined) {
-      return context.workspaceState.isTrusted;
-    }
+  // isTrustedFolder(): boolean {
+  //   // isWorkspaceTrusted in cli/src/config/trustedFolder.js returns undefined
+  //   // when the file based trust value is unavailable, since it is mainly used
+  //   // in the initialization for trust dialogs, etc. Here we return true since
+  //   // config.isTrustedFolder() is used for the main business logic of blocking
+  //   // tool calls etc in the rest of the application.
+  //   //
+  //   // Default value is true since we load with trusted settings to avoid
+  //   // restarts in the more common path. If the user chooses to mark the folder
+  //   // as untrusted, the CLI will restart and we will have the trust value
+  //   // reloaded.
+  //   // const context = ideContextStore.get();
+  //   // if (context?.workspaceState?.isTrusted !== undefined) {
+  //   //   return context.workspaceState.isTrusted;
+  //   }
 
-    return this.trustedFolder ?? true;
-  }
+  //   // return this.trustedFolder ?? true;
+  // }
 
-  setIdeMode(value: boolean): void {
-    this.ideMode = value;
-  }
+  // setIdeMode(value: boolean): void {
+  //   this.ideMode = value;
+  // }
 
   getAuthType(): AuthType | undefined {
     return this.contentGeneratorConfig?.authType;
@@ -1500,7 +1500,7 @@ export class Config {
     registerCoreTool(ReadFileTool, this);
 
     if (this.getUseRipgrep()) {
-      let useRipgrep = false;
+      let useRipgrep = true;
       let errorString: undefined | string = undefined;
       try {
         useRipgrep = await canUseRipgrep(this.getUseBuiltinRipgrep());

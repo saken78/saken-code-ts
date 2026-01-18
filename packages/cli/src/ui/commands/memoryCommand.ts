@@ -312,7 +312,7 @@ export const memoryCommand: SlashCommand = {
                 config.getDebugMode(),
                 config.getFileService(),
                 config.getExtensionContextFilePaths(),
-                config.getFolderTrust(),
+                // config.getFolderTrust(),
                 context.services.settings.merged.context?.importFormat ||
                   'tree', // Use setting or default to 'tree'
                 config.getFileFilteringOptions(),

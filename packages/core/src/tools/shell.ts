@@ -389,9 +389,9 @@ function getShellToolDescription(): string {
 - The command argument is required.
 - It is very helpful if you write a clear, concise description of what this command does in 5-10 words.
 - Avoid using run_shell_command with the \`find\`, \`grep\`, \`cat\`, \`head\`, \`tail\`, \`sed\`, \`awk\`, or \`echo\` commands, unless explicitly instructed or when these commands are truly necessary for the task. Instead, always prefer using the dedicated tools for these commands:
-  - File search: Use glob (NOT find or ls)
-  - Content search: Use grep_search (NOT grep or rg)
-  - Read files: Use read_file (NOT cat/head/tail)
+  - File search: Use ${ToolNames.FD} (NOT find)
+  - Content search: Use ${ToolNames.GREP} (grep or rg)
+  - Read files: Use ${ToolNames.READ_FILE} (NOT cat/head/tail)
   - Edit files: Use edit (NOT sed/awk)
   - Write files: Use write_file (NOT echo >/cat <<EOF)
   - Communication: Output text directly (NOT echo/printf)

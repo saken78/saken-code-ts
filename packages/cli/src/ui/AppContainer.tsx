@@ -30,13 +30,21 @@ import { MessageType, StreamingState } from './types.js';
 import {
   type EditorType,
   type Config,
-  type IdeInfo,
-  type IdeContext,
-  IdeClient,
-  ideContextStore,
+  // type IdeInfo,
+  // type IdeContext,
+  // IdeClient,
+  // ideContextStore,
   getErrorMessage,
   getAllGeminiMdFilenames,
   ShellExecutionService,
+  ideContextStore,
+  type IdeContext,
+  // IdeClient,
+  // ideContextStore,
+  // type IdeContext,
+  // IdeClient,
+  // ideContextStore,
+  // type IdeContext,
 } from '@qwen-code/qwen-code-core';
 import { buildResumedHistoryItems } from './utils/resumeHistoryUtils.js';
 import { validateAuthMethod } from '../config/auth.js';
@@ -65,16 +73,16 @@ import { useTextBuffer } from './components/shared/text-buffer.js';
 import { useLogger } from './hooks/useLogger.js';
 import { useGeminiStream } from './hooks/useGeminiStream.js';
 import { useVim } from './hooks/vim.js';
-import { type LoadedSettings, SettingScope } from '../config/settings.js';
+import { type LoadedSettings } from '../config/settings.js';
 import { type InitializationResult } from '../core/initializer.js';
 import { useFocus } from './hooks/useFocus.js';
 import { useBracketedPaste } from './hooks/useBracketedPaste.js';
 import { useKeypress, type Key } from './hooks/useKeypress.js';
 import { keyMatchers, Command } from './keyMatchers.js';
 import { useLoadingIndicator } from './hooks/useLoadingIndicator.js';
-import { useFolderTrust } from './hooks/useFolderTrust.js';
-import { useIdeTrustListener } from './hooks/useIdeTrustListener.js';
-import { type IdeIntegrationNudgeResult } from './IdeIntegrationNudge.js';
+// import { useFolderTrust } from './hooks/useFolderTrust.js';
+// import { useIdeTrustListener } from './hooks/useIdeTrustListener.js';
+// import { type IdeIntegrationNudgeResult } from './IdeIntegrationNudge.js';
 import { appEvents, AppEvent } from '../utils/events.js';
 import { type UpdateObject } from './utils/updateCheck.js';
 import { setUpdateHandler } from '../utils/handleAutoUpdate.js';
@@ -152,9 +160,9 @@ export const AppContainer = (props: AppContainerProps) => {
     useState<boolean>(false);
   const [historyRemountKey, setHistoryRemountKey] = useState(0);
   const [updateInfo, setUpdateInfo] = useState<UpdateObject | null>(null);
-  const [isTrustedFolder, setIsTrustedFolder] = useState<boolean | undefined>(
-    config.isTrustedFolder(),
-  );
+  // const [isTrustedFolder, setIsTrustedFolder] = useState<boolean | undefined>(
+  //   config.isTrustedFolder(),
+  // );
 
   const extensions = config.getExtensions();
   const {
@@ -223,10 +231,10 @@ export const AppContainer = (props: AppContainerProps) => {
         historyManager.loadHistory(historyItems);
       }
     })();
-    registerCleanup(async () => {
-      const ideClient = await IdeClient.getInstance();
-      await ideClient.disconnect();
-    });
+    // registerCleanup(async () => {
+    //   const ideClient = await IdeClient.getInstance();
+    //   await ideClient.disconnect();
+    // });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config]);
 
@@ -573,7 +581,7 @@ export const AppContainer = (props: AppContainerProps) => {
         config.getFileService(),
         settings.merged,
         config.getExtensionContextFilePaths(),
-        config.isTrustedFolder(),
+        // config.isTrustedFolder(),
         settings.merged.context?.importFormat || 'tree', // Use setting or default to 'tree'
         config.getFileFilteringOptions(),
       );
@@ -820,23 +828,23 @@ export const AppContainer = (props: AppContainerProps) => {
     geminiClient,
   ]);
 
-  const [idePromptAnswered, setIdePromptAnswered] = useState(false);
-  const [currentIDE, setCurrentIDE] = useState<IdeInfo | null>(null);
+  // const [idePromptAnswered, setIdePromptAnswered] = useState(false);
+  // const [currentIDE, setCurrentIDE] = useState<IdeInfo | null>(null);
 
-  useEffect(() => {
-    const getIde = async () => {
-      const ideClient = await IdeClient.getInstance();
-      const currentIde = ideClient.getCurrentIde();
-      setCurrentIDE(currentIde || null);
-    };
-    getIde();
-  }, []);
-  const shouldShowIdePrompt = Boolean(
-    currentIDE &&
-      !config.getIdeMode() &&
-      !settings.merged.ide?.hasSeenNudge &&
-      !idePromptAnswered,
-  );
+  // useEffect(() => {
+  //   const getIde = async () => {
+  //     const ideClient = await IdeClient.getInstance();
+  //     const currentIde = ideClient.getCurrentIde();
+  //     setCurrentIDE(currentIde || null);
+  //   };
+  //   getIde();
+  // }, []);
+  // const shouldShowIdePrompt = Boolean(
+  //   currentIDE &&
+  //     !config.getIdeMode() &&
+  //     !settings.merged.ide?.hasSeenNudge &&
+  //     !idePromptAnswered,
+  // );
 
   const [showErrorDetails, setShowErrorDetails] = useState<boolean>(false);
   const [showToolDescriptions, setShowToolDescriptions] =
@@ -851,28 +859,28 @@ export const AppContainer = (props: AppContainerProps) => {
     IdeContext | undefined
   >();
   const [showEscapePrompt, setShowEscapePrompt] = useState(false);
-  const [showIdeRestartPrompt, setShowIdeRestartPrompt] = useState(false);
+  // const [showIdeRestartPrompt, setShowIdeRestartPrompt] = useState(false);
 
-  const { isFolderTrustDialogOpen, handleFolderTrustSelect, isRestarting } =
-    useFolderTrust(settings, setIsTrustedFolder);
-  const {
-    needsRestart: ideNeedsRestart,
-    restartReason: ideTrustRestartReason,
-  } = useIdeTrustListener();
-  const isInitialMount = useRef(true);
+  // const { isFolderTrustDialogOpen, handleFolderTrustSelect, isRestarting } =
+  //   useFolderTrust(settings, setIsTrustedFolder);
+  // const {
+  //   needsRestart: ideNeedsRestart,
+  //   restartReason: ideTrustRestartReason,
+  // } = useIdeTrustListener();
+  // const isInitialMount = useRef(true);
+
+  // useEffect(() => {
+  //   if (ideNeedsRestart) {
+  //     // IDE trust changed, force a restart.
+  //     setShowIdeRestartPrompt(true);
+  //   }
+  // }, [ideNeedsRestart]);
 
   useEffect(() => {
-    if (ideNeedsRestart) {
-      // IDE trust changed, force a restart.
-      setShowIdeRestartPrompt(true);
-    }
-  }, [ideNeedsRestart]);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
+    // if (isInitialMount.current) {
+    //   isInitialMount.current = false;
+    //   return;
+    // }
 
     const handler = setTimeout(() => {
       refreshStatic();
@@ -915,23 +923,23 @@ export const AppContainer = (props: AppContainerProps) => {
     setShowEscapePrompt(showPrompt);
   }, []);
 
-  const handleIdePromptComplete = useCallback(
-    (result: IdeIntegrationNudgeResult) => {
-      if (result.userSelection === 'yes') {
-        // Check whether the extension has been pre-installed
-        if (result.isExtensionPreInstalled) {
-          handleSlashCommand('/ide enable');
-        } else {
-          handleSlashCommand('/ide install');
-        }
-        settings.setValue(SettingScope.User, 'ide.hasSeenNudge', true);
-      } else if (result.userSelection === 'dismiss') {
-        settings.setValue(SettingScope.User, 'ide.hasSeenNudge', true);
-      }
-      setIdePromptAnswered(true);
-    },
-    [handleSlashCommand, settings],
-  );
+  // const handleIdePromptComplete = useCallback(
+  //   (result: IdeIntegrationNudgeResult) => {
+  //     if (result.userSelection === 'yes') {
+  //       // Check whether the extension has been pre-installed
+  //       if (result.isExtensionPreInstalled) {
+  //         handleSlashCommand('/ide enable');
+  //       } else {
+  //         handleSlashCommand('/ide install');
+  //       }
+  //       settings.setValue(SettingScope.User, 'ide.hasSeenNudge', true);
+  //     } else if (result.userSelection === 'dismiss') {
+  //       settings.setValue(SettingScope.User, 'ide.hasSeenNudge', true);
+  //     }
+  //     // setIdePromptAnswered(true);
+  //   },
+  //   [handleSlashCommand, settings],
+  // );
 
   const { elapsedTime, currentLoadingPhrase } = useLoadingIndicator(
     streamingState,
@@ -958,7 +966,7 @@ export const AppContainer = (props: AppContainerProps) => {
     exitEditorDialog,
     isSettingsDialogOpen,
     closeSettingsDialog,
-    isFolderTrustDialogOpen,
+    // isFolderTrustDialogOpen,
     showWelcomeBackDialog,
     handleWelcomeBackClose,
   });
@@ -1176,8 +1184,8 @@ export const AppContainer = (props: AppContainerProps) => {
   const dialogsVisible =
     showWelcomeBackDialog ||
     showWorkspaceMigrationDialog ||
-    shouldShowIdePrompt ||
-    isFolderTrustDialogOpen ||
+    // shouldShowIdePrompt ||
+    // isFolderTrustDialogOpen ||
     !!shellConfirmationRequest ||
     !!confirmationRequest ||
     confirmUpdateExtensionRequests.length > 0 ||
@@ -1190,7 +1198,7 @@ export const AppContainer = (props: AppContainerProps) => {
     isAuthDialogOpen ||
     isAuthenticating ||
     isEditorDialogOpen ||
-    showIdeRestartPrompt ||
+    // showIdeRestartPrompt ||
     isSubagentCreateDialogOpen ||
     isAgentsManagerDialogOpen ||
     isApprovalModeDialogOpen ||
@@ -1241,13 +1249,13 @@ export const AppContainer = (props: AppContainerProps) => {
       inputWidth,
       suggestionsWidth,
       isInputActive,
-      shouldShowIdePrompt,
-      isFolderTrustDialogOpen: isFolderTrustDialogOpen ?? false,
-      isTrustedFolder,
+      // shouldShowIdePrompt,
+      // isFolderTrustDialogOpen: isFolderTrustDialogOpen ?? false,
+      // isTrustedFolder,
       constrainHeight,
       showErrorDetails,
       filteredConsoleMessages,
-      ideContextState,
+      // ideContextState,
       showToolDescriptions,
       ctrlCPressedOnce,
       ctrlDPressedOnce,
@@ -1260,6 +1268,7 @@ export const AppContainer = (props: AppContainerProps) => {
       showAutoAcceptIndicator,
       showWorkspaceMigrationDialog,
       workspaceExtensions,
+      // Quota related
       currentModel,
       contextFileNames,
       errorCount,
@@ -1275,11 +1284,11 @@ export const AppContainer = (props: AppContainerProps) => {
       terminalWidth,
       terminalHeight,
       mainControlsRef,
-      currentIDE,
+      // currentIDE,
       updateInfo,
-      showIdeRestartPrompt,
-      ideTrustRestartReason,
-      isRestarting,
+      // showIdeRestartPrompt,
+      // ideTrustRestartReason,
+      // isRestarting,
       extensionsUpdateState,
       activePtyId,
       embeddedShellFocused,
@@ -1330,13 +1339,13 @@ export const AppContainer = (props: AppContainerProps) => {
       inputWidth,
       suggestionsWidth,
       isInputActive,
-      shouldShowIdePrompt,
-      isFolderTrustDialogOpen,
-      isTrustedFolder,
+      // shouldShowIdePrompt,
+      // isFolderTrustDialogOpen,
+      // isTrustedFolder,
       constrainHeight,
       showErrorDetails,
       filteredConsoleMessages,
-      ideContextState,
+      // ideContextState,
       showToolDescriptions,
       ctrlCPressedOnce,
       ctrlDPressedOnce,
@@ -1363,11 +1372,11 @@ export const AppContainer = (props: AppContainerProps) => {
       terminalWidth,
       terminalHeight,
       mainControlsRef,
-      currentIDE,
+      // currentIDE,
       updateInfo,
-      showIdeRestartPrompt,
-      ideTrustRestartReason,
-      isRestarting,
+      // showIdeRestartPrompt,
+      // ideTrustRestartReason,
+      // isRestarting,
       currentModel,
       extensionsUpdateState,
       activePtyId,
@@ -1401,8 +1410,6 @@ export const AppContainer = (props: AppContainerProps) => {
       closePermissionsDialog,
       setShellModeActive,
       vimHandleInput,
-      handleIdePromptComplete,
-      handleFolderTrustSelect,
       setConstrainHeight,
       onEscapePromptChange: handleEscapePromptChange,
       refreshStatic,
@@ -1438,8 +1445,8 @@ export const AppContainer = (props: AppContainerProps) => {
       closePermissionsDialog,
       setShellModeActive,
       vimHandleInput,
-      handleIdePromptComplete,
-      handleFolderTrustSelect,
+      // handleIdePromptComplete,
+      // handleFolderTrustSelect,
       setConstrainHeight,
       handleEscapePromptChange,
       refreshStatic,

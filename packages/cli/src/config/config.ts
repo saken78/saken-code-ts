@@ -45,11 +45,10 @@ import { resolvePath } from '../utils/resolvePath.js';
 import { getCliVersion } from '../utils/version.js';
 import type { Extension } from './extension.js';
 import { annotateActiveExtensions } from './extension.js';
-import { loadSandboxConfig } from './sandboxConfig.js';
+
 import { appEvents } from '../utils/events.js';
 import { mcpCommand } from '../commands/mcp.js';
 
-import { isWorkspaceTrusted } from './trustedFolders.js';
 import type { ExtensionEnablementManager } from './extensions/extensionEnablement.js';
 import { buildWebSearchConfig } from './webSearch.js';
 
@@ -99,8 +98,6 @@ function parseApprovalModeValue(value: string): ApprovalMode {
 export interface CliArgs {
   query: string | undefined;
   model: string | undefined;
-  sandbox: boolean | string | undefined;
-  sandboxImage: string | undefined;
   debug: boolean | undefined;
   prompt: string | undefined;
   promptInteractive: string | undefined;
@@ -273,15 +270,15 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
           description:
             'Execute the provided prompt and continue in interactive mode',
         })
-        .option('sandbox', {
-          alias: 's',
-          type: 'boolean',
-          description: 'Run in sandbox?',
-        })
-        .option('sandbox-image', {
-          type: 'string',
-          description: 'Sandbox image URI.',
-        })
+        // .option('sandbox', {
+        //   alias: 's',
+        //   type: 'boolean',
+        //   description: 'Run in sandbox?',
+        // })
+        // .option('sandbox-image', {
+        //   type: 'string',
+        //   description: 'Sandbox image URI.',
+        // })
         .option('all-files', {
           alias: ['a'],
           type: 'boolean',
@@ -324,13 +321,13 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
         .option('experimental-skills', {
           type: 'boolean',
           description: 'Enable experimental Skills feature',
-          default: false,
+          default: true,
         })
-        .option('channel', {
-          type: 'string',
-          choices: ['VSCode', 'ACP', 'SDK', 'CI'],
-          description: 'Channel identifier (VSCode, ACP, SDK, CI)',
-        })
+        // .option('channel', {
+        //   type: 'string',
+        //   choices: ['VSCode', 'ACP', 'SDK', 'CI'],
+        //   description: 'Channel identifier (VSCode, ACP, SDK, CI)',
+        // })
         .option('allowed-mcp-server-names', {
           type: 'array',
           string: true,
@@ -492,10 +489,10 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
           'show-memory-usage',
           'Use the "ui.showMemoryUsage" setting in settings.json instead. This flag will be removed in a future version.',
         )
-        .deprecateOption(
-          'sandbox-image',
-          'Use the "tools.sandbox" setting in settings.json instead. This flag will be removed in a future version.',
-        )
+        // .deprecateOption(
+        //   'sandbox-image',
+        //   'Use the "tools.sandbox" setting in settings.json instead. This flag will be removed in a future version.',
+        // )
         .deprecateOption(
           'checkpointing',
           'Use the "general.checkpointing.enabled" setting in settings.json instead. This flag will be removed in a future version.',
@@ -631,7 +628,7 @@ export async function loadHierarchicalGeminiMemory(
   fileService: FileDiscoveryService,
   settings: Settings,
   extensionContextFilePaths: string[] = [],
-  folderTrust: boolean,
+  // folderTrust: boolean,
   memoryImportFormat: 'flat' | 'tree' = 'tree',
   fileFilteringOptions?: FileFilteringOptions,
 ): Promise<{ memoryContent: string; fileCount: number }> {
@@ -657,7 +654,7 @@ export async function loadHierarchicalGeminiMemory(
     debugMode,
     fileService,
     extensionContextFilePaths,
-    folderTrust,
+    // folderTrust,
     memoryImportFormat,
     fileFilteringOptions,
     settings.context?.discoveryMaxDirs,
@@ -687,7 +684,7 @@ export async function loadCliConfig(
   const ideMode = settings.ide?.enabled ?? false;
 
   const folderTrust = settings.security?.folderTrust?.enabled ?? false;
-  const trustedFolder = isWorkspaceTrusted(settings)?.isTrusted ?? true;
+  // const trustedFolder = isWorkspaceTrusted(settings)?.isTrusted ?? true;
 
   const allExtensions = annotateActiveExtensions(
     extensions,
@@ -749,7 +746,7 @@ export async function loadCliConfig(
     fileService,
     settings,
     extensionContextFilePaths,
-    trustedFolder,
+    // trustedFolder,
     memoryImportFormat,
     fileFiltering,
   );
@@ -786,6 +783,7 @@ export async function loadCliConfig(
   }
 
   // Force approval mode to default if the folder is not trusted.
+  const trustedFolder = true;
   if (
     !trustedFolder &&
     approvalMode !== ApprovalMode.DEFAULT &&
@@ -866,7 +864,7 @@ export async function loadCliConfig(
 
   if (
     !interactive &&
-    !argv.experimentalAcp &&
+    !(argv.acp || argv.experimentalAcp) &&
     inputFormat !== InputFormat.STREAM_JSON
   ) {
     switch (approvalMode) {
@@ -948,7 +946,7 @@ export async function loadCliConfig(
 
   const { model: resolvedModel } = resolvedCliConfig;
 
-  const sandboxConfig = await loadSandboxConfig(settings, argv);
+  // const sandboxConfig = await loadSandboxConfig(settings, argv);
   const screenReader =
     argv.screenReader !== undefined
       ? argv.screenReader
@@ -986,7 +984,7 @@ export async function loadCliConfig(
     sessionId,
     sessionData,
     embeddingModel: DEFAULT_QWEN_EMBEDDING_MODEL,
-    sandbox: sandboxConfig,
+    // sandbox: sandboxConfig,
     targetDir: cwd,
     includeDirectories,
     loadMemoryFromIncludeDirectories:
@@ -1049,7 +1047,7 @@ export async function loadCliConfig(
     chatCompression: settings.model?.chatCompression,
     folderTrust,
     interactive,
-    trustedFolder,
+    // trustedFolder,
     useRipgrep: settings.tools?.useRipgrep,
     useBuiltinRipgrep: settings.tools?.useBuiltinRipgrep,
     shouldUseNodePtyShell: settings.tools?.shell?.enableInteractiveShell,

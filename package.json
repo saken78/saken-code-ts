@@ -16,7 +16,7 @@
     "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.7.1"
   },
   "scripts": {
-    "start": "cross-env node scripts/start.js --experimental-skills",
+    "start": "cross-env node scripts/start.js --debug --experimental-skills",
     "debug": "cross-env DEBUG=1 node --inspect-brk scripts/start.js",
     "generate": "node scripts/generate-git-commit-info.js",
     "build": "node scripts/build.js",
@@ -55,7 +55,9 @@
     "telemetry": "node scripts/telemetry.js",
     "check:lockfile": "node scripts/check-lockfile.js",
     "clean": "node scripts/clean.js",
-    "pre-commit": "node scripts/pre-commit.js"
+    "pre-commit": "node scripts/pre-commit.js",
+    "benchmark": "tsx test/benchmark/sendMessageStream-benchmark.ts",
+    "benchmark-report": "tsx test/benchmark/reporting.ts"
   },
   "overrides": {
     "wrap-ansi": "9.0.2",

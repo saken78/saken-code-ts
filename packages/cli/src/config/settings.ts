@@ -18,7 +18,7 @@ import {
 import stripJsonComments from 'strip-json-comments';
 import { DefaultLight } from '../ui/themes/default-light.js';
 import { DefaultDark } from '../ui/themes/default.js';
-import { isWorkspaceTrusted } from './trustedFolders.js';
+// import { isWorkspaceTrusted } from './trustedFolders.js';
 import {
   type Settings,
   type MemoryImportFormat,
@@ -398,9 +398,9 @@ function mergeSettings(
   systemDefaults: Settings,
   user: Settings,
   workspace: Settings,
-  isTrusted: boolean,
+  // isTrusted: boolean,
 ): Settings {
-  const safeWorkspace = isTrusted ? workspace : ({} as Settings);
+  const safeWorkspace = workspace;
 
   // Settings are merged with the following precedence (last one wins for
   // single values):
@@ -424,14 +424,14 @@ export class LoadedSettings {
     systemDefaults: SettingsFile,
     user: SettingsFile,
     workspace: SettingsFile,
-    isTrusted: boolean,
+    // isTrusted: boolean,
     migratedInMemorScopes: Set<SettingScope>,
   ) {
     this.system = system;
     this.systemDefaults = systemDefaults;
     this.user = user;
     this.workspace = workspace;
-    this.isTrusted = isTrusted;
+    // this.isTrusted = isTrusted;
     this.migratedInMemorScopes = migratedInMemorScopes;
     this._merged = this.computeMergedSettings();
   }
@@ -440,7 +440,7 @@ export class LoadedSettings {
   readonly systemDefaults: SettingsFile;
   readonly user: SettingsFile;
   readonly workspace: SettingsFile;
-  readonly isTrusted: boolean;
+  // readonly isTrusted: boolean;
   readonly migratedInMemorScopes: Set<SettingScope>;
 
   private _merged: Settings;
@@ -455,7 +455,7 @@ export class LoadedSettings {
       this.systemDefaults.settings,
       this.user.settings,
       this.workspace.settings,
-      this.isTrusted,
+      // this.isTrusted,
     );
   }
 
@@ -499,7 +499,7 @@ export function createMinimalSettings(): LoadedSettings {
     emptySettingsFile,
     emptySettingsFile,
     emptySettingsFile,
-    false,
+    // false,
     new Set(),
   );
 }
@@ -558,9 +558,9 @@ export function setUpCloudShellEnvironment(envFilePath: string | null): void {
 export function loadEnvironment(settings: Settings): void {
   const envFilePath = findEnvFile(process.cwd());
 
-  if (!isWorkspaceTrusted(settings).isTrusted) {
-    return;
-  }
+  // if (!isWorkspaceTrusted(settings).isTrusted) {
+  //   return;
+  // }
 
   // Cloud Shell environment variable handling
   if (process.env['CLOUD_SHELL'] === 'true') {
@@ -749,14 +749,14 @@ export function loadSettings(
   }
 
   // For the initial trust check, we can only use user and system settings.
-  const initialTrustCheckSettings = customDeepMerge(
-    getMergeStrategyForPath,
-    {},
-    systemSettings,
-    userSettings,
-  );
-  const isTrusted =
-    isWorkspaceTrusted(initialTrustCheckSettings as Settings).isTrusted ?? true;
+  // const initialTrustCheckSettings = customDeepMerge(
+  //   getMergeStrategyForPath,
+  //   {},
+  //   systemSettings,
+  //   userSettings,
+  // );
+  // const isTrusted =
+  //   isWorkspaceTrusted(initialTrustCheckSettings as Settings).isTrusted ?? true;
 
   // Create a temporary merged settings object to pass to loadEnvironment.
   const tempMergedSettings = mergeSettings(
@@ -764,7 +764,7 @@ export function loadSettings(
     systemDefaultSettings,
     userSettings,
     workspaceSettings,
-    isTrusted,
+    // isTrusted,
   );
 
   // loadEnviroment depends on settings so we have to create a temp version of
@@ -807,7 +807,7 @@ export function loadSettings(
       originalSettings: workspaceOriginalSettings,
       rawJson: workspaceResult.rawJson,
     },
-    isTrusted,
+    // isTrusted,
     migratedInMemorScopes,
   );
 }

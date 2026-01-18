@@ -85,7 +85,7 @@ async function getGeminiMdFilePathsInternal(
   debugMode: boolean,
   fileService: FileDiscoveryService,
   extensionContextFilePaths: string[] = [],
-  folderTrust: boolean,
+  // folderTrust: boolean,
   fileFilteringOptions: FileFilteringOptions,
   maxDirs: number,
 ): Promise<string[]> {
@@ -108,7 +108,7 @@ async function getGeminiMdFilePathsInternal(
         debugMode,
         fileService,
         extensionContextFilePaths,
-        folderTrust,
+        // folderTrust,
         fileFilteringOptions,
         maxDirs,
       ),
@@ -138,7 +138,7 @@ async function getGeminiMdFilePathsInternalForEachDir(
   debugMode: boolean,
   fileService: FileDiscoveryService,
   extensionContextFilePaths: string[] = [],
-  folderTrust: boolean,
+  // folderTrust: boolean,
   fileFilteringOptions: FileFilteringOptions,
   maxDirs: number,
 ): Promise<string[]> {
@@ -184,7 +184,7 @@ async function getGeminiMdFilePathsInternalForEachDir(
       } catch {
         // Not found, which is okay
       }
-    } else if (dir && folderTrust) {
+    } else if (dir) {
       // FIX: Only perform the workspace search (upward and downward scans)
       // if a valid currentWorkingDirectory is provided and it's not the home directory.
       const resolvedCwd = path.resolve(dir);
@@ -362,7 +362,7 @@ export async function loadServerHierarchicalMemory(
   debugMode: boolean,
   fileService: FileDiscoveryService,
   extensionContextFilePaths: string[] = [],
-  folderTrust: boolean,
+  // folderTrust: boolean,
   importFormat: 'flat' | 'tree' = 'tree',
   fileFilteringOptions?: FileFilteringOptions,
   maxDirs: number = 200,
@@ -382,7 +382,7 @@ export async function loadServerHierarchicalMemory(
     debugMode,
     fileService,
     extensionContextFilePaths,
-    folderTrust,
+    // folderTrust,
     fileFilteringOptions || DEFAULT_MEMORY_FILE_FILTERING_OPTIONS,
     maxDirs,
   );

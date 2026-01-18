@@ -5,9 +5,9 @@
  */
 
 import { Box, Text } from 'ink';
-import { IdeIntegrationNudge } from '../IdeIntegrationNudge.js';
+// import { IdeIntegrationNudge } from '../IdeIntegrationNudge.js';
 import { LoopDetectionConfirmation } from './LoopDetectionConfirmation.js';
-import { FolderTrustDialog } from './FolderTrustDialog.js';
+// import { FolderTrustDialog } from './FolderTrustDialog.js';
 import { ShellConfirmationDialog } from './ShellConfirmationDialog.js';
 import { ConsentPrompt } from './ConsentPrompt.js';
 import { ThemeDialog } from './ThemeDialog.js';
@@ -17,7 +17,7 @@ import { AuthDialog } from '../auth/AuthDialog.js';
 import { OpenAIKeyPrompt } from './OpenAIKeyPrompt.js';
 import { EditorSettingsDialog } from './EditorSettingsDialog.js';
 import { WorkspaceMigrationDialog } from './WorkspaceMigrationDialog.js';
-import { PermissionsModifyTrustDialog } from './PermissionsModifyTrustDialog.js';
+// import { PermissionsModifyTrustDialog } from './PermissionsModifyTrustDialog.js';
 import { ModelDialog } from './ModelDialog.js';
 import { ApprovalModeDialog } from './ApprovalModeDialog.js';
 import { theme } from '../semantic-colors.js';
@@ -29,7 +29,7 @@ import { AuthState } from '../types.js';
 import { AuthType } from '@qwen-code/qwen-code-core';
 import process from 'node:process';
 import { type UseHistoryManagerReturn } from '../hooks/useHistoryManager.js';
-import { IdeTrustChangeDialog } from './IdeTrustChangeDialog.js';
+// import { IdeTrustChangeDialog } from './IdeTrustChangeDialog.js';
 import { WelcomeBackDialog } from './WelcomeBackDialog.js';
 import { ModelSwitchDialog } from './ModelSwitchDialog.js';
 import { AgentCreationWizard } from './subagents/create/AgentCreationWizard.js';
@@ -43,6 +43,7 @@ interface DialogManagerProps {
 
 // Props for DialogManager
 export const DialogManager = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   addItem,
   terminalWidth,
 }: DialogManagerProps) => {
@@ -73,31 +74,15 @@ export const DialogManager = ({
       />
     );
   }
-  if (uiState.showIdeRestartPrompt) {
-    return <IdeTrustChangeDialog reason={uiState.ideTrustRestartReason} />;
-  }
+  // if (uiState.showIdeRestartPrompt) {
+  //   return <IdeTrustChangeDialog reason={uiState.ideTrustRestartReason} />;
+  // }
   if (uiState.showWorkspaceMigrationDialog) {
     return (
       <WorkspaceMigrationDialog
         workspaceExtensions={uiState.workspaceExtensions}
         onOpen={uiActions.onWorkspaceMigrationDialogOpen}
         onClose={uiActions.onWorkspaceMigrationDialogClose}
-      />
-    );
-  }
-  if (uiState.shouldShowIdePrompt) {
-    return (
-      <IdeIntegrationNudge
-        ide={uiState.currentIDE!}
-        onComplete={uiActions.handleIdePromptComplete}
-      />
-    );
-  }
-  if (uiState.isFolderTrustDialogOpen) {
-    return (
-      <FolderTrustDialog
-        onSelect={uiActions.handleFolderTrustSelect}
-        isRestarting={uiState.isRestarting}
       />
     );
   }
@@ -253,14 +238,14 @@ export const DialogManager = ({
       </Box>
     );
   }
-  if (uiState.isPermissionsDialogOpen) {
-    return (
-      <PermissionsModifyTrustDialog
-        onExit={uiActions.closePermissionsDialog}
-        addItem={addItem}
-      />
-    );
-  }
+  // if (uiState.isPermissionsDialogOpen) {
+  //   return (
+  //     <PermissionsModifyTrustDialog
+  //       onExit={uiActions.closePermissionsDialog}
+  //       addItem={addItem}
+  //     />
+  //   );
+  // }
 
   if (uiState.isSubagentCreateDialogOpen) {
     return (
