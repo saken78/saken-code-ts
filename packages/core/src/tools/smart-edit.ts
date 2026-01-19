@@ -29,7 +29,7 @@ import {
   type ModifiableDeclarativeTool,
   type ModifyContext,
 } from './modifiable-tool.js';
-import { IdeClient } from '../ide/ide-client.js';
+// import { IdeClient } from '../ide/ide-client.js';
 import { FixLLMEditWithInstruction } from '../utils/llm-edit-fixer.js';
 import { applyReplacement } from './edit.js';
 import { safeLiteralReplace } from '../utils/textUtils.js';
@@ -589,11 +589,11 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       'Proposed',
       DEFAULT_DIFF_OPTIONS,
     );
-    const ideClient = await IdeClient.getInstance();
-    const ideConfirmation =
-      this.config.getIdeMode() && ideClient.isDiffingEnabled()
-        ? ideClient.openDiff(this.params.file_path, editData.newContent)
-        : undefined;
+    // const ideClient = await IdeClient.getInstance();
+    // const ideConfirmation =
+    //   this.config.getIdeMode() && ideClient.isDiffingEnabled()
+    //     ? ideClient.openDiff(this.params.file_path, editData.newContent)
+    //     : undefined;
 
     const confirmationDetails: ToolEditConfirmationDetails = {
       type: 'edit',
@@ -608,17 +608,17 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
           this.config.setApprovalMode(ApprovalMode.AUTO_EDIT);
         }
 
-        if (ideConfirmation) {
-          const result = await ideConfirmation;
-          if (result.status === 'accepted' && result.content) {
-            // TODO(chrstn): See https://github.com/google-gemini/gemini-cli/pull/5618#discussion_r2255413084
-            // for info on a possible race condition where the file is modified on disk while being edited.
-            this.params.old_string = editData.currentContent ?? '';
-            this.params.new_string = result.content;
-          }
-        }
+        // if (ideConfirmation) {
+        //   const result = await ideConfirmation;
+        //   if (result.status === 'accepted' && result.content) {
+        //     // TODO(chrstn): See https://github.com/google-gemini/gemini-cli/pull/5618#discussion_r2255413084
+        //     // for info on a possible race condition where the file is modified on disk while being edited.
+        //     this.params.old_string = editData.currentContent ?? '';
+        //     this.params.new_string = result.content;
+        //   }
+        // }
       },
-      ideConfirmation,
+      // ideConfirmation,
     };
     return confirmationDetails;
   }
@@ -777,14 +777,14 @@ export class SmartEditTool
       SmartEditTool.Name,
       'Edit',
       `Replaces text within a file. Replaces a single occurrence. This tool requires providing significant context around the change to ensure precise targeting. Always use the ${ReadFileTool.Name} tool to examine the file's current content before attempting a text replacement.
-      
+
       The user has the ability to modify the \`new_string\` content. If modified, this will be stated in the response.
-      
+
       Expectation for required parameters:
       1. \`file_path\` MUST be an absolute path; otherwise an error will be thrown.
       2. \`old_string\` MUST be the exact literal text to replace (including all whitespace, indentation, newlines, and surrounding code etc.).
       3. \`new_string\` MUST be the exact literal text to replace \`old_string\` with (also including all whitespace, indentation, newlines, and surrounding code etc.). Ensure the resulting code is correct and idiomatic and that \`old_string\` and \`new_string\` are different.
-      4. \`instruction\` is the detailed instruction of what needs to be changed. It is important to Make it specific and detailed so developers or large language models can understand what needs to be changed and perform the changes on their own if necessary. 
+      4. \`instruction\` is the detailed instruction of what needs to be changed. It is important to Make it specific and detailed so developers or large language models can understand what needs to be changed and perform the changes on their own if necessary.
       5. NEVER escape \`old_string\` or \`new_string\`, that would break the exact literal text requirement.
       **Important:** If ANY of the above are not satisfied, the tool will fail. CRITICAL for \`old_string\`: Must uniquely identify the single instance to change. Include at least 3 lines of context BEFORE and AFTER the target text, matching whitespace and indentation precisely. If this string matches multiple locations, or does not match exactly, the tool will fail.
       6. Prefer to break down complex and long changes into multiple smaller atomic calls to this tool. Always check the content of the file after changes or not finding a string to match.
