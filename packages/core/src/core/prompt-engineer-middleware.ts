@@ -11,6 +11,8 @@
 import type { Config } from '../config/config.js';
 import type { PartUnion } from '@google/genai';
 import type { SubagentConfig } from '../subagents/types.js';
+import { ContextState } from '../subagents/subagent.js';
+import { SubagentTerminateMode } from '../subagents/types.js';
 
 export interface PromptOptimizationResult {
   originalPrompt: string;
@@ -170,8 +172,8 @@ Changes made:
   }
 
   /**
-   * Invoke prompt engineer agent
-   * Note: This is a placeholder - actual implementation depends on agent framework
+   * Invoke actual PromptEngineer subagent to optimize user input
+   * This is the REAL implementation that runs the subagent
    */
   private async invokePromptEngineer(
     agent: SubagentConfig | null,
@@ -184,25 +186,104 @@ Changes made:
     error?: string;
   }> {
     try {
-      // This is a simplified placeholder
-      // Actual implementation would call agent.execute() or similar
-      // and parse the response to extract optimized prompt
+      if (!agent) {
+        this.logDebug(
+          '[PromptEngineer] Agent config not found, optimization skipped',
+        );
+        return {
+          success: true,
+          optimizedPrompt: originalPrompt,
+          changes: [],
+        };
+      }
 
-      this.logDebug('[PromptEngineer] Agent invocation placeholder');
+      this.logDebug('[PromptEngineer] Invoking subagent...');
 
-      // For now, return original prompt
-      // In production, this would parse agent response
-      return {
-        success: true,
-        optimizedPrompt: originalPrompt,
-        changes: [],
-      };
+      // Get subagent manager and create subagent scope
+      const subagentManager = this.config.getSubagentManager();
+      const subagentScope = await subagentManager.createSubagentScope(
+        agent,
+        this.config,
+      );
+
+      // Create context state with optimization task
+      const contextState = new ContextState();
+      contextState.set('task_prompt', optimizationPrompt);
+
+      // Create abort controller for timeout (5 seconds max)
+      const abortController = new AbortController();
+      const timeoutId = setTimeout(() => abortController.abort(), 5000);
+
+      try {
+        // Run the prompt engineer agent
+        await subagentScope.runNonInteractive(
+          contextState,
+          abortController.signal,
+        );
+
+        clearTimeout(timeoutId);
+
+        // Get the optimized prompt from agent output
+        const agentOutput = subagentScope.getFinalText();
+        const terminateMode = subagentScope.getTerminateMode();
+
+        if (terminateMode === SubagentTerminateMode.CANCELLED) {
+          this.logDebug('[PromptEngineer] Agent was cancelled');
+          return {
+            success: true,
+            optimizedPrompt: originalPrompt,
+            changes: [],
+          };
+        }
+
+        // Extract optimized prompt from agent output
+        // Agent should return prompt in a code block or structured format
+        let optimizedPrompt = originalPrompt;
+        const codeBlockMatch = agentOutput.match(
+          /```[\s\S]*?\n([\s\S]*?)\n```/,
+        );
+        if (codeBlockMatch) {
+          optimizedPrompt = codeBlockMatch[1].trim();
+          this.logDebug(
+            '[PromptEngineer] Extracted optimized prompt from code block',
+          );
+        } else if (agentOutput.length > originalPrompt.length * 0.5) {
+          // Use agent output if it's substantial
+          optimizedPrompt = agentOutput.trim();
+          this.logDebug(
+            '[PromptEngineer] Using agent output as optimized prompt',
+          );
+        }
+
+        const hasChanges = optimizedPrompt !== originalPrompt;
+        const changes = hasChanges
+          ? ['Optimized by prompt engineer agent']
+          : [];
+
+        return {
+          success: true,
+          optimizedPrompt,
+          changes,
+        };
+      } catch (_timeoutError) {
+        clearTimeout(timeoutId);
+        this.logDebug('[PromptEngineer] Agent invocation timed out');
+        return {
+          success: true,
+          optimizedPrompt: originalPrompt,
+          changes: [],
+          error: 'Agent invocation timed out',
+        };
+      }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logDebug(`[PromptEngineer] Error: ${errorMsg}`);
+
       return {
-        success: false,
+        success: true, // Fail gracefully
         optimizedPrompt: originalPrompt,
         changes: [],
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMsg,
       };
     }
   }
