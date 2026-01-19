@@ -48,6 +48,9 @@ export class PromptEngineerMiddleware {
     const startTime = Date.now();
 
     if (!this.enabled) {
+      this.logDebug(
+        `[PromptEngineer] Middleware disabled, returning original prompt`,
+      );
       return {
         originalPrompt: userPrompt,
         optimizedPrompt: userPrompt,
@@ -59,7 +62,7 @@ export class PromptEngineerMiddleware {
 
     try {
       this.logDebug(
-        `[PromptEngineer] Processing input (${userPrompt.length} chars)`,
+        `[PromptEngineer] Processing input (${userPrompt.length} chars): "${userPrompt.substring(0, 100)}${userPrompt.length > 100 ? '...' : ''}"`,
       );
 
       // Get prompt engineer agent
@@ -101,6 +104,19 @@ export class PromptEngineerMiddleware {
         this.logDebug(
           `[PromptEngineer] ✓ Optimization complete (${duration}ms, ${optimizationResult.changes.length} changes)`,
         );
+
+        // Log the mapping between original and optimized prompt
+        if (optimizationResult.optimizedPrompt !== userPrompt) {
+          this.logDebug(
+            `[PromptEngineer] Original -> Optimized mapping:\n  ORIGINAL: "${userPrompt.substring(0, 200)}${userPrompt.length > 200 ? '...' : ''}"\n  OPTIMIZED: "${optimizationResult.optimizedPrompt.substring(0, 200)}${optimizationResult.optimizedPrompt.length > 200 ? '...' : ''}"`,
+          );
+        }
+
+        // Detailed logging of changes and duration
+        this.logDebug(
+          `[PromptEngineer] Optimization summary:\n  Duration: ${duration}ms\n  Changes made: ${optimizationResult.changes.length}\n  Changes: ${optimizationResult.changes.join(', ') || 'None'}`,
+        );
+
         return {
           originalPrompt: userPrompt,
           optimizedPrompt: optimizationResult.optimizedPrompt,
@@ -185,6 +201,8 @@ Changes made:
     changes: string[];
     error?: string;
   }> {
+    const startTime = Date.now();
+
     try {
       if (!agent) {
         this.logDebug(
@@ -197,7 +215,9 @@ Changes made:
         };
       }
 
-      this.logDebug('[PromptEngineer] Invoking subagent...');
+      this.logDebug(
+        `[PromptEngineer] Invoking subagent with ${optimizationPrompt.length} chars optimization request...`,
+      );
 
       // Get subagent manager and create subagent scope
       const subagentManager = this.config.getSubagentManager();
@@ -226,6 +246,11 @@ Changes made:
         // Get the optimized prompt from agent output
         const agentOutput = subagentScope.getFinalText();
         const terminateMode = subagentScope.getTerminateMode();
+
+        const duration = Date.now() - startTime;
+        this.logDebug(
+          `[PromptEngineer] Subagent execution completed in ${duration}ms`,
+        );
 
         if (terminateMode === SubagentTerminateMode.CANCELLED) {
           this.logDebug('[PromptEngineer] Agent was cancelled');
@@ -257,8 +282,12 @@ Changes made:
 
         const hasChanges = optimizedPrompt !== originalPrompt;
         const changes = hasChanges
-          ? ['Optimized by prompt engineer agent']
+          ? [`Optimized by prompt engineer agent in ${duration}ms`]
           : [];
+
+        this.logDebug(
+          `[PromptEngineer] Subagent result: ${hasChanges ? 'CHANGES MADE' : 'NO CHANGES'} (${duration}ms)`,
+        );
 
         return {
           success: true,
@@ -267,7 +296,10 @@ Changes made:
         };
       } catch (_timeoutError) {
         clearTimeout(timeoutId);
-        this.logDebug('[PromptEngineer] Agent invocation timed out');
+        const duration = Date.now() - startTime;
+        this.logDebug(
+          `[PromptEngineer] Agent invocation timed out after ${duration}ms`,
+        );
         return {
           success: true,
           optimizedPrompt: originalPrompt,
@@ -276,8 +308,9 @@ Changes made:
         };
       }
     } catch (error) {
+      const duration = Date.now() - startTime;
       const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logDebug(`[PromptEngineer] Error: ${errorMsg}`);
+      this.logDebug(`[PromptEngineer] Error after ${duration}ms: ${errorMsg}`);
 
       return {
         success: true, // Fail gracefully
@@ -293,8 +326,15 @@ Changes made:
    */
   convertToSystemMessage(result: PromptOptimizationResult): PartUnion[] {
     if (result.optimizedPrompt === result.originalPrompt) {
+      this.logDebug(
+        `[PromptEngineer] Sending original prompt to LLM: "${result.originalPrompt.substring(0, 200)}${result.originalPrompt.length > 200 ? '...' : ''}"`,
+      );
       return [{ text: result.originalPrompt }];
     }
+
+    this.logDebug(
+      `[PromptEngineer] Sending optimized prompt to LLM: "${result.optimizedPrompt.substring(0, 200)}${result.optimizedPrompt.length > 200 ? '...' : ''}"`,
+    );
 
     const parts: PartUnion[] = [{ text: result.optimizedPrompt }];
 
