@@ -16,7 +16,7 @@ import type {
   NextSpeakerCheckEvent,
   SlashCommandEvent,
   MalformedJsonResponseEvent,
-  IdeConnectionEvent,
+  // IdeConnectionEvent,
   ConversationFinishedEvent,
   KittySequenceOverflowEvent,
   ChatCompressionEvent,
@@ -37,11 +37,11 @@ import { InstallationManager } from '../../utils/installationManager.js';
 import { safeJsonStringify } from '../../utils/safeJsonStringify.js';
 import { FixedDeque } from 'mnemonist';
 import { GIT_COMMIT_INFO, CLI_VERSION } from '../../generated/git-commit.js';
-import {
-  IDE_DEFINITIONS,
-  detectIdeFromEnv,
-  isCloudShell,
-} from '../../ide/detect-ide.js';
+// import {
+//   IDE_DEFINITIONS,
+//   detectIdeFromEnv,
+//   isCloudShell,
+// } from '../../ide/detect-ide.js';
 
 export enum EventNames {
   START_SESSION = 'start_session',
@@ -115,12 +115,8 @@ export interface LogRequest {
 function determineSurface(): string {
   if (process.env['SURFACE']) {
     return process.env['SURFACE'];
-  } else if (isCloudShell()) {
-    return IDE_DEFINITIONS.cloudshell.name;
   } else if (process.env['GITHUB_SHA']) {
     return 'GitHub';
-  } else if (process.env['TERM_PROGRAM'] === 'vscode') {
-    return detectIdeFromEnv().name || IDE_DEFINITIONS.vscode.name;
   } else {
     return 'SURFACE_NOT_SET';
   }
@@ -735,17 +731,17 @@ export class ClearcutLogger {
     this.flushIfNeeded();
   }
 
-  logIdeConnectionEvent(event: IdeConnectionEvent): void {
-    const data: EventValue[] = [
-      {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_IDE_CONNECTION_TYPE,
-        value: JSON.stringify(event.connection_type),
-      },
-    ];
+  // logIdeConnectionEvent(event: IdeConnectionEvent): void {
+  //   const data: EventValue[] = [
+  //     {
+  //       gemini_cli_key: EventMetadataKey.GEMINI_CLI_IDE_CONNECTION_TYPE,
+  //       value: JSON.stringify(event.connection_type),
+  //     },
+  //   ];
 
-    this.enqueueLogEvent(this.createLogEvent(EventNames.IDE_CONNECTION, data));
-    this.flushIfNeeded();
-  }
+  //   this.enqueueLogEvent(this.createLogEvent(EventNames.IDE_CONNECTION, data));
+  //   this.flushIfNeeded();
+  // }
 
   logConversationFinishedEvent(event: ConversationFinishedEvent): void {
     const data: EventValue[] = [

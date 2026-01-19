@@ -461,9 +461,9 @@ export class Config {
   private readonly bugCommand: BugCommandSettings | undefined;
   private readonly extensionContextFilePaths: string[];
   private readonly noBrowser: boolean;
-  private readonly folderTrustFeature: boolean;
-  private readonly folderTrust: boolean;
-  private ideMode: boolean;
+  // private readonly folderTrustFeature: boolean;
+  // private readonly folderTrust: boolean;
+  // private ideMode: boolean;
 
   private readonly maxSessionTurns: number;
   private readonly sessionTokenLimit: number;
@@ -584,9 +584,9 @@ export class Config {
     this._blockedMcpServers = params.blockedMcpServers ?? [];
     this.noBrowser = params.noBrowser ?? false;
     this.summarizeToolOutput = params.summarizeToolOutput;
-    this.folderTrustFeature = params.folderTrustFeature ?? false;
-    this.folderTrust = params.folderTrust ?? false;
-    this.ideMode = params.ideMode ?? false;
+    // this.folderTrustFeature = params.folderTrustFeature ?? false;
+    // this.folderTrust = params.folderTrust ?? false;
+    // this.ideMode = params.ideMode ?? false;
     this.modelProvidersConfig = params.modelProvidersConfig;
     this.cliVersion = params.cliVersion;
 
@@ -1248,21 +1248,21 @@ export class Config {
     return this.webSearch;
   }
 
-  getIdeMode(): boolean {
-    return this.ideMode;
-  }
+  // getIdeMode(): boolean {
+  //   return this.ideMode;
+  // }
 
-  getFolderTrustFeature(): boolean {
-    return this.folderTrustFeature;
-  }
+  // getFolderTrustFeature(): boolean {
+  //   return this.folderTrustFeature;
+  // }
 
   /**
    * Returns 'true' if the workspace is considered "trusted".
    * 'false' for untrusted.
    */
-  getFolderTrust(): boolean {
-    return this.folderTrust;
-  }
+  // getFolderTrust(): boolean {
+  //   return this.folderTrust;
+  // }
 
   // isTrustedFolder(): boolean {
   //   // isWorkspaceTrusted in cli/src/config/trustedFolder.js returns undefined
