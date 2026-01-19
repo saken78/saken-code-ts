@@ -21,7 +21,7 @@ import { languageCommand } from '../ui/commands/languageCommand.js';
 import { mcpCommand } from '../ui/commands/mcpCommand.js';
 import { memoryCommand } from '../ui/commands/memoryCommand.js';
 import { modelCommand } from '../ui/commands/modelCommand.js';
-import { permissionsCommand } from '../ui/commands/permissionsCommand.js';
+// import { permissionsCommand } from '../ui/commands/permissionsCommand.js';
 import { quitCommand } from '../ui/commands/quitCommand.js';
 import { restoreCommand } from '../ui/commands/restoreCommand.js';
 import { resumeCommand } from '../ui/commands/resumeCommand.js';
@@ -45,6 +45,7 @@ import { bugsCommand } from '../ui/commands/bugsCommand.js';
 import { phaseCommand } from '../ui/commands/phaseCommand.js';
 import { doneCommand } from '../ui/commands/doneCommand.js';
 import { skillsCommand } from '../ui/commands/skillsCommand.js';
+import { agentCommand } from '../ui/commands/agentCommand.js';
 
 /**
  * Loads the core, hard-coded slash commands that are an integral part
@@ -76,7 +77,7 @@ export class BuiltinCommandLoader implements ICommandLoader {
       mcpCommand,
       memoryCommand,
       modelCommand,
-      ...(this.config?.getFolderTrust() ? [permissionsCommand] : []),
+      // ...(this.config?.getFolderTrust() ? [permissionsCommand] : []),
       quitCommand,
       restoreCommand(this.config),
       resumeCommand,
@@ -100,6 +101,7 @@ export class BuiltinCommandLoader implements ICommandLoader {
       doneCommand,
       ...(this.config?.getExperimentalSkills?.() ? [skillsCommand] : []),
       terminalSetupCommand,
+      agentCommand,
     ];
 
     return allDefinitions.filter((cmd): cmd is SlashCommand => cmd !== null);
