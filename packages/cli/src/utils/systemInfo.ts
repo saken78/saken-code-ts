@@ -9,7 +9,7 @@ import os from 'node:os';
 import { execSync } from 'node:child_process';
 import type { CommandContext } from '../ui/commands/types.js';
 import { getCliVersion } from './version.js';
-import { IdeClient, AuthType } from '@qwen-code/qwen-code-core';
+import { AuthType } from '@qwen-code/qwen-code-core';
 import { formatMemoryUsage } from '../ui/utils/formatters.js';
 import { GIT_COMMIT_INFO } from '../generated/git-commit.js';
 
@@ -27,7 +27,7 @@ export interface SystemInfo {
   sandboxEnv: string;
   modelVersion: string;
   selectedAuthType: string;
-  ideClient: string;
+  // ideClient: string;
   sessionId: string;
 }
 
@@ -56,19 +56,19 @@ export async function getNpmVersion(): Promise<string> {
  * Gets the IDE client name if IDE mode is enabled.
  * Returns empty string if IDE mode is disabled or IDE client is not detected.
  */
-export async function getIdeClientName(
-  context: CommandContext,
-): Promise<string> {
-  if (!context.services.config?.getIdeMode()) {
-    return '';
-  }
-  try {
-    const ideClient = await IdeClient.getInstance();
-    return ideClient?.getDetectedIdeDisplayName() ?? '';
-  } catch {
-    return '';
-  }
-}
+// export async function getIdeClientName(
+//   context: CommandContext,
+// ): Promise<string> {
+//   // if (!context.services.config?.getIdeMode()) {
+//   //   return '';
+//   // }
+//   try {
+//     const ideClient = await IdeClient.getInstance();
+//     return ideClient?.getDetectedIdeDisplayName() ?? '';
+//   } catch {
+//     return '';
+//   }
+// }
 
 /**
  * Gets the sandbox environment information.
@@ -116,7 +116,7 @@ export async function getSystemInfo(
   const modelVersion = context.services.config?.getModel() || 'Unknown';
   const cliVersion = await getCliVersion();
   const selectedAuthType = context.services.config?.getAuthType() || '';
-  const ideClient = await getIdeClientName(context);
+  // const ideClient = await getIdeClientName(context);
   const sessionId = context.services.config?.getSessionId() || 'unknown';
 
   return {
@@ -129,7 +129,7 @@ export async function getSystemInfo(
     sandboxEnv,
     modelVersion,
     selectedAuthType,
-    ideClient,
+    // ideClient,
     sessionId,
   };
 }

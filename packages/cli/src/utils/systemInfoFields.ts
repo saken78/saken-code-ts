@@ -75,10 +75,10 @@ export function getSystemInfoFields(
       label: t('Memory Usage'),
       key: 'memoryUsage',
     },
-    {
-      label: t('IDE Client'),
-      key: 'ideClient',
-    },
+    // {
+    //   label: t('IDE Client'),
+    //   key: 'ideClient',
+    // },
   ];
 
   // Filter out optional fields that are not present
@@ -87,8 +87,8 @@ export function getSystemInfoFields(
     // Optional fields: only show if they exist and are non-empty
     if (
       field.key === 'baseUrl' ||
-      field.key === 'gitCommit' ||
-      field.key === 'ideClient'
+      field.key === 'gitCommit'
+      // field.key === 'ideClient'
     ) {
       return Boolean(value);
     }
