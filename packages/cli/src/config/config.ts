@@ -1028,7 +1028,7 @@ export async function loadCliConfig(
     maxSessionTurns:
       argv.maxSessionTurns ?? settings.model?.maxSessionTurns ?? -1,
     experimentalZedIntegration: argv.acp || argv.experimentalAcp || false,
-    experimentalSkills: argv.experimentalSkills || false,
+    experimentalSkills: argv.experimentalSkills !== false, // ✓ Enabled by default
     listExtensions: argv.listExtensions || false,
     extensions: allExtensions,
     blockedMcpServers,

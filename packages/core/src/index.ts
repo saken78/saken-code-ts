@@ -131,6 +131,11 @@ export * from './ide/types.js';
 // Export Shell Execution Service
 export * from './services/shellExecutionService.js';
 
+// Export middleware and routing (enforces priority rules)
+export * from './core/prompt-engineer-middleware.js';
+export * from './core/subagent-router.js';
+export * from './core/task-type-detector.js';
+
 // Export base tool definitions
 export * from './tools/tools.js';
 export * from './tools/tool-error.js';

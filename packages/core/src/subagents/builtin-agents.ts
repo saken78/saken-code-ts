@@ -17,6 +17,16 @@ import { reactBestPractise } from './builtin/react-best-practise.js';
 import { deepthinkAgent } from './builtin/deepthink-agent.js';
 import { technicalResearcher } from './builtin/technical-researcher.js';
 import { promptEngineerAgent } from './builtin/prompt-engineer-agent.js';
+import { competitiveIntelligenceAnalystAgent } from './builtin/competitive-intelligence-analyst-agent.js';
+import { researchOrchestratorAgent } from './builtin/research-orchestrator-agent.js';
+import { queryClarifierAgent } from './builtin/query-clarifier-agent.js';
+import { researchBriefGeneratorAgent } from './builtin/research-brief-generator-agent.js';
+import { researchCoordinatorAgent } from './builtin/research-coordinator-agent.js';
+import { academicResearcherAgent } from './builtin/academic-researcher-agent.js';
+import { technicalResearcherAgent } from './builtin/technical-researcher-agent.js';
+import { dataAnalystAgent } from './builtin/data-analyst-agent.js';
+import { researchSynthesizerAgent } from './builtin/research-synthesizer-agent.js';
+import { reportGeneratorAgent } from './builtin/report-generator-agent.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -67,6 +77,16 @@ Notes:
     deepthinkAgent,
     technicalResearcher,
     promptEngineerAgent,
+    competitiveIntelligenceAnalystAgent,
+    researchOrchestratorAgent,
+    queryClarifierAgent,
+    researchBriefGeneratorAgent,
+    researchCoordinatorAgent,
+    academicResearcherAgent,
+    technicalResearcherAgent,
+    dataAnalystAgent,
+    researchSynthesizerAgent,
+    reportGeneratorAgent,
   ];
 
   /**

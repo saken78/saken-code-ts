@@ -13,6 +13,7 @@ import { isGitRepository } from '../utils/gitUtils.js';
 import { QWEN_CONFIG_DIR } from '../tools/memoryTool.js';
 import type { GenerateContentConfig } from '@google/genai';
 import { AGENTS_SKILLS_PROMPT } from '../prompts/agents-skills/index.js';
+import { promptEngineerAgent } from '../subagents/builtin/prompt-engineer-agent.js';
 
 // ============================================================================
 // Variable System for Customizable Prompts
@@ -231,6 +232,36 @@ You should decide whether commands should run in background or foreground based 
 
 // ============================================================================
 
+/**
+ * Extracts HIGH PRIORITY/URGENT rules from user memory to enforce first
+ * Priority rules use markers: "VERY IMPORTANT", "HIGH PRIORITY", "MANDATORY", "CRITICAL"
+ */
+function extractPriorityRules(memory?: string): string {
+  if (!memory) return '';
+
+  const priorityPatterns = [
+    /.*?(?:VERY\s+(?:FUC\*+ING\s+)?IMPORTANT|HIGH\s+PRIORITY|MANDATORY|CRITICAL).*?(?:\n|$)/gi,
+  ];
+
+  const priorityLines: string[] = [];
+  const lines = memory.split('\n');
+
+  for (const line of lines) {
+    for (const pattern of priorityPatterns) {
+      if (pattern.test(line)) {
+        const cleanLine = line.replace(/^-\s*/, '').trim();
+        if (cleanLine && !priorityLines.includes(cleanLine)) {
+          priorityLines.push(cleanLine);
+        }
+      }
+    }
+  }
+
+  return priorityLines.length > 0
+    ? `# ⚡ ENFORCED PRIORITY RULES (from memory)\n${priorityLines.map((l) => `- ${l}`).join('\n')}\n\n`
+    : '';
+}
+
 export function getCoreSystemPrompt(
   userMemory?: string,
   model?: string,
@@ -239,6 +270,9 @@ export function getCoreSystemPrompt(
   // Merge provided variables with defaults
   // TODO: Will be used in Phase 3 (robustness sections implementation)
   const vars = { ...DEFAULT_VARIABLES, ...variables };
+
+  // Extract and prepend priority rules from memory BEFORE everything else
+  const priorityRules = extractPriorityRules(userMemory);
 
   // if QWEN_SYSTEM_MD is set (and not 0|false), override system prompt from file
   // default path is .qwen/system.md but can be modified via custom path in QWEN_SYSTEM_MD
@@ -272,9 +306,19 @@ You are an interactive CLI tool that helps users with software engineering tasks
 
 # ⚠️ IMPORTANT: - HIGH PRIORITY ⚠️
 # 🚨 MANDATORY RULES - WITHOUT WITHOUT EXCEPTION🚨
+
+# VERY FUC**NG IMPORTANT
+ALWAYS PROCESS USER PROMPTS THROUGH ${promptEngineerAgent} FIRST - Every user input must be analyzed and optimized by the prompt engineer agent before any other processing occurs
+
+# Core Mandates
+
+# ⚠️ IMPORTANT: - HIGH PRIORITY ⚠️
+# 🚨 MANDATORY RULES - WITHOUT WITHOUT EXCEPTION🚨
+
 ## Core Tool Usage Principles
 - ALWAYS use \`${ToolNames.EZA}\` instead of \`ls\` for listing directory contents
 - ALWAYS use \`${ToolNames.BASH}\` instead of \`${ToolNames.SHELL}\` for system commands
+- ALWAYS use \`${ToolNames.SHELL}\` for background task Eexample: npm syntax , npm run dev , npm run start
 - ALWAYS use \`${ToolNames.BAT}\` instead of \`cat\` for reading file contents
 - ALWAYS use \`${ToolNames.FD}\` instead of \`find\` for finding files by pattern
 - ALWAYS use \`${ToolNames.GREP}\` instead of \`grep\` for searching text in files
@@ -348,14 +392,14 @@ This rule is non-negotiable. Accuracy > speed.
 ## Parallel vs Sequential Execution
 - Run **independent** tool calls in parallel (e.g., multiple \`${ToolNames.GREP}\` , \`${ToolNames.FD}\`, \`${ToolNames.TASK}\`  across different files).
 - Chain **dependent** operations sequentially:
-  - Use \`&&\` in a single \`${ToolNames.BASH}\` call (e.g., \`git add . && git commit -m "msg"\`)
-  - Do NOT split sequential file operations (e.g., write then test) into separate messages
+- Use \`&&\` in a single \`${ToolNames.BASH}\` call (e.g., \`git add . && git commit -m "msg"\`)
+- Do NOT split sequential file operations (e.g., write then test) into separate messages
 - Avoid \`cd\` unless explicitly requested. Prefer absolute paths to maintain working directory stability.
 
 ## Bash Command Guidelines
 - **Timeouts**:
-  - Default: ${MAX_TIMEOUT_MS()}ms (${MAX_TIMEOUT_MS() / 60000} minutes)
-  - Custom max: ${CUSTOM_TIMEOUT_MS()}ms (${CUSTOM_TIMEOUT_MS() / 60000} minutes)
+- Default: ${MAX_TIMEOUT_MS()}ms (${MAX_TIMEOUT_MS() / 60000} minutes)
+- Custom max: ${CUSTOM_TIMEOUT_MS()}ms (${CUSTOM_TIMEOUT_MS() / 60000} minutes)
 - **Output limit**: Truncated after ${MAX_OUTPUT_CHARS()} characters
 - **Quoting**: Always quote paths with spaces: \`cd "/path/with spaces"\`
 - **Background execution**: Use \`is_background: true\` for long-running servers (dev servers, DBs, watchers). Do NOT use \`&\`.
@@ -541,71 +585,6 @@ You have access to powerful specialized agents and custom skills that significan
 ## Custom Skills (Data-Driven, Hallucination-Reducing)
 # ⚠️ IMPORTANT: - HIGH PRIORITY ⚠️
 # 🚨 MANDATORY RULES - WITHOUT WITHOUT EXCEPTION🚨
-### **CRITICAL:** Use These Skills FIRST to Minimize Hallucination
-
-#### 1. **/format-validator** - Configuration Format Validation
-**Purpose:** Validates YAML, JSON, TOML, XML against actual schema
-**Reduces Hallucination:** ✓ Checks ACTUAL file content, not assumptions
-**When to Use:** Before analyzing any config file, always validate format
-**Usage:** Validates syntax, structure, required fields, type correctness
-
-#### 2. **/git-analyzer** - Git History Analysis
-**Purpose:** Analyzes actual git history, commits, branches, authors
-**Reduces Hallucination:** ✓ Uses real git data, not guesses about history
-**When to Use:** Understanding code changes, recent modifications, author context
-**Usage:** Recent commits, file history, branch info, collaboration patterns
-
-#### 3. **/error-parser** - Error Message Decoding
-**Purpose:** Parses actual error messages and stack traces
-**Reduces Hallucination:** ✓ Extracts exact error details, not assumptions
-**When to Use:** ANY error message - always parse first
-**Usage:** Identifies error type, location, context, root cause, suggested fixes
-
-#### 4. **/type-safety-analyzer** - TypeScript Type Analysis
-**Purpose:** Analyzes actual TypeScript types and type safety
-**Reduces Hallucination:** ✓ Checks real types, not assumptions
-**When to Use:** TypeScript code, type errors, interface compliance
-**Usage:** Type mismatches, interface validation, generics, advanced types
-
-#### 5. **/security-audit** - Security Vulnerability Scanning
-**Purpose:** Scans code against known vulnerability patterns
-**Reduces Hallucination:** ✓ Checks against real vulnerability databases
-**When to Use:** Before deployment, security reviews, dependency checks
-**Usage:** Auth/authz, data protection, dependency vulnerabilities, config security
-
-#### 6. **/file-structure-analyzer** - Project Architecture Analysis
-**Purpose:** Maps actual project structure, dependencies, modules
-**Reduces Hallucination:** ✓ Uses real file data, not assumptions about structure
-**When to Use:** Understanding project architecture, component relationships
-**Usage:** Directory hierarchy, module dependencies, architecture patterns
-
-## CRITICAL PROTOCOL: Hallucination Minimization
-
-### When Encountering Configuration Files (YAML, TOML, XML, JSON)
-1. **ALWAYS** use /format-validator FIRST
-2. NEVER guess structure - validate actual content
-3. Use content-analyzer agent for complex schemas
-4. Qwen treats these as binary - explicit validation is essential
-
-### When Analyzing Code Changes
-1. **ALWAYS** use /git-analyzer for history context
-2. NEVER assume change motivation - get actual commits
-3. Understand author intent from real commit messages
-
-### When Encountering Errors
-1. **ALWAYS** use /error-parser FIRST
-2. NEVER guess error meaning - parse stack traces
-3. Extract exact location, type, and root cause
-
-### When Assessing Security
-1. **ALWAYS** use /security-audit for code
-2. NEVER guess vulnerability status
-3. Check dependencies explicitly
-
-### For TypeScript/JavaScript
-1. **ALWAYS** use /type-safety-analyzer for type issues
-2. Check interface compliance before implementation
-3. Validate generic constraints
 
 ## Priority Rules (Apply These Strictly)
 
@@ -866,12 +845,27 @@ You are an agent. Persist. Verify. Deliver.
     fs.writeFileSync(writePath, basePrompt);
   }
 
+  // Extract non-priority memory (to avoid duplication)
+  const nonPriorityMemory = userMemory
+    ? userMemory
+        .split('\n')
+        .filter(
+          (line) =>
+            !/(?:VERY\s+(?:FUC\*+ING\s+)?IMPORTANT|HIGH\s+PRIORITY|MANDATORY|CRITICAL)/i.test(
+              line,
+            ),
+        )
+        .join('\n')
+        .trim()
+    : '';
+
   const memorySuffix =
-    userMemory && userMemory.trim().length > 0
-      ? `\n\n---\n\n${userMemory.trim()}`
+    nonPriorityMemory.length > 0
+      ? `\n\n---\n\nADDITIONAL CONTEXT:\n${nonPriorityMemory}`
       : '';
 
-  return `${basePrompt}${memorySuffix}`;
+  // PREPEND priority rules at the very beginning
+  return `${priorityRules}${basePrompt}${memorySuffix}`;
 }
 
 /**

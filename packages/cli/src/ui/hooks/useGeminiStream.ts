@@ -34,6 +34,8 @@ import {
   ToolConfirmationOutcome,
   logApiCancel,
   ApiCancelEvent,
+  getPromptEngineerMiddleware,
+  getSubagentRouter,
 } from '@qwen-code/qwen-code-core';
 import { type Part, type PartListUnion, FinishReason } from '@google/genai';
 import type {
@@ -339,9 +341,74 @@ export const useGeminiStream = (
         onDebugMessage(`User query: '${trimmedQuery}'`);
         await logger?.logMessage(MessageSenderType.USER, trimmedQuery);
 
+        // ===================================================================
+        // [MIDDLEWARE] Prompt Engineer + Task Router - ENFORCE PRIORITY RULES
+        // ===================================================================
+        let processedQuery = trimmedQuery;
+
+        try {
+          const debugMode = config.getDebugMode();
+
+          // Skip middleware for slash/@ commands (they handle their own logic)
+          if (!isSlashCommand(trimmedQuery) && !isAtCommand(trimmedQuery)) {
+            // Step 1: Optimize prompt through prompt engineer
+            const promptEngineer = getPromptEngineerMiddleware(config, true);
+            promptEngineer.setDebug(debugMode);
+
+            const optimizationResult =
+              await promptEngineer.processUserInput(trimmedQuery);
+            processedQuery = optimizationResult.optimizedPrompt;
+
+            if (debugMode && optimizationResult.changes.length > 0) {
+              onDebugMessage(
+                `[Middleware] Prompt optimized: ${optimizationResult.changes.join('; ')} (${optimizationResult.duration}ms)`,
+              );
+            }
+
+            // Step 2: Analyze task and route if needed
+            const router = getSubagentRouter(config, true);
+            router.setDebug(debugMode);
+
+            const routingDecision =
+              await router.analyzeAndRoute(processedQuery);
+
+            if (debugMode) {
+              onDebugMessage(
+                `[Middleware] Task: ${routingDecision.taskType} (${(routingDecision.confidence * 100).toFixed(0)}%) - ${routingDecision.shouldDelegate ? `DELEGATE to ${routingDecision.recommendedAgent}` : 'no delegation'}`,
+              );
+            }
+
+            // If routing decision says to delegate, we could inject a task tool call here
+            // For now, just log the decision
+            if (
+              routingDecision.shouldDelegate &&
+              routingDecision.recommendedAgent
+            ) {
+              const delegationInstruction =
+                router.createDelegationInstruction(routingDecision);
+              if (delegationInstruction) {
+                onDebugMessage(
+                  `[Middleware] Consider using: /task ${routingDecision.recommendedAgent} <task-description>`,
+                );
+              }
+            }
+          }
+        } catch (middlewareError) {
+          // Middleware errors are non-fatal - continue with original input
+          if (config.getDebugMode()) {
+            onDebugMessage(
+              `[Middleware] Error: ${getErrorMessage(middlewareError)}`,
+            );
+          }
+          processedQuery = trimmedQuery;
+        }
+        // ===================================================================
+        // END MIDDLEWARE
+        // ===================================================================
+
         // Handle UI-only commands first
-        const slashCommandResult = isSlashCommand(trimmedQuery)
-          ? await handleSlashCommand(trimmedQuery)
+        const slashCommandResult = isSlashCommand(processedQuery)
+          ? await handleSlashCommand(processedQuery)
           : false;
 
         if (slashCommandResult) {
@@ -409,7 +476,7 @@ export const useGeminiStream = (
             { type: MessageType.USER, text: trimmedQuery },
             userMessageTimestamp,
           );
-          localQueryToSendToGemini = trimmedQuery;
+          localQueryToSendToGemini = processedQuery;
         }
       } else {
         // It's a function response (PartListUnion that isn't a string)

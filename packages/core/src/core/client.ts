@@ -21,7 +21,7 @@ import type { ContentGenerator } from './contentGenerator.js';
 import { GeminiChat } from './geminiChat.js';
 import {
   getCoreSystemPrompt,
-  getCustomSystemPrompt,
+  // getCustomSystemPrompt,
   getPlanModeSystemReminder,
   getSubagentSystemReminder,
 } from './prompts.js';
@@ -660,9 +660,13 @@ export class GeminiClient {
 
     try {
       const userMemory = this.config.getUserMemory();
-      const finalSystemInstruction = generationConfig.systemInstruction
-        ? getCustomSystemPrompt(generationConfig.systemInstruction, userMemory)
-        : getCoreSystemPrompt(userMemory, this.config.getModel());
+      // const finalSystemInstruction = generationConfig.systemInstruction
+      //   ? getCustomSystemPrompt(generationConfig.systemInstruction, userMemory)
+      //   : getCoreSystemPrompt(userMemory, this.config.getModel());
+      const finalSystemInstruction = getCoreSystemPrompt(
+        userMemory,
+        this.config.getModel(),
+      );
 
       const requestConfig: GenerateContentConfig = {
         abortSignal,

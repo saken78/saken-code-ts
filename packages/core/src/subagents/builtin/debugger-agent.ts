@@ -95,8 +95,6 @@ You are a Debugger Agent, a specialized tool for debugging, troubleshooting, and
     'read_many_files',
     'grep_search',
     'bash',
-    'edit',
-    'write_file',
     'todo_write',
     'eza',
     'bat',

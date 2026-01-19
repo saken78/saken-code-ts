@@ -16,6 +16,16 @@ import { reactBestPractise } from './react-best-practise.js';
 import { deepthinkAgent } from './deepthink-agent.js';
 import { technicalResearcher } from './technical-researcher.js';
 import { promptEngineerAgent } from './prompt-engineer-agent.js';
+import { competitiveIntelligenceAnalystAgent } from './competitive-intelligence-analyst-agent.js';
+import { researchOrchestratorAgent } from './research-orchestrator-agent.js';
+import { queryClarifierAgent } from './query-clarifier-agent.js';
+import { researchBriefGeneratorAgent } from './research-brief-generator-agent.js';
+import { researchCoordinatorAgent } from './research-coordinator-agent.js';
+import { academicResearcherAgent } from './academic-researcher-agent.js';
+import { technicalResearcherAgent } from './technical-researcher-agent.js';
+import { dataAnalystAgent } from './data-analyst-agent.js';
+import { researchSynthesizerAgent } from './research-synthesizer-agent.js';
+import { reportGeneratorAgent } from './report-generator-agent.js';
 import type { SubagentConfig } from '../types.js';
 
 /**
@@ -34,6 +44,16 @@ export const builtinSubagents: Record<string, SubagentConfig> = {
   deepthinkAgent,
   technicalResearcher,
   'prompt-engineer': promptEngineerAgent,
+  'competitive-intelligence-analyst': competitiveIntelligenceAnalystAgent,
+  'research-orchestrator': researchOrchestratorAgent,
+  'query-clarifier': queryClarifierAgent,
+  'research-brief-generator': researchBriefGeneratorAgent,
+  'research-coordinator': researchCoordinatorAgent,
+  'academic-researcher': academicResearcherAgent,
+  'technical-researcher': technicalResearcherAgent,
+  'data-analyst': dataAnalystAgent,
+  'research-synthesizer': researchSynthesizerAgent,
+  'report-generator': reportGeneratorAgent,
 };
 
 /**

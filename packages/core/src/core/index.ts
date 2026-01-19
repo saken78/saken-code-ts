@@ -11,13 +11,5 @@ export {
   getCompressionPrompt,
   getProjectSummaryPrompt,
   getSubagentSystemReminder,
-  getPlanModeSystemReminder
+  getPlanModeSystemReminder,
 } from './prompts.js';
-
-// Export Claude prompt functionality
-export {
-  getCombinedSystemPrompt,
-  getPromptMode,
-  setPromptMode
-} from './claude-prompts.js';
-
