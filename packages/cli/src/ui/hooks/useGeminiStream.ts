@@ -1287,7 +1287,7 @@ export const useGeminiStream = (
   const pendingHistoryItems = useMemo(
     () =>
       [pendingHistoryItem, pendingToolCallGroupDisplay].filter(
-        (i) => i !== undefined && i !== null,
+        (i): i is HistoryItemWithoutId => i !== undefined && i !== null,
       ),
     [pendingHistoryItem, pendingToolCallGroupDisplay],
   );
@@ -1367,7 +1367,7 @@ export const useGeminiStream = (
             const toolName = toolCall.request.name;
             const fileName = path.basename(filePath);
             const toolCallWithSnapshotFileName = `${timestamp}-${fileName}-${toolName}.json`;
-            const clientHistory = await geminiClient?.getHistory();
+            const clientHistory = geminiClient?.getHistory();
             const toolCallWithSnapshotFilePath = path.join(
               checkpointDir,
               toolCallWithSnapshotFileName,
