@@ -372,6 +372,16 @@ export const useGeminiStream = (
             const routingDecision =
               await router.analyzeAndRoute(processedQuery);
 
+            // fallback if not using agent
+            if (routingDecision.recommendedAgent == null) {
+              const command = `${processedQuery}`;
+              processedQuery = command;
+
+              if (debugMode) {
+                onDebugMessage(`[Middleware] IMPROVED PROMPT ONLY`);
+              }
+            }
+
             if (debugMode) {
               onDebugMessage(
                 `[Middleware] Task: ${routingDecision.taskType} (${(routingDecision.confidence * 100).toFixed(0)}%) - ${routingDecision.shouldDelegate ? `DELEGATE to ${routingDecision.recommendedAgent}` : 'no delegation'}`,
@@ -474,7 +484,7 @@ export const useGeminiStream = (
         } else {
           // Normal query for Gemini
           addItem(
-            { type: MessageType.USER, text: trimmedQuery },
+            { type: MessageType.USER, text: processedQuery },
             userMessageTimestamp,
           );
           localQueryToSendToGemini = processedQuery;
