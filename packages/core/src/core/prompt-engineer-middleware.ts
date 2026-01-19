@@ -232,7 +232,7 @@ Changes made:
 
       // Create abort controller for timeout (5 seconds max)
       const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), 5000);
+      const timeoutId = setTimeout(() => abortController.abort(), 5000000);
 
       try {
         // Run the prompt engineer agent
