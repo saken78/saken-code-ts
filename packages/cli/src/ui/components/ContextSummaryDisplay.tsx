@@ -64,15 +64,10 @@ export const ContextSummaryDisplay: React.FC<ContextSummaryDisplayProps> = ({
     }
     const allNamesTheSame = new Set(contextFileNames).size < 2;
     const name = allNamesTheSame ? contextFileNames[0] : 'context';
-    return geminiMdFileCount === 1
-      ? t('{{count}}SMD', {
-          count: String(geminiMdFileCount),
-          name,
-        })
-      : t('{{count}}SMD', {
-          count: String(geminiMdFileCount),
-          name,
-        });
+    return t('{{count}}SMD', {
+      count: String(geminiMdFileCount),
+      name,
+    });
   })();
 
   const mcpText = (() => {
