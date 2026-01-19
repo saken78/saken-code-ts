@@ -378,18 +378,18 @@ export const useGeminiStream = (
               );
             }
 
-            // Routing decision for delegation (actual invocation via Task tool in prompt)
+            // Routing decision for delegation - inject /agent command
             if (
               routingDecision.shouldDelegate &&
               routingDecision.recommendedAgent
             ) {
-              // Add delegation hint to prompt so AI knows to use the subagent
-              const delegationHint = `\n[SYSTEM: Recommended subagent for this task: ${routingDecision.recommendedAgent}]`;
-              processedQuery = processedQuery + delegationHint;
+              // Prepend /agent command for direct subagent invocation
+              const agentCommand = `/agent ${routingDecision.recommendedAgent} ${processedQuery}`;
+              processedQuery = agentCommand;
 
               if (debugMode) {
                 onDebugMessage(
-                  `[Middleware] Routing suggestion: use ${routingDecision.recommendedAgent} subagent`,
+                  `[Middleware] AUTO-DELEGATING: /agent ${routingDecision.recommendedAgent}`,
                 );
               }
             }

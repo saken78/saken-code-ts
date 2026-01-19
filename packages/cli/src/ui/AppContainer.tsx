@@ -37,8 +37,8 @@ import {
   getErrorMessage,
   getAllGeminiMdFilenames,
   ShellExecutionService,
-  ideContextStore,
-  type IdeContext,
+  // ideContextStore,
+  // type IdeContext,
   // IdeClient,
   // ideContextStore,
   // type IdeContext,
@@ -855,9 +855,9 @@ export const AppContainer = (props: AppContainerProps) => {
   const [ctrlDPressedOnce, setCtrlDPressedOnce] = useState(false);
   const ctrlDTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [constrainHeight, setConstrainHeight] = useState<boolean>(true);
-  const [ideContextState, setIdeContextState] = useState<
-    IdeContext | undefined
-  >();
+  // const [ideContextState, setIdeContextState] = useState<
+  //   IdeContext | undefined
+  // >();
   const [showEscapePrompt, setShowEscapePrompt] = useState(false);
   // const [showIdeRestartPrompt, setShowIdeRestartPrompt] = useState(false);
 
@@ -891,11 +891,11 @@ export const AppContainer = (props: AppContainerProps) => {
     };
   }, [terminalWidth, refreshStatic]);
 
-  useEffect(() => {
-    const unsubscribe = ideContextStore.subscribe(setIdeContextState);
-    setIdeContextState(ideContextStore.get());
-    return unsubscribe;
-  }, []);
+  // useEffect(() => {
+  //   const unsubscribe = ideContextStore.subscribe(setIdeContextState);
+  //   setIdeContextState(ideContextStore.get());
+  //   return unsubscribe;
+  // }, []);
 
   useEffect(() => {
     const openDebugConsole = () => {
@@ -1085,12 +1085,6 @@ export const AppContainer = (props: AppContainerProps) => {
           handleSlashCommand(newValue ? '/mcp desc' : '/mcp nodesc');
         }
       } else if (
-        keyMatchers[Command.TOGGLE_IDE_CONTEXT_DETAIL](key) &&
-        config.getIdeMode() &&
-        ideContextState
-      ) {
-        handleSlashCommand('/ide status');
-      } else if (
         keyMatchers[Command.SHOW_MORE_LINES](key) &&
         !enteringConstrainHeightMode
       ) {
@@ -1108,7 +1102,7 @@ export const AppContainer = (props: AppContainerProps) => {
       showToolDescriptions,
       setShowToolDescriptions,
       config,
-      ideContextState,
+      // ideContextState,
       handleExit,
       ctrlCPressedOnce,
       setCtrlCPressedOnce,

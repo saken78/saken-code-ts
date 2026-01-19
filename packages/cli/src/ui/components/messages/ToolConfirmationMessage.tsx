@@ -5,7 +5,7 @@
  */
 
 import type React from 'react';
-import { useEffect, useState } from 'react';
+// import { useEffect, useState } from 'react';
 import { Box, Text } from 'ink';
 import { DiffRenderer } from './DiffRenderer.js';
 import { RenderInline } from '../../utils/InlineMarkdownRenderer.js';
@@ -15,14 +15,14 @@ import type {
   ToolExecuteConfirmationDetails,
   ToolMcpConfirmationDetails,
   Config,
-  EditorType,
+  // EditorType,
 } from '@qwen-code/qwen-code-core';
-import { IdeClient, ToolConfirmationOutcome } from '@qwen-code/qwen-code-core';
+import { ToolConfirmationOutcome } from '@qwen-code/qwen-code-core';
 import type { RadioSelectItem } from '../shared/RadioButtonSelect.js';
 import { RadioButtonSelect } from '../shared/RadioButtonSelect.js';
 import { MaxSizedBox } from '../shared/MaxSizedBox.js';
 import { useKeypress } from '../../hooks/useKeypress.js';
-import { useSettings } from '../../contexts/SettingsContext.js';
+// import { useSettings } from '../../contexts/SettingsContext.js';
 import { theme } from '../../semantic-colors.js';
 import { t } from '../../../i18n/index.js';
 
@@ -39,7 +39,7 @@ export const ToolConfirmationMessage: React.FC<
   ToolConfirmationMessageProps
 > = ({
   confirmationDetails,
-  config,
+  // config,
   isFocused = true,
   availableTerminalHeight,
   terminalWidth,
@@ -48,41 +48,41 @@ export const ToolConfirmationMessage: React.FC<
   const { onConfirm } = confirmationDetails;
   const childWidth = terminalWidth - 2; // 2 for padding
 
-  const settings = useSettings();
-  const preferredEditor = settings.merged.general?.preferredEditor as
-    | EditorType
-    | undefined;
+  // const settings = useSettings();
+  // const preferredEditor = settings.merged.general?.preferredEditor as
+  //   | EditorType
+  //   | undefined;
 
-  const [ideClient, setIdeClient] = useState<IdeClient | null>(null);
-  const [isDiffingEnabled, setIsDiffingEnabled] = useState(false);
+  // const [ideClient, setIdeClient] = useState<IdeClient | null>(null);
+  // const [isDiffingEnabled, setIsDiffingEnabled] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-    if (config.getIdeMode()) {
-      const getIdeClient = async () => {
-        const client = await IdeClient.getInstance();
-        if (isMounted) {
-          setIdeClient(client);
-          setIsDiffingEnabled(client?.isDiffingEnabled() ?? false);
-        }
-      };
-      getIdeClient();
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [config]);
+  // useEffect(() => {
+  //   let isMounted = true;
+  //   // if (config.getIdeMode()) {
+  //   //   // const getIdeClient = async () => {
+  //   //   //   const client = await IdeClient.getInstance();
+  //   //   //   if (isMounted) {
+  //   //   //     // setIdeClient(client);
+  //   //   //     setIsDiffingEnabled(client?.isDiffingEnabled() ?? false);
+  //   //   //   }
+  //   //   // };
+  //   //   // getIdeClient();
+  //   // }
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, [config]);
 
   const handleConfirm = async (outcome: ToolConfirmationOutcome) => {
     if (confirmationDetails.type === 'edit') {
-      if (config.getIdeMode() && isDiffingEnabled) {
-        const cliOutcome =
-          outcome === ToolConfirmationOutcome.Cancel ? 'rejected' : 'accepted';
-        await ideClient?.resolveDiffFromCli(
-          confirmationDetails.filePath,
-          cliOutcome,
-        );
-      }
+      // if (config.getIdeMode() && isDiffingEnabled) {
+      //   const cliOutcome =
+      //     outcome === ToolConfirmationOutcome.Cancel ? 'rejected' : 'accepted';
+      //   await ideClient?.resolveDiffFromCli(
+      //     confirmationDetails.filePath,
+      //     cliOutcome,
+      //   );
+      // }
     }
     onConfirm(outcome);
   };
@@ -207,13 +207,13 @@ export const ToolConfirmationMessage: React.FC<
     //     key: 'Yes, allow always',
     //   });
     // }
-    if ((!config.getIdeMode() || !isDiffingEnabled) && preferredEditor) {
-      options.push({
-        label: t('Modify with external editor'),
-        value: ToolConfirmationOutcome.ModifyWithEditor,
-        key: 'Modify with external editor',
-      });
-    }
+    // if ((!config.getIdeMode() || !isDiffingEnabled) && preferredEditor) {
+    //   options.push({
+    //     label: t('Modify with external editor'),
+    //     value: ToolConfirmationOutcome.ModifyWithEditor,
+    //     key: 'Modify with external editor',
+    //   });
+    // }
 
     options.push({
       label: t('No, suggest changes (esc)'),
