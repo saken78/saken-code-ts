@@ -76,3 +76,5 @@ benchmark/
 benchmark*
 benchmark-*
 *-benchmark-*
+*.test.*
+*test*
