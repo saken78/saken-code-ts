@@ -32,6 +32,7 @@ export const ToolNames = {
   EZA: 'eza',
   RIPGREP: 'rg',
   JQ: 'jq',
+  YQ: 'yq',
 } as const;
 
 /**
@@ -62,6 +63,7 @@ export const ToolDisplayNames = {
   EZA: 'Eza',
   RIPGREP: 'Ripgrep',
   JQ: 'Jq',
+  YQ: 'Yq',
 } as const;
 
 // Migration from old tool names to new tool names
@@ -109,4 +111,6 @@ export const ToolAliases: Record<string, string> = {
   SmartEdit: ToolNames.SMART_EDIT, // Smart Edit
   jq: ToolNames.JQ, // Jq
   Jq: ToolNames.JQ, // Jq
+  yq: ToolNames.YQ, // Yq
+  Yq: ToolNames.YQ, // Yq
 } as const;

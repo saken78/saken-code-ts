@@ -81,4 +81,7 @@ export enum ToolErrorType {
 
   // JQ-specific Errors
   JQ_EXECUTION_ERROR = 'jq_execution_error',
+
+  // YQ-specific Errors
+  YQ_EXECUTION_ERROR = 'yq_execution_error',
 }
