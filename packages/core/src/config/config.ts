@@ -45,7 +45,7 @@ import { EditTool } from '../tools/edit.js';
 import { ExitPlanModeTool } from '../tools/exitPlanMode.js';
 import { FdTool } from '../tools/fd.js';
 import { GlobTool } from '../tools/glob.js';
-import { GrepTool } from '../tools/grep.js';
+// import { GrepTool } from '../tools/grep.js';
 import { LSTool } from '../tools/ls.js';
 import type { SendSdkMcpMessage } from '../tools/mcp-client.js';
 import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
@@ -78,8 +78,8 @@ import {
   DEFAULT_TELEMETRY_TARGET,
   initializeTelemetry,
   logStartSession,
-  logRipgrepFallback,
-  RipgrepFallbackEvent,
+  // logRipgrepFallback,
+  // RipgrepFallbackEvent,
   StartSessionEvent,
   type TelemetryTarget,
   uiTelemetryService,
@@ -90,7 +90,7 @@ import { shouldAttemptBrowserLaunch } from '../utils/browser.js';
 import { FileExclusions } from '../utils/ignorePatterns.js';
 import { WorkspaceContext } from '../utils/workspaceContext.js';
 import { isToolEnabled, type ToolName } from '../utils/tool-utils.js';
-import { getErrorMessage } from '../utils/errors.js';
+// import { getErrorMessage } from '../utils/errors.js';
 
 // Local config modules
 import type { FileFilteringOptions } from './constants.js';
@@ -584,9 +584,6 @@ export class Config {
     this._blockedMcpServers = params.blockedMcpServers ?? [];
     this.noBrowser = params.noBrowser ?? false;
     this.summarizeToolOutput = params.summarizeToolOutput;
-    // this.folderTrustFeature = params.folderTrustFeature ?? false;
-    // this.folderTrust = params.folderTrust ?? false;
-    // this.ideMode = params.ideMode ?? false;
     this.modelProvidersConfig = params.modelProvidersConfig;
     this.cliVersion = params.cliVersion;
 
@@ -596,7 +593,6 @@ export class Config {
       params.loadMemoryFromIncludeDirectories ?? false;
     this.chatCompression = params.chatCompression;
     this.interactive = params.interactive ?? false;
-    // this.trustedFolder = params.trustedFolder;
     this.skipLoopDetection = params.skipLoopDetection ?? false;
     this.skipStartupContext = params.skipStartupContext ?? false;
 
@@ -618,7 +614,7 @@ export class Config {
     this.truncateToolOutputLines =
       params.truncateToolOutputLines ?? DEFAULT_TRUNCATE_TOOL_OUTPUT_LINES;
     this.enableToolOutputTruncation = params.enableToolOutputTruncation ?? true;
-    this.useSmartEdit = params.useSmartEdit ?? false;
+    this.useSmartEdit = params.useSmartEdit ?? true;
     this.extensionManagement = params.extensionManagement ?? true;
     this.channel = params.channel;
     this.storage = new Storage(this.targetDir);
@@ -1073,15 +1069,6 @@ export class Config {
   }
 
   setApprovalMode(mode: ApprovalMode): void {
-    // if (
-    //   !this.isTrustedFolder() &&
-    //   mode !== ApprovalMode.DEFAULT &&
-    //   mode !== ApprovalMode.PLAN
-    // ) {
-    //   throw new Error(
-    //     'Cannot enable privileged approval modes in an untrusted folder.',
-    //   );
-    // }
     this.approvalMode = mode;
   }
 
@@ -1247,45 +1234,6 @@ export class Config {
   getWebSearchConfig() {
     return this.webSearch;
   }
-
-  // getIdeMode(): boolean {
-  //   return this.ideMode;
-  // }
-
-  // getFolderTrustFeature(): boolean {
-  //   return this.folderTrustFeature;
-  // }
-
-  /**
-   * Returns 'true' if the workspace is considered "trusted".
-   * 'false' for untrusted.
-   */
-  // getFolderTrust(): boolean {
-  //   return this.folderTrust;
-  // }
-
-  // isTrustedFolder(): boolean {
-  //   // isWorkspaceTrusted in cli/src/config/trustedFolder.js returns undefined
-  //   // when the file based trust value is unavailable, since it is mainly used
-  //   // in the initialization for trust dialogs, etc. Here we return true since
-  //   // config.isTrustedFolder() is used for the main business logic of blocking
-  //   // tool calls etc in the rest of the application.
-  //   //
-  //   // Default value is true since we load with trusted settings to avoid
-  //   // restarts in the more common path. If the user chooses to mark the folder
-  //   // as untrusted, the CLI will restart and we will have the trust value
-  //   // reloaded.
-  //   // const context = ideContextStore.get();
-  //   // if (context?.workspaceState?.isTrusted !== undefined) {
-  //   //   return context.workspaceState.isTrusted;
-  //   }
-
-  //   // return this.trustedFolder ?? true;
-  // }
-
-  // setIdeMode(value: boolean): void {
-  //   this.ideMode = value;
-  // }
 
   getAuthType(): AuthType | undefined {
     return this.contentGeneratorConfig?.authType;
@@ -1501,37 +1449,41 @@ export class Config {
 
     if (this.getUseRipgrep()) {
       let useRipgrep = true;
-      let errorString: undefined | string = undefined;
       try {
         useRipgrep = await canUseRipgrep(this.getUseBuiltinRipgrep());
-      } catch (error: unknown) {
-        errorString = getErrorMessage(error);
+      } finally {
+        if (useRipgrep) {
+          registerCoreTool(RipGrepTool, this);
+        }
       }
-      if (useRipgrep) {
-        registerCoreTool(RipGrepTool, this);
-      } else {
-        // Log for telemetry
-        logRipgrepFallback(
-          this,
-          new RipgrepFallbackEvent(
-            this.getUseRipgrep(),
-            this.getUseBuiltinRipgrep(),
-            errorString || 'ripgrep is not available',
-          ),
-        );
-        registerCoreTool(GrepTool, this);
-      }
-    } else {
-      registerCoreTool(GrepTool, this);
+      // catch (error: unknown) {
+      //   // errorString = getErrorMessage(error);
+      // }
+
+      // else {
+      //   // Log for telemetry
+      //   logRipgrepFallback(
+      //     this,
+      //     new RipgrepFallbackEvent(
+      //       this.getUseRipgrep(),
+      //       this.getUseBuiltinRipgrep(),
+      //       errorString || 'ripgrep is not available',
+      //     ),
+      //   );
+      //   registerCoreTool(GrepTool, this);
+      // }
     }
+    // else {
+    //   registerCoreTool(GrepTool, this);
+    // }
 
     registerCoreTool(GlobTool, this);
     registerCoreTool(FdTool, this);
     if (this.getUseSmartEdit()) {
       registerCoreTool(SmartEditTool, this);
-    } else {
-      registerCoreTool(EditTool, this);
     }
+    registerCoreTool(EditTool, this);
+
     registerCoreTool(WriteFileTool, this);
     registerCoreTool(ReadManyFilesTool, this);
     registerCoreTool(ShellTool, this);

@@ -20,6 +20,7 @@ import type {
 import { ShellExecutionService } from '../services/shellExecutionService.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
 import type { AnsiOutput } from '../utils/terminalSerializer.js';
+import { checkForDeprecatedCommands } from '../utils/deprecated-command-validator.js';
 // import type pattern from 'ajv/dist/vocabularies/validation/pattern.js';
 
 export const BASH_OUTPUT_UPDATE_INTERVAL_MS = 1000;
@@ -71,6 +72,21 @@ export class BashToolInvocation extends BaseToolInvocation<
     updateOutput?: (output: ToolResultDisplay) => void,
     shellExecutionConfig?: ShellExecutionConfig,
   ): Promise<ToolResult> {
+    // Check for deprecated commands first
+    const deprecatedCheck = checkForDeprecatedCommands(this.params.command);
+    if (deprecatedCheck) {
+      const tool = deprecatedCheck.recommendedTool;
+      const errorMessage = `Use ${tool} tool instead of '${deprecatedCheck.command}'. ${deprecatedCheck.reason}`;
+      return {
+        llmContent: errorMessage,
+        returnDisplay: errorMessage,
+        error: {
+          message: errorMessage,
+          type: ToolErrorType.SHELL_EXECUTE_ERROR,
+        },
+      };
+    }
+
     if (signal.aborted) {
       return {
         llmContent: 'Command was cancelled before execution.',
@@ -865,12 +881,70 @@ export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
     );
   }
 
+  /**
+   * Detects if a bash command is attempting to edit or create files
+   * Blocks commands that should use dedicated tools instead
+   */
+  private detectFileEditOrCreateOperation(command: string): string | null {
+    const trimmed = command.trim();
+
+    // Block file write/redirect operations
+    // Pattern: echo/printf/cat > file or >> file
+    if (
+      /\b(echo|printf|cat)\b.*\s[>>&]+\s|^\s*[>>&]/.test(trimmed) ||
+      trimmed.includes('>')
+    ) {
+      return `Cannot use bash redirection (> >>) to create/edit files. Use write-file tool instead.`;
+    }
+
+    // Block here-documents (cat <<EOF)
+    if (/\b(cat|<<)\b/.test(trimmed) && trimmed.includes('<<')) {
+      return `Cannot use here-documents to create files. Use write-file tool instead.`;
+    }
+
+    // Block sed (stream editor)
+    if (/\bsed\b/.test(trimmed)) {
+      return `Use edit tool instead of sed for file modifications.`;
+    }
+
+    // Block awk file operations
+    if (/\bawk\b.*>/.test(trimmed)) {
+      return `Use edit tool instead of awk for file modifications.`;
+    }
+
+    // Block tee (write to file)
+    if (/\btee\b/.test(trimmed) && trimmed !== 'tee') {
+      // Allow tee only for piping to stdout, reject if writing to file
+      const teeArgs = trimmed.split(/\btee\b/)[1] || '';
+      if (
+        teeArgs.trim() &&
+        !teeArgs.startsWith('|') &&
+        !teeArgs.includes('-')
+      ) {
+        return `Use edit tool instead of tee for writing to files.`;
+      }
+    }
+
+    // Block vim/nano/emacs (interactive editors)
+    if (/\b(vim|vi|nano|emacs|ed)\b/.test(trimmed)) {
+      return `Cannot use interactive editors in bash. Use edit tool for file modifications.`;
+    }
+
+    return null;
+  }
+
   protected override validateToolParamValues(
     params: BashToolParams,
   ): string | null {
     // Minimal validation - just ensure command is not empty
     if (!params.command.trim()) {
       return 'Command cannot be empty';
+    }
+
+    // Check for file edit/create operations that should use dedicated tools
+    const fileOpError = this.detectFileEditOrCreateOperation(params.command);
+    if (fileOpError) {
+      return fileOpError;
     }
 
     // Validate cwd if provided

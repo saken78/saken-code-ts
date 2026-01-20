@@ -251,7 +251,7 @@ export class RipGrepTool extends BaseDeclarativeTool<
   RipGrepToolParams,
   ToolResult
 > {
-  static readonly Name = ToolNames.GREP;
+  static readonly Name = ToolNames.RIPGREP;
 
   constructor(private readonly config: Config) {
     super(

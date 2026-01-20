@@ -21,6 +21,7 @@ import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
 import { logFileOperation } from '../telemetry/loggers.js';
 import { FileOperationEvent } from '../telemetry/types.js';
 import { isSubpath } from '../utils/paths.js';
+import { fileAccessValidator } from './file-access-validation.js';
 
 /**
  * Parameters for the ReadFile tool
@@ -94,6 +95,9 @@ class ReadFileToolInvocation extends BaseToolInvocation<
         },
       };
     }
+
+    // Catat bahwa file telah diakses
+    fileAccessValidator.recordFileAccess(this.params.absolute_path);
 
     let llmContent: PartUnion;
     if (result.isTruncated) {

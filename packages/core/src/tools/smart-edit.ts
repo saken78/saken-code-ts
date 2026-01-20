@@ -770,7 +770,7 @@ export class SmartEditTool
   extends BaseDeclarativeTool<EditToolParams, ToolResult>
   implements ModifiableDeclarativeTool<EditToolParams>
 {
-  static readonly Name = ToolNames.EDIT;
+  static readonly Name = ToolNames.SMART_EDIT;
 
   constructor(private readonly config: Config) {
     super(

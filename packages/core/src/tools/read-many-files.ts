@@ -28,6 +28,7 @@ import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
 import { logFileOperation } from '../telemetry/loggers.js';
 import { FileOperationEvent } from '../telemetry/types.js';
 import { ToolErrorType } from './tool-error.js';
+import { fileAccessValidator } from './file-access-validation.js';
 
 /**
  * Parameters for the ReadManyFilesTool.
@@ -387,6 +388,9 @@ ${finalExclusionPatternsForDescription
             // This is a Part for image/pdf, which we don't add the separator to.
             contentParts.push(fileReadResult.llmContent);
           }
+
+          // Catat bahwa file telah diakses
+          fileAccessValidator.recordFileAccess(filePath);
 
           processedFilesRelativePaths.push(relativePathForDisplay);
 

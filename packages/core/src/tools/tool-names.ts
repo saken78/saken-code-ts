@@ -10,6 +10,7 @@
  * with the actual tool class names.
  */
 export const ToolNames = {
+  SMART_EDIT: 'smart_edit',
   EDIT: 'edit',
   WRITE_FILE: 'write_file',
   READ_FILE: 'read_file',
@@ -29,6 +30,7 @@ export const ToolNames = {
   FD: 'fd',
   BAT: 'bat',
   EZA: 'eza',
+  RIPGREP: 'rg',
 } as const;
 
 /**
@@ -37,6 +39,7 @@ export const ToolNames = {
  * with the actual tool display names.
  */
 export const ToolDisplayNames = {
+  SMART_EDIT: 'SmartEdit',
   EDIT: 'Edit',
   WRITE_FILE: 'WriteFile',
   READ_FILE: 'ReadFile',
@@ -56,6 +59,7 @@ export const ToolDisplayNames = {
   FD: 'Fd',
   BAT: 'Bat',
   EZA: 'Eza',
+  RIPGREP: 'Ripgrep',
 } as const;
 
 // Migration from old tool names to new tool names
@@ -99,4 +103,6 @@ export const ToolAliases: Record<string, string> = {
   fd: ToolNames.FD, // 'fd' -> 'fd'
   bat: ToolNames.BAT, // 'bat' -> 'bat'
   eza: ToolNames.EZA, // 'eza' -> 'eza'
+  RIPGREP: ToolNames.RIPGREP, // RG
+  SmartEdit: ToolNames.SMART_EDIT, // Smart Edit
 } as const;

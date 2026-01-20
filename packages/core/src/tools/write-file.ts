@@ -38,6 +38,8 @@ import { FileOperationEvent } from '../telemetry/types.js';
 import { FileOperation } from '../telemetry/metrics.js';
 import { getSpecificMimeType } from '../utils/fileUtils.js';
 import { getLanguageFromFilePath } from '../utils/language-detection.js';
+import { fileAccessValidator } from './file-access-validation.js';
+import { toolValidator } from './validation-wrapper.js';
 
 /**
  * Parameters for the WriteFile tool
@@ -196,16 +198,63 @@ class WriteFileToolInvocation extends BaseToolInvocation<
   async execute(_abortSignal: AbortSignal): Promise<ToolResult> {
     const { file_path, content, ai_proposed_content, modified_by_user } =
       this.params;
+
+    // Priority 5: Validate and resolve paths (auto-convert relative to absolute)
+    const pathValidation = toolValidator.validateAndResolvePath(file_path);
+    if (!pathValidation.isValid) {
+      return {
+        llmContent: pathValidation.message || 'Invalid file path',
+        returnDisplay: pathValidation.message || 'Invalid file path',
+        error: {
+          message: pathValidation.message || 'Invalid file path',
+          type: ToolErrorType.EDIT_PREPARATION_FAILURE,
+        },
+      };
+    }
+
+    const resolvedFilePath = pathValidation.correctedValue || file_path;
+
+    // Priority 4: Validate file creation - NEVER create files unless necessary
+    const creationValidation =
+      toolValidator.validateFileCreation(resolvedFilePath);
+    if (!creationValidation.isValid) {
+      return {
+        llmContent: creationValidation.message || 'File creation not allowed',
+        returnDisplay:
+          creationValidation.message || 'File creation not allowed',
+        error: {
+          message: creationValidation.message || 'File creation not allowed',
+          type: ToolErrorType.FILE_WRITE_FAILURE,
+        },
+      };
+    }
+
+    // Validasi akses file sebelum melanjutkan
+    const validation = fileAccessValidator.validateFileEdit(
+      resolvedFilePath,
+      true,
+    );
+    if (!validation.isValid) {
+      return {
+        llmContent: validation.message,
+        returnDisplay: validation.message,
+        error: {
+          message: validation.message,
+          type: ToolErrorType.EDIT_PREPARATION_FAILURE,
+        },
+      };
+    }
+
     const correctedContentResult = await getCorrectedFileContent(
       this.config,
-      file_path,
+      resolvedFilePath,
       content,
     );
 
     if (correctedContentResult.error) {
       const errDetails = correctedContentResult.error;
       const errorMsg = errDetails.code
-        ? `Error checking existing file '${file_path}': ${errDetails.message} (${errDetails.code})`
+        ? `Error checking existing file '${resolvedFilePath}': ${errDetails.message} (${errDetails.code})`
         : `Error checking existing file: ${errDetails.message}`;
       return {
         llmContent: errorMsg,
@@ -230,17 +279,17 @@ class WriteFileToolInvocation extends BaseToolInvocation<
         !correctedContentResult.fileExists);
 
     try {
-      const dirName = path.dirname(file_path);
+      const dirName = path.dirname(resolvedFilePath);
       if (!fs.existsSync(dirName)) {
         fs.mkdirSync(dirName, { recursive: true });
       }
 
       await this.config
         .getFileSystemService()
-        .writeTextFile(file_path, fileContent);
+        .writeTextFile(resolvedFilePath, fileContent);
 
       // Generate diff for display result
-      const fileName = path.basename(file_path);
+      const fileName = path.basename(resolvedFilePath);
       // If there was a readError, originalContent in correctedContentResult is '',
       // but for the diff, we want to show the original content as it was before the write if possible.
       // However, if it was unreadable, currentContentForDiff will be empty.
@@ -267,8 +316,8 @@ class WriteFileToolInvocation extends BaseToolInvocation<
 
       const llmSuccessMessageParts = [
         isNewFile
-          ? `Successfully created and wrote to new file: ${file_path}.`
-          : `Successfully overwrote file: ${file_path}.`,
+          ? `Successfully created and wrote to new file: ${resolvedFilePath}.`
+          : `Successfully overwrote file: ${resolvedFilePath}.`,
       ];
       if (modified_by_user) {
         llmSuccessMessageParts.push(
@@ -277,9 +326,9 @@ class WriteFileToolInvocation extends BaseToolInvocation<
       }
 
       // Log file operation for telemetry (without diff_stat to avoid double-counting)
-      const mimetype = getSpecificMimeType(file_path);
-      const programmingLanguage = getLanguageFromFilePath(file_path);
-      const extension = path.extname(file_path);
+      const mimetype = getSpecificMimeType(resolvedFilePath);
+      const programmingLanguage = getLanguageFromFilePath(resolvedFilePath);
+      const extension = path.extname(resolvedFilePath);
       const operation = isNewFile ? FileOperation.CREATE : FileOperation.UPDATE;
 
       logFileOperation(

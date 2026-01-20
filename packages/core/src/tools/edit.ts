@@ -40,6 +40,8 @@ import {
   maybeAugmentOldStringForDeletion,
   normalizeEditStrings,
 } from '../utils/editHelper.js';
+import { fileAccessValidator } from './file-access-validation.js';
+import { toolValidator } from './validation-wrapper.js';
 
 export function applyReplacement(
   currentContent: string | null,
@@ -123,6 +125,45 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
    * @throws File system errors if reading the file fails unexpectedly (e.g., permissions)
    */
   private async calculateEdit(params: EditToolParams): Promise<CalculatedEdit> {
+    // Priority 5: Validate and resolve paths (auto-convert relative to absolute)
+    const pathValidation = toolValidator.validateAndResolvePath(
+      params.file_path,
+    );
+    if (!pathValidation.isValid) {
+      return {
+        currentContent: null,
+        newContent: '',
+        occurrences: 0,
+        error: {
+          display: pathValidation.message || 'Invalid file path',
+          raw: pathValidation.message || 'Invalid file path',
+          type: ToolErrorType.EDIT_PREPARATION_FAILURE,
+        },
+        isNewFile: false,
+      };
+    }
+
+    const resolvedFilePath = pathValidation.correctedValue || params.file_path;
+
+    // Priority 6: Validate read-before-edit enforcement
+    const fileAccessValidation = fileAccessValidator.validateFileEdit(
+      resolvedFilePath,
+      false,
+    );
+    if (!fileAccessValidation.isValid) {
+      return {
+        currentContent: null,
+        newContent: '',
+        occurrences: 0,
+        error: {
+          display: fileAccessValidation.message,
+          raw: fileAccessValidation.message,
+          type: ToolErrorType.EDIT_PREPARATION_FAILURE,
+        },
+        isNewFile: false,
+      };
+    }
+
     const replaceAll = params.replace_all ?? false;
     let currentContent: string | null = null;
     let fileExists = false;
@@ -137,7 +178,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     try {
       currentContent = await this.config
         .getFileSystemService()
-        .readTextFile(params.file_path);
+        .readTextFile(resolvedFilePath);
       // Normalize line endings to LF for consistent processing.
       currentContent = currentContent.replace(/\r\n/g, '\n');
       fileExists = true;
@@ -164,7 +205,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       // Trying to edit a nonexistent file (and old_string is not empty)
       error = {
         display: `File not found. Cannot apply edit. Use an empty old_string to create a new file.`,
-        raw: `File not found: ${params.file_path}`,
+        raw: `File not found: ${resolvedFilePath}`,
         type: ToolErrorType.FILE_NOT_FOUND,
       };
     } else if (currentContent !== null) {
@@ -179,25 +220,25 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
         // Error: Trying to create a file that already exists
         error = {
           display: `Failed to edit. Attempted to create a file that already exists.`,
-          raw: `File already exists, cannot create: ${params.file_path}`,
+          raw: `File already exists, cannot create: ${resolvedFilePath}`,
           type: ToolErrorType.ATTEMPT_TO_CREATE_EXISTING_FILE,
         };
       } else if (occurrences === 0) {
         error = {
           display: `Failed to edit, could not find the string to replace.`,
-          raw: `Failed to edit, 0 occurrences found for old_string in ${params.file_path}. No edits made. The exact text in old_string was not found. Ensure you're not escaping content incorrectly and check whitespace, indentation, and context. Use ${ReadFileTool.Name} tool to verify.`,
+          raw: `Failed to edit, 0 occurrences found for old_string in ${resolvedFilePath}. No edits made. The exact text in old_string was not found. Ensure you're not escaping content incorrectly and check whitespace, indentation, and context. Use ${ReadFileTool.Name} tool to verify.`,
           type: ToolErrorType.EDIT_NO_OCCURRENCE_FOUND,
         };
       } else if (!replaceAll && occurrences > 1) {
         error = {
           display: `Failed to edit because the text matches multiple locations. Provide more context or set replace_all to true.`,
-          raw: `Failed to edit. Found ${occurrences} occurrences for old_string in ${params.file_path} but replace_all was not enabled.`,
+          raw: `Failed to edit. Found ${occurrences} occurrences for old_string in ${resolvedFilePath} but replace_all was not enabled.`,
           type: ToolErrorType.EDIT_EXPECTED_OCCURRENCE_MISMATCH,
         };
       } else if (finalOldString === finalNewString) {
         error = {
           display: `No changes to apply. The old_string and new_string are identical.`,
-          raw: `No changes to apply. The old_string and new_string are identical in file: ${params.file_path}`,
+          raw: `No changes to apply. The old_string and new_string are identical in file: ${resolvedFilePath}`,
           type: ToolErrorType.EDIT_NO_CHANGE,
         };
       }
@@ -205,7 +246,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       // Should not happen if fileExists and no exception was thrown, but defensively:
       error = {
         display: `Failed to read content of file.`,
-        raw: `Failed to read content of existing file: ${params.file_path}`,
+        raw: `Failed to read content of existing file: ${resolvedFilePath}`,
         type: ToolErrorType.READ_CONTENT_FAILURE,
       };
     }
@@ -223,7 +264,7 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
       error = {
         display:
           'No changes to apply. The new content is identical to the current content.',
-        raw: `No changes to apply. The new content is identical to the current content in file: ${params.file_path}`,
+        raw: `No changes to apply. The new content is identical to the current content in file: ${resolvedFilePath}`,
         type: ToolErrorType.EDIT_NO_CHANGE,
       };
     }

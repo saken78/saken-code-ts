@@ -41,6 +41,10 @@ import {
   isCommandNeedsPermission,
   stripShellWrapper,
 } from '../utils/shell-utils.js';
+import {
+  checkForDeprecatedCommands,
+  getRecommendedTool,
+} from '../utils/deprecated-command-validator.js';
 
 export const OUTPUT_UPDATE_INTERVAL_MS = 1000;
 
@@ -122,6 +126,21 @@ export class ShellToolInvocation extends BaseToolInvocation<
     shellExecutionConfig?: ShellExecutionConfig,
     setPidCallback?: (pid: number) => void,
   ): Promise<ToolResult> {
+    // Check for deprecated commands first
+    const deprecatedCheck = checkForDeprecatedCommands(this.params.command);
+    if (deprecatedCheck) {
+      const tool = getRecommendedTool(deprecatedCheck.command);
+      const errorMessage = `Use ${tool} tool instead of '${deprecatedCheck.command}'. ${deprecatedCheck.reason}`;
+      return {
+        llmContent: errorMessage,
+        returnDisplay: errorMessage,
+        error: {
+          message: errorMessage,
+          type: ToolErrorType.SHELL_EXECUTE_ERROR,
+        },
+      };
+    }
+
     const strippedCommand = stripShellWrapper(this.params.command);
 
     if (signal.aborted) {
