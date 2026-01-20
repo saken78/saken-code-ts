@@ -52,7 +52,7 @@ import { MemoryTool, setGeminiMdFilename } from '../tools/memoryTool.js';
 import { ReadFileTool } from '../tools/read-file.js';
 import { ReadManyFilesTool } from '../tools/read-many-files.js';
 import { canUseRipgrep } from '../utils/ripgrepUtils.js';
-import { RipGrepTool } from '../tools/ripGrep.js';
+import { NativeRipgrepTool } from '../tools/native-ripgrep-tool.js';
 import { ShellTool } from '../tools/shell.js';
 import { BashTool } from '../tools/bash.js';
 import { SmartEditTool } from '../tools/smart-edit.js';
@@ -1453,7 +1453,7 @@ export class Config {
         useRipgrep = await canUseRipgrep(this.getUseBuiltinRipgrep());
       } finally {
         if (useRipgrep) {
-          registerCoreTool(RipGrepTool, this);
+          registerCoreTool(NativeRipgrepTool, this);
         }
       }
       // catch (error: unknown) {
