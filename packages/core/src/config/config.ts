@@ -43,7 +43,7 @@ import { GitService } from '../services/gitService.js';
 // Tools
 import { EditTool } from '../tools/edit.js';
 import { ExitPlanModeTool } from '../tools/exitPlanMode.js';
-import { FdTool } from '../tools/fd.js';
+import { FdNativeTool } from '../tools/fd-native-tool.js';
 import { GlobTool } from '../tools/glob.js';
 // import { GrepTool } from '../tools/grep.js';
 import { LSTool } from '../tools/ls.js';
@@ -1478,7 +1478,7 @@ export class Config {
     // }
 
     registerCoreTool(GlobTool, this);
-    registerCoreTool(FdTool, this);
+    registerCoreTool(FdNativeTool, this);
     if (this.getUseSmartEdit()) {
       registerCoreTool(SmartEditTool, this);
     }
