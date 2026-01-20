@@ -119,7 +119,7 @@ Verify you have:
 
 Remember: The best prompt is one that consistently produces the desired output with minimal post-processing. ALWAYS show the prompt, never just describe it.`,
 
-  tools: ['read_file', 'write_file', 'edit'],
+  tools: ['read_file', 'read_many_files'],
 
   capabilities: [
     'prompt_engineering',

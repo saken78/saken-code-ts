@@ -131,7 +131,7 @@ Use the read_file, write_file, edit, glob, grep_search, and other tools to resea
     'write_file',
     'edit',
     'fd',
-    'grep_search',
+    'rg',
     'eza',
     'bash',
     'todo_write',

@@ -833,39 +833,6 @@ export const useGeminiStream = (
     [addItem],
   );
 
-  // const handleLoopDetectionConfirmation = useCallback(
-  //   (result: { userSelection: 'disable' | 'keep' }) => {
-  //     setLoopDetectionConfirmationRequest(null);
-
-  //     if (result.userSelection === 'disable') {
-  //       config.getGeminiClient().getLoopDetectionService().disableForSession();
-  //       addItem(
-  //         {
-  //           type: 'info',
-  //           text: `Loop detection has been disabled for this session. Please try your request again.`,
-  //         },
-  //         Date.now(),
-  //       );
-  //     } else {
-  //       addItem(
-  //         {
-  //           type: 'info',
-  //           text: `A potential loop was detected. This can happen due to repetitive tool calls or other model behavior. The request has been halted.`,
-  //         },
-  //         Date.now(),
-  //       );
-  //     }
-  //   },
-  //   [config, addItem],
-  // );
-
-  // const handleLoopDetectedEvent = useCallback(() => {
-  //   // Show the confirmation dialog to choose whether to disable loop detection
-  //   setLoopDetectionConfirmationRequest({
-  //     onComplete: handleLoopDetectionConfirmation,
-  //   });
-  // }, [handleLoopDetectionConfirmation]);
-
   const processGeminiStreamEvents = useCallback(
     async (
       stream: AsyncIterable<GeminiEvent>,

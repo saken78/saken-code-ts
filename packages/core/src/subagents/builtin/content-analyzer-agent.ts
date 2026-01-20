@@ -99,7 +99,7 @@ For summaries: Executive summary followed by detailed breakdown`,
   tools: [
     'read_file', // For reading single files
     'read_many_files', // For reading multiple files at once
-    'grep_search', // For searching patterns
+    'rg', // For searching patterns
     'fd', // For finding files by pattern
     'todo_write', // For tracking analysis tasks
   ],

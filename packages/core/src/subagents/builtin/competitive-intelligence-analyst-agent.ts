@@ -38,7 +38,7 @@ export const competitiveIntelligenceAnalystAgent: SubagentConfig = {
 \`\`\`typescript
 class CompetitorAnalysisFramework {
     analysis_dimensions: any;
-    
+
     constructor() {
         this.analysis_dimensions = {
             'financial_performance': {
@@ -63,7 +63,7 @@ class CompetitorAnalysisFramework {
             }
         }
     }
-    
+
     create_competitor_profile(company_name: string, analysis_scope: any) {
         /*
         Generate comprehensive competitor intelligence profile
@@ -115,10 +115,10 @@ class CompetitorAnalysisFramework {
                 'expansion_plans': []
             }
         };
-        
+
         return profile;
     }
-    
+
     perform_swot_analysis(competitor_data: any) {
         /*
         Structured SWOT analysis based on gathered intelligence
@@ -149,7 +149,7 @@ class CompetitorAnalysisFramework {
                 'economic_factors': []
             }
         };
-        
+
         return swot_analysis;
     }
 }
@@ -166,7 +166,7 @@ from datetime import datetime, timedelta
 
 class MarketIntelligenceCollector {
     data_sources: any;
-    
+
     constructor() {
         this.data_sources = {
             'financial_data': {
@@ -186,7 +186,7 @@ class MarketIntelligenceCollector {
             }
         };
     }
-    
+
     collect_financial_intelligence(company_ticker: string) {
         /*
         Gather comprehensive financial intelligence
@@ -216,16 +216,16 @@ class MarketIntelligenceCollector {
                 'market_share_change': null
             }
         };
-        
+
         return financial_intel;
     }
-    
+
     monitor_competitive_moves(competitor_list: string[], monitoring_period_days: number = 30) {
         /*
         Track recent competitive activities and announcements
         */
         const competitive_activities: any[] = [];
-        
+
         for (const competitor of competitor_list) {
             const activities = {
                 'company': competitor,
@@ -237,13 +237,13 @@ class MarketIntelligenceCollector {
                 'market_expansion': [],
                 'acquisition_activity': []
             };
-            
+
             // Collect recent news and announcements
             const recent_news = this._fetch_recent_company_news(
-                competitor, 
+                competitor,
                 monitoring_period_days
             );
-            
+
             // Categorize activities
             for (const news_item of recent_news) {
                 const category = this._categorize_news_item(news_item);
@@ -257,28 +257,28 @@ class MarketIntelligenceCollector {
                     });
                 }
             }
-            
+
             competitive_activities.push(activities);
         }
-        
+
         return competitive_activities;
     }
-    
+
     _fetch_recent_company_news(company: string, days_back: number) {
         // Placeholder implementation
         return [];
     }
-    
+
     _categorize_news_item(news_item: any) {
         // Placeholder implementation
         return 'other';
     }
-    
+
     _assess_competitive_impact(news_item: any) {
         // Placeholder implementation
         return 'neutral';
     }
-    
+
     analyze_job_posting_intelligence(company_name: string) {
         /*
         Extract strategic insights from job postings
@@ -301,7 +301,7 @@ class MarketIntelligenceCollector {
                 'organizational_changes': []
             }
         };
-        
+
         return job_intelligence;
     }
 }
@@ -311,7 +311,7 @@ class MarketIntelligenceCollector {
 \`\`\`typescript
 class MarketTrendAnalyzer {
     trend_categories: string[];
-    
+
     constructor() {
         this.trend_categories = [
             'technology_adoption',
@@ -321,7 +321,7 @@ class MarketTrendAnalyzer {
             'competitive_dynamics'
         ];
     }
-    
+
     identify_market_trends(industry_sector: string, analysis_timeframe: string = '12_months') {
         /*
         Comprehensive market trend identification and analysis
@@ -333,37 +333,37 @@ class MarketTrendAnalyzer {
             'disruptive_forces': [] as string[],
             'opportunity_areas': [] as string[]
         };
-        
+
         // Technology trends analysis
         const tech_trends = this._analyze_technology_trends(industry_sector);
         market_trends['emerging_trends'].push(...tech_trends['emerging']);
-        
+
         // Regulatory environment analysis
         const regulatory_trends = this._analyze_regulatory_landscape(industry_sector);
         market_trends['disruptive_forces'].push(...regulatory_trends['changes']);
-        
+
         // Consumer behavior patterns
         const consumer_trends = this._analyze_consumer_behavior(industry_sector);
         market_trends['opportunity_areas'].push(...consumer_trends['opportunities']);
-        
+
         return market_trends;
     }
-    
+
     _analyze_technology_trends(industry_sector: string) {
         // Placeholder implementation
         return { 'emerging': [] as string[] };
     }
-    
+
     _analyze_regulatory_landscape(industry_sector: string) {
         // Placeholder implementation
         return { 'changes': [] as string[] };
     }
-    
+
     _analyze_consumer_behavior(industry_sector: string) {
         // Placeholder implementation
         return { 'opportunities': [] as string[] };
     }
-    
+
     create_competitive_landscape_map(market_segment: string) {
         /*
         Generate strategic positioning map of competitive landscape
@@ -394,10 +394,10 @@ class MarketTrendAnalyzer {
                 'market_entry_strategy': [] as string[]
             }
         };
-        
+
         return landscape_map;
     }
-    
+
     assess_market_opportunity(market_segment: string, geographic_scope: string = 'global') {
         /*
         Quantitative market opportunity assessment
@@ -428,7 +428,7 @@ class MarketTrendAnalyzer {
                 'strategic_fit': null  // 1-10 scale
             }
         };
-        
+
         return opportunity_assessment;
     }
 }
@@ -438,7 +438,7 @@ class MarketTrendAnalyzer {
 \`\`\`typescript
 class CompetitiveIntelligenceReporter {
     report_templates: any;
-    
+
     constructor() {
         this.report_templates = {
             'competitor_profile': this._competitor_profile_template(),
@@ -447,27 +447,27 @@ class CompetitiveIntelligenceReporter {
             'opportunity_briefing': this._opportunity_briefing_template()
         };
     }
-    
+
     _competitor_profile_template() {
         // Placeholder implementation
         return {};
     }
-    
+
     _market_analysis_template() {
         // Placeholder implementation
         return {};
     }
-    
+
     _threat_assessment_template() {
         // Placeholder implementation
         return {};
     }
-    
+
     _opportunity_briefing_template() {
         // Placeholder implementation
         return {};
     }
-    
+
     generate_executive_briefing(analysis_data: any, briefing_type: string = 'comprehensive') {
         /*
         Create executive-level intelligence briefing
@@ -504,10 +504,10 @@ class CompetitiveIntelligenceReporter {
                 'regulatory_changes': [] as string[]
             }
         };
-        
+
         return briefing;
     }
-    
+
     create_competitive_dashboard(tracking_metrics: any) {
         /*
         Generate real-time competitive intelligence dashboard
@@ -537,7 +537,7 @@ class CompetitiveIntelligenceReporter {
                 'leadership_changes': {'urgency': 'low'}
             }
         };
-        
+
         return dashboard_config;
     }
 }
@@ -571,7 +571,7 @@ function analyze_patent_landscape(technology_domain: string, competitor_list: st
             'acquisition_targets': [] as string[]
         }
     };
-    
+
     return patent_intelligence;
 }
 \`\`\`
@@ -602,7 +602,7 @@ function monitor_social_sentiment(brand_list: string[], monitoring_keywords: str
             'response_strategies': [] as string[]
         }
     };
-    
+
     return social_intelligence;
 }
 \`\`\`

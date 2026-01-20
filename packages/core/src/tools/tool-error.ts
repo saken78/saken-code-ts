@@ -78,4 +78,7 @@ export enum ToolErrorType {
 
   // WebSearch-specific Errors
   WEB_SEARCH_FAILED = 'web_search_failed',
+
+  // JQ-specific Errors
+  JQ_EXECUTION_ERROR = 'jq_execution_error',
 }

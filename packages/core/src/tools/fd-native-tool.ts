@@ -130,17 +130,32 @@ export class FdNativeToolInvocation extends BaseToolInvocation<
         PREVIEW_LINES,
       );
 
+      // Format file size for display
+      const formatBytes = (bytes: number): string => {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+      };
+
+      const outputSizeStr = formatBytes(result.outputSize);
+      console.log(
+        `[FdNativeTool] Output file size: ${outputSizeStr} (${result.outputSize} bytes)`,
+      );
+      console.log(`[FdNativeTool] Output path: ${result.outputPath}`);
+
       let llmContent = '';
       let returnDisplay = '';
 
       if (result.fileCount <= MAX_INLINE_RESULTS) {
         // Small result set - include full list
-        llmContent = `Found ${result.fileCount} match(es) for pattern "${this.params.pattern}" in ${result.searchPath}:\n\n${preview}`;
+        llmContent = `Found ${result.fileCount} match(es) for pattern "${this.params.pattern}" in ${result.searchPath}:\n\n${preview}\n\n📊 Output: ${outputSizeStr} (${result.outputPath})`;
         returnDisplay = `Found ${result.fileCount} matches:\n${preview}`;
       } else {
         // Large result set - show reference and preview
-        llmContent = `Found ${result.fileCount} matches for pattern "${this.params.pattern}" in ${result.searchPath}.\n\nFirst ${PREVIEW_LINES} results:\n${preview}\n\nFull results available at: ${result.outputPath}\nTo read all results, use the read_file tool with this path.`;
-        returnDisplay = `Found ${result.fileCount} matches (too many to display).\n\nFirst ${PREVIEW_LINES} results:\n${preview}\n\nResults file: ${result.outputPath}`;
+        llmContent = `Found ${result.fileCount} matches for pattern "${this.params.pattern}" in ${result.searchPath}.\n\nFirst ${PREVIEW_LINES} results:\n${preview}\n\nFull results available at: ${result.outputPath}\n📊 Output file size: ${outputSizeStr}\nTo read all results, use the read_file tool with this path.`;
+        returnDisplay = `Found ${result.fileCount} matches (too many to display).\n\nFirst ${PREVIEW_LINES} results:\n${preview}\n\nResults file: ${result.outputPath} (${outputSizeStr})`;
       }
 
       return {

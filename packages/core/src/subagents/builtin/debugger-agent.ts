@@ -93,7 +93,7 @@ You are a Debugger Agent, a specialized tool for debugging, troubleshooting, and
   tools: [
     'read_file',
     'read_many_files',
-    'grep_search',
+    'rg',
     'bash',
     'todo_write',
     'eza',

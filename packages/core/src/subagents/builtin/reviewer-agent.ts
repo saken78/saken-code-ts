@@ -79,7 +79,7 @@ You are a Reviewer Agent, a specialized tool for code review, quality assessment
   tools: [
     'read_file',
     'read_many_files',
-    'grep_search',
+    'rg',
     'bash',
     'save_memory',
     'skill',

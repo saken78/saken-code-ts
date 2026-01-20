@@ -49,7 +49,7 @@ You are an Explorer Agent, a specialized tool for exploring codebases and naviga
   level: 'builtin',
   tools: [
     'fd',
-    'grep_search',
+    'rg',
     'read_file',
     'read_many_files',
     'bash',
@@ -57,6 +57,7 @@ You are an Explorer Agent, a specialized tool for exploring codebases and naviga
     'skill',
     'eza',
     'web_fetch',
+    'run_shell_command',
   ],
   capabilities: [
     'file_exploration',

@@ -38,7 +38,7 @@ const MIN_LINES_SHOWN = 2; // show at least this many lines
 
 // Large threshold to ensure we don't cause performance issues for very large
 // outputs that will get truncated further MaxSizedBox anyway.
-const MAXIMUM_RESULT_DISPLAY_CHARACTERS = 1000000;
+const MAXIMUM_RESULT_DISPLAY_CHARACTERS = 100000000;
 export type TextEmphasis = 'high' | 'medium' | 'low';
 
 type DisplayRendererResult =

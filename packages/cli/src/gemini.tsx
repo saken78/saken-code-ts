@@ -12,7 +12,7 @@ import os from 'node:os';
 import { basename } from 'node:path';
 import v8 from 'node:v8';
 import React from 'react';
-// import { validateAuthMethod } from './config/auth.js';
+
 import * as cliConfig from './config/config.js';
 import { loadCliConfig, parseArguments } from './config/config.js';
 import { ExtensionStorage, loadExtensions } from './config/extension.js';
@@ -47,7 +47,7 @@ import {
   relaunchAppInChildProcess,
   // relaunchOnExitCode,
 } from './utils/relaunch.js';
-// import { start_sandbox } from './utils/sandbox.js';
+
 import { getStartupWarnings } from './utils/startupWarnings.js';
 import { getUserStartupWarnings } from './utils/userStartupWarnings.js';
 import { getCliVersion } from './utils/version.js';
@@ -104,7 +104,7 @@ function getNodeMemoryArgs(isDebugMode: boolean): string[] {
 }
 
 import { ExtensionEnablementManager } from './config/extensions/extensionEnablement.js';
-// import { loadSandboxConfig } from './config/sandboxConfig.js';
+
 import { runAcpAgent } from './acp-integration/acpAgent.js';
 
 export function setupUnhandledRejectionHandler() {
@@ -142,7 +142,10 @@ export async function startInteractiveUI(
   // Create wrapper component to use hooks inside render
   const AppWrapper = () => {
     const kittyProtocolStatus = useKittyKeyboardProtocol();
-    const nodeMajorVersion = parseInt(process.versions.node.split('.')[0], 10);
+    const nodeMajorVersion = Number.parseInt(
+      process.versions.node.split('.')[0],
+      10,
+    );
     return (
       <SettingsContext.Provider value={settings}>
         <KeypressProvider
@@ -244,14 +247,6 @@ export async function main() {
     // that only initializes enough config to enable refreshAuth or find
     // another way to decouple refreshAuth from requiring a config.
 
-    // if (sandboxConfig) {
-    //   const partialConfig = await loadCliConfig(
-    //     settings.merged,
-    //     [],
-    //     new ExtensionEnablementManager(ExtensionStorage.getUserExtensionsDir()),
-    //     argv,
-    //   );
-
     //   if (!settings.merged.security?.auth?.useExternal) {
     //     // Validate authentication here because the sandbox will interfere with the Oauth2 web redirect.
     //     try {
@@ -271,38 +266,13 @@ export async function main() {
     //       process.exit(1);
     //     }
     //   }
-    //   // For stream-json mode, don't read stdin here - it should be forwarded to the sandbox
-    //   // and consumed by StreamJsonInputReader inside the container
-    //   const inputFormat = argv.inputFormat as string | undefined;
-    //   let stdinData = '';
-    //   if (!process.stdin.isTTY && inputFormat !== 'stream-json') {
-    //     stdinData = await readStdin();
-    //   }
-
-    //   // This function is a copy of the one from sandbox.ts
-    //   // It is moved here to decouple sandbox.ts from the CLI's argument structure.
-    //   const injectStdinIntoArgs = (
-    //     args: string[],
-    //     stdinData?: string,
-    //   ): string[] => {
-    //     const finalArgs = [...args];
-    //     if (stdinData) {
-    //       const promptIndex = finalArgs.findIndex(
-    //         (arg) => arg === '--prompt' || arg === '-p',
-    //       );
-    //       if (promptIndex > -1 && finalArgs.length > promptIndex + 1) {
-    //         // If there's a prompt argument, prepend stdin to it
-    //         finalArgs[promptIndex + 1] =
-    //           `${stdinData}\n\n${finalArgs[promptIndex + 1]}`;
-    //       } else {
-    //         // If there's no prompt argument, add stdin as the prompt
-    //         finalArgs.push('--prompt', stdinData);
-    //       }
-    //     }
-    //     return finalArgs;
-    //   };
-
-    //   const sandboxArgs = injectStdinIntoArgs(process.argv, stdinData);
+    // For stream-json mode, don't read stdin here - it should be forwarded to the sandbox
+    // and consumed by StreamJsonInputReader inside the container
+    // const inputFormat = argv.inputFormat as string | undefined;
+    // let stdinData = '';
+    // if (!process.stdin.isTTY && inputFormat !== 'stream-json') {
+    //   stdinData = await readStdin();
+    // }
 
     //   // await relaunchOnExitCode(() =>
     //   //   start_sandbox(sandboxConfig, memoryArgs, partialConfig, sandboxArgs),

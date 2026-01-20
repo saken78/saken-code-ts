@@ -289,7 +289,7 @@ Provide rigorous quantitative analysis with actionable insights.`,
     'edit',
     'web_search',
     'web_fetch',
-    'grep_search',
+    'rg',
     'glob',
   ],
 

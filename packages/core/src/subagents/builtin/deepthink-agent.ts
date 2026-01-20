@@ -171,10 +171,8 @@ Deep analysis and problem solving mode
   level: 'builtin',
   tools: [
     'read_file',
-    'write_file',
-    'edit',
     'fd',
-    'grep_search',
+    'rg',
     'eza',
     'bash',
     'todo_write',
@@ -183,7 +181,6 @@ Deep analysis and problem solving mode
     'task',
     'web_fetch',
     'web_search',
-    'bat',
   ],
 
   capabilities: [

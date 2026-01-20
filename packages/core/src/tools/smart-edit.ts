@@ -775,20 +775,54 @@ export class SmartEditTool
   constructor(private readonly config: Config) {
     super(
       SmartEditTool.Name,
-      'Edit',
-      `Replaces text within a file. Replaces a single occurrence. This tool requires providing significant context around the change to ensure precise targeting. Always use the ${ReadFileTool.Name} tool to examine the file's current content before attempting a text replacement.
+      'SmartEdit',
+      `Advanced file editing with intelligent pattern matching and self-correction. Best for complex files (100+ lines or intricate code).
 
-      The user has the ability to modify the \`new_string\` content. If modified, this will be stated in the response.
+**When to use SmartEdit:**
+- Complex files with 100+ lines
+- Need flexible whitespace/indentation handling
+- Previous edit attempts failed and need auto-correction
+- Pattern matching across multiple languages (Python, TypeScript, etc.)
 
-      Expectation for required parameters:
-      1. \`file_path\` MUST be an absolute path; otherwise an error will be thrown.
-      2. \`old_string\` MUST be the exact literal text to replace (including all whitespace, indentation, newlines, and surrounding code etc.).
-      3. \`new_string\` MUST be the exact literal text to replace \`old_string\` with (also including all whitespace, indentation, newlines, and surrounding code etc.). Ensure the resulting code is correct and idiomatic and that \`old_string\` and \`new_string\` are different.
-      4. \`instruction\` is the detailed instruction of what needs to be changed. It is important to Make it specific and detailed so developers or large language models can understand what needs to be changed and perform the changes on their own if necessary.
-      5. NEVER escape \`old_string\` or \`new_string\`, that would break the exact literal text requirement.
-      **Important:** If ANY of the above are not satisfied, the tool will fail. CRITICAL for \`old_string\`: Must uniquely identify the single instance to change. Include at least 3 lines of context BEFORE and AFTER the target text, matching whitespace and indentation precisely. If this string matches multiple locations, or does not match exactly, the tool will fail.
-      6. Prefer to break down complex and long changes into multiple smaller atomic calls to this tool. Always check the content of the file after changes or not finding a string to match.
-      **Multiple replacements:** If there are multiple and ambiguous occurences of the \`old_string\` in the file, the tool will also fail.`,
+**When to use Edit (basic):**
+- Simple files with <100 lines
+- Precise, exact string replacements needed
+- Small, focused changes
+- Using replaceAll() functionality
+
+**SmartEdit capabilities:**
+1. **Exact matching** - Literal string matching with exact whitespace
+2. **Flexible matching** - Handles indentation variations and whitespace
+3. **Regex matching** - Smart tokenization-based pattern matching
+4. **Self-correction** - Uses LLM to fix matching issues automatically when first attempt fails
+
+**Key advantages:**
+- Automatic self-correction when string not found (retries with LLM assistance)
+- Flexible indentation handling across all programming languages
+- Multi-line pattern matching with automatic token normalization
+- Better error recovery and diagnostic messages
+
+**How SmartEdit works:**
+- First attempt: Exact literal string matching
+- Second attempt: Flexible line-based matching (ignoring indentation variations)
+- Third attempt: Smart regex matching based on token patterns
+- If all fail: LLM self-correction engine analyzes the error and retries
+
+**Parameters:**
+1. \`file_path\` - MUST be absolute path (starts with /)
+2. \`instruction\` - Detailed semantic instruction: WHY, WHERE, WHAT changes needed
+3. \`old_string\` - Exact literal text to replace (include 3+ context lines before/after target)
+4. \`new_string\` - Exact literal replacement text
+
+**Best practices:**
+1. Always use ${ReadFileTool.Name} to examine file content first (especially for large files)
+2. The \`instruction\` parameter is critical - specific about WHAT, WHERE, and WHY
+3. Include 3+ lines of context BEFORE and AFTER target text
+4. Never escape \`old_string\` or \`new_string\` - use literal text as-is
+5. Break complex changes into multiple atomic calls
+6. After each edit, use ${ReadFileTool.Name} to verify changes
+
+**Important:** Include sufficient context to ensure unique identification. If the string matches multiple locations, the tool will fail.`,
       Kind.Edit,
       {
         properties: {

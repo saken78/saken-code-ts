@@ -515,17 +515,40 @@ export class EditTool
     super(
       EditTool.Name,
       ToolDisplayNames.EDIT,
-      `Replaces text within a file. By default, replaces a single occurrence. Set \`replace_all\` to true when you intend to modify every instance of \`old_string\`. This tool requires providing significant context around the change to ensure precise targeting. Always use the ${ReadFileTool.Name} tool to examine the file's current content before attempting a text replacement.
+      `Simple, precise file editing for exact string replacements. Best for simple files (<100 lines) and straightforward changes.
 
-      The user has the ability to modify the \`new_string\` content. If modified, this will be stated in the response.
+**When to use Edit (this tool):**
+- Simple files with <100 lines
+- Need precise, exact string replacements only
+- Using replaceAll() functionality to replace all occurrences
+- Small, focused, non-complex changes
 
-Expectation for required parameters:
-1. \`file_path\` MUST be an absolute path; otherwise an error will be thrown.
-2. \`old_string\` MUST be the exact literal text to replace (including all whitespace, indentation, newlines, and surrounding code etc.).
-3. \`new_string\` MUST be the exact literal text to replace \`old_string\` with (also including all whitespace, indentation, newlines, and surrounding code etc.). Ensure the resulting code is correct and idiomatic.
-4. NEVER escape \`old_string\` or \`new_string\`, that would break the exact literal text requirement.
-**Important:** If ANY of the above are not satisfied, the tool will fail. CRITICAL for \`old_string\`: Must uniquely identify the single instance to change. Include at least 3 lines of context BEFORE and AFTER the target text, matching whitespace and indentation precisely. If this string matches multiple locations, or does not match exactly, the tool will fail.
-**Multiple replacements:** Set \`replace_all\` to true when you want to replace every occurrence that matches \`old_string\`.`,
+**When to use SmartEdit instead:**
+- Complex files with 100+ lines
+- Need flexible whitespace/indentation handling
+- Previous edit attempts failed
+- Need automatic self-correction
+
+**Key features:**
+- Single or multiple replacements: Set \`replace_all\` to true to replace all occurrences
+- Exact literal string matching (no fuzzy matching)
+- User modification support: User can modify \`new_string\` before confirmation
+- Simple, predictable behavior
+
+**Parameters:**
+1. \`file_path\` - MUST be absolute path (starts with /)
+2. \`old_string\` - EXACT literal text to replace (include 3+ context lines)
+3. \`new_string\` - EXACT literal replacement text
+4. \`replace_all\` - Set to true to replace ALL occurrences (default: false for single replacement)
+
+**Important requirements:**
+- NEVER escape \`old_string\` or \`new_string\` - use literal text as-is
+- Must uniquely identify the target instance (single occurrence)
+- Include 3+ lines of context BEFORE and AFTER target text
+- Match whitespace and indentation precisely
+- Always use ${ReadFileTool.Name} to examine file first
+
+The user has the ability to modify the \`new_string\` content. If modified, this will be stated in the response.`,
       Kind.Edit,
       {
         properties: {
