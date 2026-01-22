@@ -30,6 +30,8 @@ export const ToolNames = {
   FD: 'fd',
   BAT: 'bat',
   EZA: 'eza',
+  NATIVE_EZA: 'native_eza',
+  NATIVE_FD: 'native_fd',
   RIPGREP: 'rg',
   JQ: 'jq',
   YQ: 'yq',
@@ -61,6 +63,8 @@ export const ToolDisplayNames = {
   FD: 'Fd',
   BAT: 'Bat',
   EZA: 'Eza',
+  NATIVE_EZA: 'NativeEza',
+  NATIVE_FD: 'NativeFD',
   RIPGREP: 'Ripgrep',
   JQ: 'Jq',
   YQ: 'Yq',
@@ -107,10 +111,10 @@ export const ToolAliases: Record<string, string> = {
   fd: ToolNames.FD, // 'fd' -> 'fd'
   bat: ToolNames.BAT, // 'bat' -> 'bat'
   eza: ToolNames.EZA, // 'eza' -> 'eza'
+  native_eza: ToolNames.NATIVE_EZA, // 'native_eza' -> 'native_eza'
+  native_fd: ToolNames.NATIVE_FD,
   RIPGREP: ToolNames.RIPGREP, // RG
   SmartEdit: ToolNames.SMART_EDIT, // Smart Edit
   jq: ToolNames.JQ, // Jq
-  Jq: ToolNames.JQ, // Jq
   yq: ToolNames.YQ, // Yq
-  Yq: ToolNames.YQ, // Yq
 } as const;

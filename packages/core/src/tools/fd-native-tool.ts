@@ -217,7 +217,7 @@ export class FdNativeTool extends BaseDeclarativeTool<
   FdNativeToolParams,
   ToolResult
 > {
-  static Name: string = ToolNames.FD;
+  static Name: string = ToolNames.NATIVE_FD;
 
   constructor(private readonly config: Config) {
     super(
