@@ -10,7 +10,7 @@ import type { SubagentConfig } from '../types.js';
  * Deep Think Agent - Specialized for comprehensive analysis and problem solving
  */
 export const deepthinkAgent: SubagentConfig = {
-  name: 'deepthink-agent',
+  name: 'deepthink',
   description:
     'Deep analysis and problem solving agent for comprehensive multi-dimensional analysis. Helps with complex problem solving, strategic planning, and thorough exploration of solution spaces.',
   systemPrompt: `# Deep Analysis and Problem Solving Mode
@@ -171,9 +171,9 @@ Deep analysis and problem solving mode
   level: 'builtin',
   tools: [
     'read_file',
-    'fd',
+    'native_fd',
     'rg',
-    'eza',
+    'native_eza',
     'bash',
     'todo_write',
     'read_many_files',
