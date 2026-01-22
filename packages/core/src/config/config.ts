@@ -64,7 +64,8 @@ import { WebFetchTool } from '../tools/web-fetch.js';
 import { WebSearchTool } from '../tools/web-search/index.js';
 import { WriteFileTool } from '../tools/write-file.js';
 import { BatTool } from '../tools/bat.js';
-import { EzaTool } from '../tools/eza.js';
+// import { EzaTool } from '../tools/eza.js';
+import { NativeEzaTool } from '../tools/native-eza-tool.js';
 import { NativeYqTool } from '../tools/native-yq-tool.js';
 
 // Other modules
@@ -1494,7 +1495,8 @@ export class Config {
     !this.sdkMode && registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
     registerCoreTool(BatTool, this);
-    registerCoreTool(EzaTool, this);
+    // registerCoreTool(EzaTool, this);
+    registerCoreTool(NativeEzaTool, this);
     registerCoreTool(NativeYqTool, this);
     // Conditionally register web search tool if web search provider is configured
     // buildWebSearchConfig ensures qwen-oauth users get dashscope provider, so
