@@ -83,8 +83,8 @@ You are a Reviewer Agent, a specialized tool for code review, quality assessment
     'bash',
     'save_memory',
     'skill',
-    'eza',
-    'fd',
+    'native_eza',
+    'native_fd',
     'bat',
   ],
   capabilities: [
