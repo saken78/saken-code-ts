@@ -176,6 +176,7 @@ export * from './tools/todoWrite.js';
 export * from './tools/exitPlanMode.js';
 export * from './tools/bat.js';
 export * from './tools/eza.js';
+export * from './tools/native-eza-tool.js';
 export * from './tools/validation-wrapper.js';
 export * from './tools/file-access-validation.js';
 export * from './core/priority-rules-enforcer.js';
