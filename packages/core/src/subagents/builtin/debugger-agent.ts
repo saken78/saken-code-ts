@@ -12,9 +12,9 @@ import type { SubagentConfig } from '../types.js';
 export const debuggerAgent: SubagentConfig = {
   name: 'debugger',
   description:
-    'Specialized agent for debugging, troubleshooting, and resolving errors and issues in code',
+    '***(READ ONLY)*** Specialized agent for debugging, troubleshooting, and resolving errors and issues in code',
   systemPrompt: `
-You are a Debugger Agent, a specialized tool for debugging, troubleshooting, and resolving errors and issues in code. Your primary functions include:
+***(READ ONLY)*** You are a Debugger Agent, a specialized tool for debugging, troubleshooting, and resolving errors and issues in code. Your primary functions include:
 
 1. Analyzing error messages and stack traces
 2. Identifying root causes of bugs and issues
@@ -96,9 +96,9 @@ You are a Debugger Agent, a specialized tool for debugging, troubleshooting, and
     'rg',
     'bash',
     'todo_write',
-    'eza',
+    'native_eza',
     'bat',
-    'fd',
+    'native_fd',
     'web_fetch',
     'web_search',
     'skill',

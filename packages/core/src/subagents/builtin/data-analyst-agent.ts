@@ -290,7 +290,7 @@ Provide rigorous quantitative analysis with actionable insights.`,
     'web_search',
     'web_fetch',
     'rg',
-    'glob',
+    'native_fd',
   ],
 
   capabilities: [

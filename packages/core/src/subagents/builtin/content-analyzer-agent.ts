@@ -100,8 +100,9 @@ For summaries: Executive summary followed by detailed breakdown`,
     'read_file', // For reading single files
     'read_many_files', // For reading multiple files at once
     'rg', // For searching patterns
-    'fd', // For finding files by pattern
+    'native_fd', // For finding files by pattern
     'todo_write', // For tracking analysis tasks
+    'native_eza',
   ],
 
   // OPTIONAL: Capabilities this agent has (metadata for routing decisions)
