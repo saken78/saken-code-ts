@@ -337,8 +337,17 @@ export const useGeminiStream = (
       let localQueryToSendToGemini: PartListUnion | null = null;
 
       if (typeof query === 'string') {
-        const trimmedQuery = query.trim();
-        onDebugMessage(`User query: '${trimmedQuery}'`);
+        let trimmedQuery = query.trim();
+
+        // Strip raw query prefix ($) if present
+        const isRawQuery = trimmedQuery.startsWith('$');
+        if (isRawQuery) {
+          trimmedQuery = trimmedQuery.slice(1).trim();
+        }
+
+        onDebugMessage(
+          `User query: '${trimmedQuery}'${isRawQuery ? ' (raw query - no optimization)' : ''}`,
+        );
         await logger?.logMessage(MessageSenderType.USER, trimmedQuery);
 
         // ===================================================================
@@ -349,8 +358,12 @@ export const useGeminiStream = (
         try {
           const debugMode = config.getDebugMode();
 
-          // Skip middleware for slash/@ commands (they handle their own logic)
-          if (!isSlashCommand(trimmedQuery) && !isAtCommand(trimmedQuery)) {
+          // Skip middleware for slash/@ commands, or raw queries (prefixed with $)
+          if (
+            !isSlashCommand(trimmedQuery) &&
+            !isAtCommand(trimmedQuery) &&
+            !isRawQuery
+          ) {
             // Step 1: Optimize prompt through prompt engineer
             const promptEngineer = getPromptEngineerMiddleware(config, true);
             promptEngineer.setDebug(debugMode);
@@ -384,6 +397,12 @@ export const useGeminiStream = (
 
             if (debugMode) {
               onDebugMessage(
+                `[Middleware] Task: ${routingDecision.taskType} (${(routingDecision.confidence * 100).toFixed(0)}%) - ${routingDecision.shouldDelegate ? `DELEGATE to ${routingDecision.recommendedAgent}` : 'no delegation'}`,
+              );
+            }
+
+            if (!debugMode) {
+              console.log(
                 `[Middleware] Task: ${routingDecision.taskType} (${(routingDecision.confidence * 100).toFixed(0)}%) - ${routingDecision.shouldDelegate ? `DELEGATE to ${routingDecision.recommendedAgent}` : 'no delegation'}`,
               );
             }
