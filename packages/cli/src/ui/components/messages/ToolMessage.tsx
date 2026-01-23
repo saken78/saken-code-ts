@@ -165,6 +165,7 @@ const SubagentExecutionRenderer: React.FC<{
 
 /**
  * Component to render string results (markdown or plain text)
+ * Hides large outputs and shows summary with ctrl+o hint
  */
 const StringResultRenderer: React.FC<{
   data: string;
@@ -174,8 +175,17 @@ const StringResultRenderer: React.FC<{
 }> = ({ data, renderAsMarkdown, availableHeight, childWidth }) => {
   let displayData = data;
 
-  // Truncate if too long
-  if (displayData.length > MAXIMUM_RESULT_DISPLAY_CHARACTERS) {
+  // ✨ Hide large output, show summary + ctrl+o hint
+  const lines = data.split('\n').filter(Boolean);
+  const isLargeOutput = lines.length > 10 || data.length > 500;
+
+  if (isLargeOutput && !renderAsMarkdown) {
+    // For shell/bash command outputs - show first 3 lines + hint
+    const firstLines = lines.slice(0, 3).join('\n');
+    displayData = `${firstLines}
+   ... first ${lines.length} lines hidden ... (press Ctrl+O to view full output)`;
+  } else if (displayData.length > MAXIMUM_RESULT_DISPLAY_CHARACTERS) {
+    // Truncate if REALLY too long
     displayData = '...' + displayData.slice(-MAXIMUM_RESULT_DISPLAY_CHARACTERS);
   }
 
