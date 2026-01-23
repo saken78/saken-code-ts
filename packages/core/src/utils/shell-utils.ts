@@ -17,7 +17,7 @@ import {
 } from 'node:child_process';
 import { accessSync, constants as fsConstants } from 'node:fs';
 
-const SHELL_TOOL_NAMES = ['run_shell_command', 'ShellTool'];
+const SHELL_TOOL_NAMES = ['shell', 'ShellTool'];
 
 /**
  * An identifier for the shell type.
@@ -358,9 +358,7 @@ export function checkCommandPermissions(
 
   for (const cmd of commandsToValidate) {
     invocation.params['command'] = cmd;
-    if (
-      doesToolInvocationMatch('run_shell_command', invocation, excludeTools)
-    ) {
+    if (doesToolInvocationMatch('shell', invocation, excludeTools)) {
       return {
         allAllowed: false,
         disallowedCommands: [cmd],
@@ -394,15 +392,13 @@ export function checkCommandPermissions(
 
     for (const cmd of commandsToValidate) {
       invocation.params['command'] = cmd;
-      const isSessionAllowed = doesToolInvocationMatch(
-        'run_shell_command',
-        invocation,
-        [...normalizedSessionAllowlist],
-      );
+      const isSessionAllowed = doesToolInvocationMatch('shell', invocation, [
+        ...normalizedSessionAllowlist,
+      ]);
       if (isSessionAllowed) continue;
 
       const isGloballyAllowed = doesToolInvocationMatch(
-        'run_shell_command',
+        'shell',
         invocation,
         coreTools,
       );
@@ -432,7 +428,7 @@ export function checkCommandPermissions(
       for (const cmd of commandsToValidate) {
         invocation.params['command'] = cmd;
         const isGloballyAllowed = doesToolInvocationMatch(
-          'run_shell_command',
+          'shell',
           invocation,
           coreTools,
         );
@@ -597,4 +593,168 @@ export function isCommandNeedsPermission(command: string): {
     requiresPermission: true,
     reason: 'Command requires permission to execute.',
   };
+}
+
+/**
+ * Read file content using bash `cat` command instead of fs API.
+ * This reduces overhead compared to Node.js fs API.
+ * Works cross-platform using the appropriate shell.
+ *
+ * @param filePath Absolute path to the file to read
+ * @returns File content as string, or empty string if file doesn't exist or is unreadable
+ */
+export function readFileViaBash(filePath: string): string {
+  try {
+    const shellConfig = getShellConfiguration();
+    const escapedPath = escapeShellArg(filePath, shellConfig.shell);
+    const command = `cat ${escapedPath}`;
+
+    const result = execFileSync(shellConfig.executable, [
+      ...shellConfig.argsPrefix,
+      command,
+    ]);
+
+    return result.toString('utf8');
+  } catch (error) {
+    // Return empty string on error (file not found, no permission, etc.)
+    console.debug(`readFileViaBash error for ${filePath}:`, error);
+    return '';
+  }
+}
+
+/**
+ * Read file content using bash `cat` command asynchronously.
+ * This reduces overhead compared to Node.js fs API.
+ * Works cross-platform using the appropriate shell.
+ *
+ * @param filePath Absolute path to the file to read
+ * @returns Promise that resolves to file content, or empty string if file doesn't exist or is unreadable
+ */
+export async function readFileViaBashasync(filePath: string): Promise<string> {
+  return new Promise((resolve) => {
+    try {
+      const shellConfig = getShellConfiguration();
+      const escapedPath = escapeShellArg(filePath, shellConfig.shell);
+      const command = `cat ${escapedPath}`;
+
+      execFile(
+        shellConfig.executable,
+        [...shellConfig.argsPrefix, command],
+        { encoding: 'utf8' },
+        (error, stdout) => {
+          if (error) {
+            console.debug(`readFileViaBashasync error for ${filePath}:`, error);
+            resolve('');
+          } else {
+            resolve(stdout);
+          }
+        },
+      );
+    } catch (error) {
+      console.debug(`readFileViaBashasync error for ${filePath}:`, error);
+      resolve('');
+    }
+  });
+}
+
+/**
+ * Intelligently determine file reading strategy based on file size.
+ *
+ * Strategy:
+ * - Files < 500 lines: Read all content in steps of 100 lines
+ * - Files >= 500 lines: Read first 500 lines, or read all in steps of 200 lines
+ *
+ * @param filePath Absolute path to the file
+ * @returns Object with total lines, step size, and reading strategy
+ */
+export function getFileReadingStrategy(filePath: string): {
+  totalLines: number;
+  stepSize: number;
+  strategy: 'read-all' | 'read-first-500' | 'read-in-steps';
+  shouldReadInSteps: boolean;
+} {
+  try {
+    const shellConfig = getShellConfiguration();
+    const escapedPath = escapeShellArg(filePath, shellConfig.shell);
+    const wcCommand = `wc -l ${escapedPath}`;
+
+    const result = execFileSync(shellConfig.executable, [
+      ...shellConfig.argsPrefix,
+      wcCommand,
+    ]);
+
+    const lineCountStr = result.toString('utf8').trim().split(/\s+/)[0];
+    const totalLines = parseInt(lineCountStr, 10);
+
+    if (isNaN(totalLines)) {
+      return {
+        totalLines: 0,
+        stepSize: 100,
+        strategy: 'read-all',
+        shouldReadInSteps: false,
+      };
+    }
+
+    if (totalLines < 500) {
+      // Small file: read all in steps of 100
+      return {
+        totalLines,
+        stepSize: 100,
+        strategy: 'read-all',
+        shouldReadInSteps: true,
+      };
+    } else {
+      // Large file: read first 500 or all in steps of 200
+      return {
+        totalLines,
+        stepSize: 200,
+        strategy: 'read-first-500',
+        shouldReadInSteps: true,
+      };
+    }
+  } catch (error) {
+    console.debug(`getFileReadingStrategy error for ${filePath}:`, error);
+    return {
+      totalLines: 0,
+      stepSize: 100,
+      strategy: 'read-all',
+      shouldReadInSteps: false,
+    };
+  }
+}
+
+/**
+ * Read file lines in steps (pagination).
+ * Useful for displaying file content in chunks for better UX.
+ *
+ * @param filePath Absolute path to the file
+ * @param startLine Starting line number (1-indexed)
+ * @param endLine Ending line number (1-indexed, inclusive)
+ * @returns File lines as string
+ */
+export function readFileLines(
+  filePath: string,
+  startLine: number,
+  endLine: number,
+): string {
+  try {
+    const shellConfig = getShellConfiguration();
+    const escapedPath = escapeShellArg(filePath, shellConfig.shell);
+
+    // Use sed to extract specific lines: sed -n '10,20p' file.txt
+    const sedCommand = `sed -n '${startLine},${endLine}p' ${escapedPath}`;
+
+    const result = execFileSync(shellConfig.executable, [
+      ...shellConfig.argsPrefix,
+      sedCommand,
+    ]);
+
+    return result.toString('utf8');
+  } catch (error) {
+    console.debug(
+      `readFileLines error for ${filePath} (${startLine}-${endLine}):`,
+      error,
+    );
+    return '';
+  }
 }

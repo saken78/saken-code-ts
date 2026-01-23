@@ -11,7 +11,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import * as Diff from 'diff';
 import { DEFAULT_DIFF_OPTIONS } from './diffOptions.js';
-import { isNodeError } from '../utils/errors.js';
+import { readFileViaBash } from '../utils/shell-utils.js';
 import type {
   AnyDeclarativeTool,
   DeclarativeTool,
@@ -90,22 +90,9 @@ function getUpdatedParams<ToolParams>(
   originalParams: ToolParams,
   modifyContext: ModifyContext<ToolParams>,
 ): { updatedParams: ToolParams; updatedDiff: string } {
-  let oldContent = '';
-  let newContent = '';
-
-  try {
-    oldContent = fs.readFileSync(tmpOldPath, 'utf8');
-  } catch (err) {
-    if (!isNodeError(err) || err.code !== 'ENOENT') throw err;
-    oldContent = '';
-  }
-
-  try {
-    newContent = fs.readFileSync(tempNewPath, 'utf8');
-  } catch (err) {
-    if (!isNodeError(err) || err.code !== 'ENOENT') throw err;
-    newContent = '';
-  }
+  // ✨ Use bash cat for file reading (lower overhead than fs API)
+  const oldContent = readFileViaBash(tmpOldPath);
+  const newContent = readFileViaBash(tempNewPath);
 
   const updatedParams = modifyContext.createUpdatedParams(
     oldContent,

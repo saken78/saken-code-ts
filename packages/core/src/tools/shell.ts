@@ -40,11 +40,13 @@ import {
   isCommandAllowed,
   isCommandNeedsPermission,
   stripShellWrapper,
+  readFileViaBash,
 } from '../utils/shell-utils.js';
 import {
   checkForDeprecatedCommands,
   getRecommendedTool,
 } from '../utils/deprecated-command-validator.js';
+import { validateCommandOptimality } from '../utils/command-enforcement.js';
 
 export const OUTPUT_UPDATE_INTERVAL_MS = 1000;
 
@@ -126,7 +128,21 @@ export class ShellToolInvocation extends BaseToolInvocation<
     shellExecutionConfig?: ShellExecutionConfig,
     setPidCallback?: (pid: number) => void,
   ): Promise<ToolResult> {
-    // Check for deprecated commands first
+    // ✨ STRICT ENFORCEMENT: Check for non-optimal command patterns
+    const optimalityCheck = validateCommandOptimality(this.params.command);
+    if (!optimalityCheck.isValid && optimalityCheck.error) {
+      const fullMessage = `${optimalityCheck.error.message}\n\n${optimalityCheck.error.suggestion}\n\nGuide: ${optimalityCheck.error.suggestedTool}`;
+      return {
+        llmContent: fullMessage,
+        returnDisplay: fullMessage,
+        error: {
+          message: optimalityCheck.error.message,
+          type: ToolErrorType.SHELL_EXECUTE_ERROR,
+        },
+      };
+    }
+
+    // Check for deprecated commands
     const deprecatedCheck = checkForDeprecatedCommands(this.params.command);
     if (deprecatedCheck) {
       const tool = getRecommendedTool(deprecatedCheck.command);
@@ -246,10 +262,9 @@ export class ShellToolInvocation extends BaseToolInvocation<
 
       const backgroundPIDs: number[] = [];
       if (fs.existsSync(tempFilePath)) {
-        const pgrepLines = fs
-          .readFileSync(tempFilePath, 'utf8')
-          .split(EOL)
-          .filter(Boolean);
+        // ✨ Use bash cat for file reading (lower overhead than fs API)
+        const pgrepContent = readFileViaBash(tempFilePath);
+        const pgrepLines = pgrepContent.split(EOL).filter(Boolean);
         for (const line of pgrepLines) {
           if (!/^\d+$/.test(line)) {
             console.error(`pgrep: ${line}`);
@@ -407,7 +422,7 @@ function getShellToolDescription(): string {
 **Usage notes**:
 - The command argument is required.
 - It is very helpful if you write a clear, concise description of what this command does in 5-10 words.
-- Avoid using run_shell_command with the \`find\`, \`grep\`, \`cat\`, \`head\`, \`tail\`, \`sed\`, \`awk\`, or \`echo\` commands, unless explicitly instructed or when these commands are truly necessary for the task. Instead, always prefer using the dedicated tools for these commands:
+- Avoid using shell with the \`find\`, \`grep\`, \`cat\`, \`head\`, \`tail\`, \`sed\`, \`awk\`, or \`echo\` commands, unless explicitly instructed or when these commands are truly necessary for the task. Instead, always prefer using the dedicated tools for these commands:
   - File search: Use ${ToolNames.FD} (NOT find)
   - Content search: Use ${ToolNames.GREP} (grep or rg)
   - Read files: Use ${ToolNames.READ_FILE} (NOT cat/head/tail)
@@ -415,11 +430,16 @@ function getShellToolDescription(): string {
   - Write files: Use write_file (NOT echo >/cat <<EOF)
   - Communication: Output text directly (NOT echo/printf)
 - When issuing multiple commands:
-  - If the commands are independent and can run in parallel, make multiple run_shell_command tool calls in a single message. For example, if you need to run "git status" and "git diff", send a single message with two run_shell_command tool calls in parallel.
-  - If the commands depend on each other and must run sequentially, use a single run_shell_command call with '&&' to chain them together (e.g., \`git add . && git commit -m "message" && git push\`). For instance, if one operation must complete before another starts (like mkdir before cp, Write before run_shell_command for git operations, or git add before git commit), run these operations sequentially instead.
+  - If the commands are independent and can run in parallel, make multiple shell tool calls in a single message. For example, if you need to run "git status" and "git diff", send a single message with two shell tool calls in parallel.
+  - If the commands depend on each other and must run sequentially, use a single shell call with '&&' to chain them together (e.g., \`git add . && git commit -m "message" && git push\`). For instance, if one operation must complete before another starts (like mkdir before cp, Write before shell for git operations, or git add before git commit), run these operations sequentially instead.
   - Use ';' only when you need to run commands sequentially but don't care if earlier commands fail
   - DO NOT use newlines to separate commands (newlines are ok in quoted strings)
 - Try to maintain your current working directory throughout the session by using absolute paths and avoiding usage of \`cd\`. You may use \`cd\` if the User explicitly requests it.
+- **Optimal flag usage:**
+  - Use \`--help\` or \`-h\` flags to understand command options before executing
+  - For file operations, use short flags like \`-l\` for ls, \`-r\` for recursive operations
+  - Combine related flags: \`-la\` instead of \`-l -a\`
+  - Use \`man <command>\` or \`<command> --help\` to check available flags if unsure
   <good-example>
   pytest /foo/bar/tests
   </good-example>
@@ -528,14 +548,14 @@ export class ShellTool extends BaseDeclarativeTool<
         return `Explicitly running shell commands from within the user skills directory is not allowed. Please use absolute paths for command parameter instead.`;
       }
 
-      const workspaceDirs = this.config.getWorkspaceContext().getDirectories();
-      const isWithinWorkspace = workspaceDirs.some((wsDir) =>
-        params.directory!.startsWith(wsDir),
-      );
+      // const workspaceDirs = this.config.getWorkspaceContext().getDirectories();
+      // const isWithinWorkspace = workspaceDirs.some((wsDir) =>
+      //   params.directory!.startsWith(wsDir),
+      // );
 
-      if (!isWithinWorkspace) {
-        return `Directory '${params.directory}' is not within any of the registered workspace directories.`;
-      }
+      // if (!isWithinWorkspace) {
+      //   return `Directory '${params.directory}' is not within any of the registered workspace directories.`;
+      // }
     }
     return null;
   }

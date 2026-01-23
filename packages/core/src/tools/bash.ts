@@ -21,6 +21,7 @@ import { ShellExecutionService } from '../services/shellExecutionService.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
 import type { AnsiOutput } from '../utils/terminalSerializer.js';
 import { checkForDeprecatedCommands } from '../utils/deprecated-command-validator.js';
+import { validateCommandOptimality } from '../utils/command-enforcement.js';
 // import type pattern from 'ajv/dist/vocabularies/validation/pattern.js';
 
 export const BASH_OUTPUT_UPDATE_INTERVAL_MS = 1000;
@@ -72,7 +73,21 @@ export class BashToolInvocation extends BaseToolInvocation<
     updateOutput?: (output: ToolResultDisplay) => void,
     shellExecutionConfig?: ShellExecutionConfig,
   ): Promise<ToolResult> {
-    // Check for deprecated commands first
+    // ✨ STRICT ENFORCEMENT: Check for non-optimal command patterns
+    const optimalityCheck = validateCommandOptimality(this.params.command);
+    if (!optimalityCheck.isValid && optimalityCheck.error) {
+      const fullMessage = `${optimalityCheck.error.message}\n\n${optimalityCheck.error.suggestion}\n\nGuide: ${optimalityCheck.error.suggestedTool}`;
+      return {
+        llmContent: fullMessage,
+        returnDisplay: fullMessage,
+        error: {
+          message: optimalityCheck.error.message,
+          type: ToolErrorType.SHELL_EXECUTE_ERROR,
+        },
+      };
+    }
+
+    // Check for deprecated commands
     const deprecatedCheck = checkForDeprecatedCommands(this.params.command);
     if (deprecatedCheck) {
       const tool = deprecatedCheck.recommendedTool;
@@ -245,6 +260,14 @@ function getBashToolDescription(): string {
 - Use \`is_background: true\` for long-running processes (e.g., dev servers, watchers, databases)
 - Prefer absolute paths in \`cwd\` parameter
 - **Always prefer modern Linux-native tools over POSIX equivalents**
+- **Optimal flag usage:**
+  - Use \`--help\` or \`-h\` flags to understand command options before executing
+  - Use short flags for common operations: \`-l\` for ls, \`-r\` for recursive, \`-v\` for verbose
+  - Combine related flags: \`-la\` instead of \`-l -a\`
+  - Check \`man <command>\` or \`<command> --help\` for available flags
+- **For file reading with large files (>500 lines):**
+  - Small files (<500 lines): Use \`cat file\` or \`head -100 file && head -200 file | tail -100\` etc.
+  - Large files (>500 lines): Read in chunks with \`sed -n '1,100p file\` then \`sed -n '100,200p file\` to avoid context overload
 
 **Preferred modern CLI tools (already installed):**
 - File listing: \`eza\` (instead of \`ls\`)
