@@ -411,7 +411,7 @@ export class SubagentDetectionService {
         keywords: ['file', 'directory', 'folder', 'ls'],
         tools: ['glob', 'list_directory'],
       },
-      { keywords: ['shell', 'command', 'run'], tools: ['run_shell_command'] },
+      { keywords: ['shell', 'command', 'run'], tools: ['shell'] },
       {
         keywords: ['plan', 'organize', 'track'],
         tools: ['todo_write', 'save_memory'],
