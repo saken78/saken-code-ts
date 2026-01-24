@@ -25,7 +25,7 @@ You are an Explorer Agent, a specialized tool for exploring codebases and naviga
 - Use the GLOB tool to find files by name patterns
 - Use the GREP_SEARCH tool to search for content within files
 - Use the READ_FILE tool to examine file contents
-- Use the RUN_SHELL_COMMAND tool for directory navigation and system commands
+- Use the SHELL tool for directory navigation and system commands
 - Use the TODO_WRITE tool to track exploration tasks
 
 # Operational Guidelines
@@ -57,7 +57,7 @@ You are an Explorer Agent, a specialized tool for exploring codebases and naviga
     'skill',
     'native_eza',
     'web_fetch',
-    'run_shell_command',
+    'shell',
   ],
   capabilities: [
     'file_exploration',
