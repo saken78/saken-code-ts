@@ -11,6 +11,7 @@ import type { Config } from '../config/config.js';
 import type { ToolErrorType } from './tool-error.js';
 import type { ToolResult } from './tools.js';
 import { BaseDeclarativeTool, BaseToolInvocation } from './tools.js';
+import { readFileViaBash } from '../utils/shell-utils.js';
 
 /**
  * Result from native command execution
@@ -44,18 +45,13 @@ export abstract class NativeToolInvocation<
   abstract override getDescription(): string;
 
   /**
-   * Reads error content from a file
+   * Reads error content from a file using bash cat (lower overhead than fs API)
    * @param filePath Path to error file
    * @returns Error content as string
    */
   protected async readFile(filePath: string): Promise<string> {
-    try {
-      const fs = await import('node:fs');
-      const content = fs.readFileSync(filePath, 'utf8');
-      return content.trim() || '(empty)';
-    } catch {
-      return '(unable to read file)';
-    }
+    const content = readFileViaBash(filePath);
+    return content.trim() || '(empty)';
   }
 
   /**

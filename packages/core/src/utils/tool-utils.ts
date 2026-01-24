@@ -112,7 +112,7 @@ export function isToolEnabled(
   return !filteredExclude.some((entry) => matchesIdentifier(entry));
 }
 
-const SHELL_TOOL_NAMES = ['run_shell_command', 'ShellTool'];
+const SHELL_TOOL_NAMES = ['shell', 'ShellTool'];
 
 /**
  * Checks if a tool invocation matches any of a list of patterns.
@@ -164,10 +164,7 @@ export function doesToolInvocationMatch(
 
     const argPattern = pattern.substring(openParen + 1, pattern.length - 1);
 
-    if (
-      'command' in invocation.params &&
-      toolNames.includes('run_shell_command')
-    ) {
+    if ('command' in invocation.params && toolNames.includes('shell')) {
       const argValue = String(
         (invocation.params as { command: string }).command,
       );

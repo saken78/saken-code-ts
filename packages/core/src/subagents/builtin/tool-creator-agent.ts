@@ -172,7 +172,7 @@ Use the read_file, write_file, edit, glob, and grep_search tools to help impleme
     'rg',
     'list_directory',
     'bash',
-    'run_shell_command',
+    'shell',
     'todo_write',
   ],
   capabilities: [

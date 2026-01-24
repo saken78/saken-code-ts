@@ -12,6 +12,8 @@ import type {
   PartListUnion,
   Tool,
 } from '@google/genai';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 
 // Config
 import { ApprovalMode, type Config } from '../config/config.js';
@@ -68,10 +70,6 @@ import { checkNextSpeaker } from '../utils/nextSpeakerChecker.js';
 import { flatMapTextParts } from '../utils/partUtils.js';
 import { retryWithBackoff } from '../utils/retry.js';
 
-// IDE integration
-// import { ideContextStore } from '../ide/ideContext.js';
-// import { type File, type IdeContext } from '../ide/types.js';
-
 // Fallback handling
 import { handleFallback } from '../fallback/handler.js';
 
@@ -84,8 +82,6 @@ export class GeminiClient {
   // private readonly loopDetector: LoopDetectionService;
   private readonly promptInjectionService: PromptInjectionService;
   private lastPromptId: string | undefined = undefined;
-  // private lastSentIdeContext: IdeContext | undefined;
-  // private forceFullIdeContext = true;
 
   /**
    * At any point in this conversation, was compression triggered without
@@ -334,6 +330,21 @@ export class GeminiClient {
 
       if (hasTaskTool && subagents.length > 0) {
         systemReminders.push(getSubagentSystemReminder(subagents));
+      }
+
+      // ✨ Load and inject saken.md memory - always fresh per turn
+      try {
+        const sakenPath = path.join(process.cwd(), 'saken.md');
+        const sakenMemory = await fs.readFile(sakenPath, 'utf-8');
+        if (sakenMemory.trim()) {
+          systemReminders.push(
+            `<system-reminder type="project-memory">\n## Qwen Project Memory (saken.md)\n\n${sakenMemory}\n</system-reminder>`,
+          );
+        }
+        console.debug('saken.md loaded');
+      } catch (error) {
+        // Silently fail - saken.md is optional
+        console.debug('saken.md not found or error reading:', error);
       }
 
       // add plan mode system reminder if approval mode is plan

@@ -74,7 +74,7 @@ export const agentName: SubagentConfig = {
 - edit: For modifying existing files
 - grep_search: For searching code patterns
 - glob: For finding files by pattern
-- run_shell_command: For executing commands
+- shell: For executing commands
 - todo_write: For tracking tasks and progress
 - list_directory: For exploring directory structures
 
@@ -129,10 +129,11 @@ Use the read_file, write_file, edit, glob, grep_search, and other tools to resea
   tools: [
     'read_file',
     'write_file',
+    'smart_edit',
     'edit',
-    'fd',
+    'native_fd',
     'rg',
-    'eza',
+    'native_eza',
     'bash',
     'todo_write',
     'read_many_files',

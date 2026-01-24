@@ -131,7 +131,7 @@ export class ShellProcessor implements IPromptProcessor {
         params: { command },
       } as AnyToolInvocation;
       const isAllowedBySettings = doesToolInvocationMatch(
-        'run_shell_command',
+        'shell',
         invocation,
         allowedTools,
       );

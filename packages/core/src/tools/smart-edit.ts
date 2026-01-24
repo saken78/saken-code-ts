@@ -33,6 +33,7 @@ import {
 import { FixLLMEditWithInstruction } from '../utils/llm-edit-fixer.js';
 import { applyReplacement } from './edit.js';
 import { safeLiteralReplace } from '../utils/textUtils.js';
+import { fileAccessValidator } from './file-access-validation.js';
 
 interface ReplacementContext {
   params: EditToolParams;
@@ -443,6 +444,26 @@ class EditToolInvocation implements ToolInvocation<EditToolParams, ToolResult> {
     let currentContent: string | null = null;
     let fileExists = false;
     let originalLineEnding: '\r\n' | '\n' = '\n'; // Default for new files
+
+    // ✨ Validate read-before-edit enforcement
+    const fileAccessValidation = fileAccessValidator.validateFileEdit(
+      params.file_path,
+      params.old_string === '' && !fileExists,
+    );
+    if (!fileAccessValidation.isValid) {
+      return {
+        currentContent: null,
+        newContent: '',
+        occurrences: 0,
+        error: {
+          display: fileAccessValidation.message,
+          raw: fileAccessValidation.message,
+          type: ToolErrorType.EDIT_PREPARATION_FAILURE,
+        },
+        isNewFile: false,
+        originalLineEnding,
+      };
+    }
 
     try {
       currentContent = await this.config

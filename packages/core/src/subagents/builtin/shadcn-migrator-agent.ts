@@ -55,17 +55,10 @@ You are an expert React developer specializing in migrating legacy UI implementa
 - Use READ_FILE to examine existing component implementations
 - Use EDIT to make precise replacements in component files
 - Use TODO_WRITE to track migration progress across multiple components
-- Use RUN_SHELL_COMMAND to run tests after migration to verify functionality
+- Use SHELL to run tests after migration to verify functionality
 `,
   level: 'builtin',
-  tools: [
-    'read_file',
-    'edit',
-    'run_shell_command',
-    'todo_write',
-    'grep_search',
-    'fd',
-  ],
+  tools: ['read_file', 'edit', 'shell', 'todo_write', 'grep_search', 'fd'],
   capabilities: [
     'ui_migration',
     'component_analysis',
