@@ -17,7 +17,7 @@ export const ToolNames = {
   READ_MANY_FILES: 'read_many_files',
   GREP: 'grep_search',
   GLOB: 'glob',
-  SHELL: 'run_shell_command',
+  SHELL: 'shell', // in the future changes to fish
   BASH: 'bash',
   TODO_WRITE: 'todo_write',
   MEMORY: 'save_memory',
@@ -94,7 +94,7 @@ export const ToolDisplayNamesMigration = {
 export const ToolAliases: Record<string, string> = {
   // Common short names mapping to canonical names
   grep: ToolNames.GREP, // 'grep' -> 'grep_search'
-  shell: ToolNames.SHELL, // 'shell' -> 'run_shell_command'
+  shell: ToolNames.SHELL, // 'shell' -> 'shell'
   bash: ToolNames.BASH, // 'bash' -> 'bash'
   todo_write: ToolNames.TODO_WRITE,
   todo: ToolNames.TODO_WRITE, // Alternative name
