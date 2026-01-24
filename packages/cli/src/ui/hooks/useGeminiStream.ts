@@ -171,8 +171,7 @@ export const useGeminiStream = (
 
   const activeToolPtyId = useMemo(() => {
     const executingShellTool = toolCalls?.find(
-      (tc) =>
-        tc.status === 'executing' && tc.request.name === 'run_shell_command',
+      (tc) => tc.status === 'executing' && tc.request.name === 'shell',
     );
     if (executingShellTool) {
       return (executingShellTool as { pid?: number }).pid;
