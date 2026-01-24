@@ -345,7 +345,7 @@ export interface QueryOptions {
    * - Tools will not be available to the AI, even if in `coreTools` or `allowedTools`
    *
    * **Pattern matching:**
-   * - Tool name: `'write_file'`, `'run_shell_command'`
+   * - Tool name: `'write_file'`, `'shell'`
    * - Tool class: `'WriteTool'`, `'ShellTool'`
    * - Shell command prefix: `'ShellTool(git commit)'` (matches commands starting with "git commit")
    *
@@ -366,7 +366,7 @@ export interface QueryOptions {
    * - Has no effect in `permissionMode: 'yolo'` (already auto-approved)
    *
    * **Pattern matching:**
-   * - Tool name: `'write_file'`, `'run_shell_command'`
+   * - Tool name: `'write_file'`, `'shell'`
    * - Tool class: `'WriteTool'`, `'ShellTool'`
    * - Shell command prefix: `'ShellTool(git status)'` (matches commands starting with "git status")
    *
