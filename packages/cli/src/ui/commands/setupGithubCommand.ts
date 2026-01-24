@@ -201,7 +201,7 @@ export const setupGithubCommand: SlashCommand = {
     const command = `(${commands.join(' && ')})`;
     return {
       type: 'tool',
-      toolName: 'run_shell_command',
+      toolName: 'shell',
       toolArgs: {
         description:
           'Setting up GitHub Actions to triage issues and review PRs with Qwen.',
