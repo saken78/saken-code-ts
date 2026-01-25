@@ -27,7 +27,7 @@ export const ToolNames = {
   WEB_FETCH: 'web_fetch',
   WEB_SEARCH: 'web_search',
   LS: 'list_directory',
-  FD: 'fd',
+  // FD: 'fd',
   BAT: 'bat',
   EZA: 'eza',
   NATIVE_EZA: 'native_eza',
@@ -60,7 +60,7 @@ export const ToolDisplayNames = {
   WEB_FETCH: 'WebFetch',
   WEB_SEARCH: 'WebSearch',
   LS: 'ListFiles',
-  FD: 'Fd',
+  // FD: 'Fd',
   BAT: 'Bat',
   EZA: 'Eza',
   NATIVE_EZA: 'NativeEza',
@@ -108,7 +108,7 @@ export const ToolAliases: Record<string, string> = {
   list: ToolNames.LS, // 'list' -> 'list_directory'
   memory: ToolNames.MEMORY, // 'memory' -> 'save_memory'
   save: ToolNames.MEMORY, // 'save' -> 'save_memory'
-  fd: ToolNames.FD, // 'fd' -> 'fd'
+  // fd: ToolNames.FD, // 'fd' -> 'fd'
   bat: ToolNames.BAT, // 'bat' -> 'bat'
   eza: ToolNames.EZA, // 'eza' -> 'eza'
   native_eza: ToolNames.NATIVE_EZA, // 'native_eza' -> 'native_eza'
