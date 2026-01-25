@@ -771,12 +771,12 @@ Options:
 }
 
 export class FdTool extends BaseDeclarativeTool<FdToolParams, ToolResult> {
-  static Name: string = ToolNames.FD;
+  static Name: string = ToolNames.NATIVE_FD;
 
   constructor(private readonly config: Config) {
     super(
       FdTool.Name,
-      ToolDisplayNames.FD,
+      ToolDisplayNames.NATIVE_FD,
       getFdToolDescription(),
       Kind.Search,
       {
