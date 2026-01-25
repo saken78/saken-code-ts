@@ -271,16 +271,11 @@ export enum AuthProviderType {
   SERVICE_ACCOUNT_IMPERSONATION = 'service_account_impersonation',
 }
 
-// export interface SandboxConfig {
-//   command: 'docker' | 'podman' | 'sandbox-exec';
-//   image: string;
-// }
-
 export interface ConfigParameters {
   sessionId?: string;
   sessionData?: ResumedSessionData;
   embeddingModel?: string;
-  // sandbox?: SandboxConfig;
+
   targetDir: string;
   debugMode: boolean;
   includePartialMessages?: boolean;
@@ -425,6 +420,7 @@ export class Config {
   private readonly debugMode: boolean;
   private readonly inputFormat: InputFormat;
   private readonly outputFormat: OutputFormat;
+
   private readonly includePartialMessages: boolean;
   private readonly question: string | undefined;
   private readonly fullContext: boolean;
