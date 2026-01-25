@@ -26,6 +26,8 @@ import { technicalResearcherAgent } from './technical-researcher-agent.js';
 import { dataAnalystAgent } from './data-analyst-agent.js';
 import { researchSynthesizerAgent } from './research-synthesizer-agent.js';
 import { reportGeneratorAgent } from './report-generator-agent.js';
+import { githubPrImplementationAgent } from './github-pr-implementation-agent.js';
+import { inkToOpentuiMigratorAgent } from './ink-to-opentui-migrator-agent.js';
 import type { SubagentConfig } from '../types.js';
 
 /**
@@ -54,6 +56,8 @@ export const builtinSubagents: Record<string, SubagentConfig> = {
   'data-analyst': dataAnalystAgent,
   'research-synthesizer': researchSynthesizerAgent,
   'report-generator': reportGeneratorAgent,
+  'github-pr-implementation': githubPrImplementationAgent,
+  'ink-to-opentui-migrator': inkToOpentuiMigratorAgent,
 };
 
 /**
