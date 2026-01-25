@@ -52,9 +52,16 @@ export class SubagentRouter {
    * Discover and cache available agents from the subagent manager
    * Dynamically lists all available agents instead of using hardcoded names
    */
-  private async discoverAvailableAgents(): Promise<void> {
-    if (this.availableAgents.size > 0) {
-      return; // Already cached
+  private async discoverAvailableAgents(
+    forceRefresh: boolean = false,
+  ): Promise<void> {
+    if (this.availableAgents.size > 0 && !forceRefresh) {
+      return; // Already cached and refresh not forced
+    }
+
+    // If not forcing refresh, clear the cache to allow for fresh discovery
+    if (forceRefresh) {
+      this.availableAgents.clear();
     }
 
     try {
@@ -62,11 +69,19 @@ export class SubagentRouter {
 
       // Dynamically list all available agents from SubagentManager
       const allAgents = await subagentManager.listSubagents({
-        force: false, // Use cache if available
+        force: forceRefresh, // Use cache if available, unless forced refresh
       });
 
       for (const agentConfig of allAgents) {
         try {
+          // Validate agent configuration before adding to available agents
+          if (!this.isValidAgentConfig(agentConfig)) {
+            console.warn(
+              `[SubagentRouter] Warning: Skipping invalid agent configuration: ${agentConfig.name}`,
+            );
+            continue; // Skip invalid agent configurations
+          }
+
           this.availableAgents.set(agentConfig.name, {
             name: agentConfig.name,
             capabilities: agentConfig.tools || [], // Use declared tools as capabilities
@@ -82,6 +97,10 @@ export class SubagentRouter {
           this.logDebug(
             `[SubagentRouter] Failed to process agent ${agentConfig.name}: ${error}`,
           );
+          // Log error as warning so users are aware of registration failures
+          console.warn(
+            `[SubagentRouter] Warning: Failed to process agent ${agentConfig.name}: ${error}`,
+          );
         }
       }
     } catch (error) {
@@ -93,8 +112,11 @@ export class SubagentRouter {
    * Find the best available agent for a task type
    * Uses dynamic matching based on available agent metadata
    */
-  private async findBestAgent(taskType: TaskType): Promise<string | null> {
-    await this.discoverAvailableAgents();
+  private async findBestAgent(
+    taskType: TaskType,
+    forceRefresh: boolean = false,
+  ): Promise<string | null> {
+    await this.discoverAvailableAgents(forceRefresh);
 
     // If no agents available, return null
     if (this.availableAgents.size === 0) {
@@ -121,6 +143,14 @@ export class SubagentRouter {
   }
 
   /**
+   * Public method to refresh the agent cache
+   */
+  async refreshAgentCache(): Promise<void> {
+    await this.discoverAvailableAgents(true); // force refresh
+    this.logDebug('[SubagentRouter] Agent cache refreshed');
+  }
+
+  /**
    * Match task type to agent based on agent metadata
    * Uses keyword matching on agent names and descriptions
    */
@@ -128,7 +158,7 @@ export class SubagentRouter {
     taskType: TaskType,
     availableAgents: Array<{ name: string; description: string }>,
   ): string | null {
-    // Task type to keywords mapping
+    // Task type to keywords mapping - matches actual builtin agent names
     const taskTypeToKeywords: Record<TaskType, string[]> = {
       'codebase-exploration': [
         'explorer',
@@ -140,15 +170,39 @@ export class SubagentRouter {
       debugging: ['debugger', 'debug', 'error', 'troubleshoot', 'diagnosis'],
       'code-review': ['reviewer', 'review', 'quality', 'security', 'audit'],
       planning: ['planner', 'plan', 'design', 'architecture'],
-      deepthink: ['deepthink', 'deep', 'think', 'analyze', 'reasoning'],
+      deepthink: [
+        'deepthink',
+        'deep',
+        'think',
+        'analyze',
+        'reasoning',
+        'analyze deeply',
+        'think deeply',
+        'deep analysis',
+        'comprehensive analysis',
+        'strategic planning',
+        'complex problem',
+        'multi dimensional',
+        'thorough exploration',
+        'solution space',
+        'critical thinking',
+        'analytical thinking',
+        'deep thought',
+      ],
       research: [
+        'research-orchestrator',
         'research',
         'researcher',
         'academic',
         'investigate',
         'coordinator',
+        'research-brief-generator',
+        'research-coordinator',
+        'academic-researcher',
+        'research-synthesizer',
       ],
       'content-analysis': [
+        'content-analyzer',
         'analyzer',
         'analysis',
         'content',
@@ -156,6 +210,7 @@ export class SubagentRouter {
         'evaluate',
       ],
       'tool-creation': [
+        'tool-creator',
         'tool',
         'creator',
         'generator',
@@ -163,6 +218,7 @@ export class SubagentRouter {
         'automation',
       ],
       'technical-research': [
+        'technical-researcher',
         'technical',
         'researcher',
         'performance',
@@ -170,18 +226,22 @@ export class SubagentRouter {
         'system',
       ],
       'prompt-engineering': [
+        'prompt-engineer',
         'engineer',
         'prompt',
         'instruction',
         'optimization',
         'clarifier',
+        'query-clarifier',
       ],
       'data-analysis': [
+        'data-analyst',
         'analyst',
         'data',
         'visualization',
         'report',
         'generator',
+        'report-generator',
       ],
       general: [],
     };
@@ -202,14 +262,43 @@ export class SubagentRouter {
       const lowerName = agent.name.toLowerCase();
       const lowerDescription = agent.description.toLowerCase();
 
-      // Check for keyword matches
+      // Enhanced scoring algorithm
       for (const keyword of keywords) {
-        if (lowerName.includes(keyword)) {
-          score += 3; // Higher weight for name match
+        // Exact matches in name get highest score
+        if (lowerName === keyword) {
+          score += 10;
         }
-        if (lowerDescription.includes(keyword)) {
-          score += 1; // Lower weight for description match
+        // Check for keyword as a complete part separated by hyphens (for kebab-case agent names)
+        else if (lowerName.split('-').includes(keyword)) {
+          score += 7;
         }
+        // Partial matches in name get medium-high score
+        else if (lowerName.includes(keyword)) {
+          score += 5;
+        }
+
+        // Exact matches in description get high-medium score
+        if (
+          lowerDescription.includes(` ${keyword} `) ||
+          lowerDescription.startsWith(`${keyword} `) ||
+          lowerDescription.endsWith(` ${keyword}`) ||
+          lowerDescription.includes(` ${keyword},`) ||
+          lowerDescription.includes(` ${keyword}.`)
+        ) {
+          score += 4;
+        }
+        // Partial matches in description get medium score
+        else if (lowerDescription.includes(keyword)) {
+          score += 2;
+        }
+      }
+
+      // Additional bonus for agents with more comprehensive descriptions that mention the task
+      if (
+        keywords.some((kw) => lowerDescription.includes(kw)) &&
+        lowerDescription.length > 50
+      ) {
+        score += 1; // Small bonus for detailed descriptions that match
       }
 
       // Update best match if this agent scores higher
@@ -253,7 +342,7 @@ export class SubagentRouter {
       );
 
       // Find best available agent using dynamic discovery
-      const recommendedAgent = await this.findBestAgent(detection.type);
+      const recommendedAgent = await this.findBestAgent(detection.type, false);
 
       // Make routing decision
       const shouldDelegate =
@@ -267,6 +356,13 @@ export class SubagentRouter {
         shouldDelegate,
       );
 
+      // Detailed logging to help understand routing decisions
+      this.logDebug(
+        `[SubagentRouter] Task type: ${detection.type}, Confidence: ${(detection.confidence * 100).toFixed(2)}%, Threshold: ${(this.confidenceThreshold * 100).toFixed(2)}%`,
+      );
+      this.logDebug(
+        `[SubagentRouter] Recommended agent: ${recommendedAgent || 'none'}, Available agents: ${Array.from(this.availableAgents.keys()).join(', ') || 'none'}`,
+      );
       this.logDebug(
         `[SubagentRouter] Decision: ${shouldDelegate ? `✓ DELEGATE to ${recommendedAgent}` : '✗ NO DELEGATION'}`,
       );
@@ -307,12 +403,17 @@ export class SubagentRouter {
       return 'Task type is general - no specialized agent needed';
     }
 
-    const confPercent = (confidence * 100).toFixed(0);
+    const confPercent = (confidence * 100).toFixed(2);
+    const thresholdPercent = (this.confidenceThreshold * 100).toFixed(2);
 
     if (willDelegate) {
-      return `${taskType} task detected (${confPercent}% confidence) → Delegating to ${agent} agent for specialized handling`;
+      return `${taskType} task detected (${confPercent}% confidence, threshold: ${thresholdPercent}%) → Delegating to ${agent} agent for specialized handling`;
     } else {
-      return `${taskType} task detected (${confPercent}% confidence) → Confidence below threshold (${(this.confidenceThreshold * 100).toFixed(0)}%) - proceeding with main agent`;
+      if (agent) {
+        return `${taskType} task detected (${confPercent}% confidence) → Agent ${agent} found but confidence below threshold (${thresholdPercent}%) - proceeding with main agent`;
+      } else {
+        return `${taskType} task detected (${confPercent}% confidence) → No suitable agent found - proceeding with main agent`;
+      }
     }
   }
 
@@ -384,6 +485,44 @@ parameters:
    */
   setDebug(debug: boolean): void {
     this.debug = debug;
+  }
+
+  /**
+   * Validates if an agent configuration is valid
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private isValidAgentConfig(agentConfig: any): boolean {
+    // Check if agent config has required properties
+    if (!agentConfig || typeof agentConfig !== 'object') {
+      return false;
+    }
+
+    // Agent must have a name
+    if (
+      !agentConfig.name ||
+      typeof agentConfig.name !== 'string' ||
+      agentConfig.name.trim() === ''
+    ) {
+      console.warn(
+        `[SubagentRouter] Agent validation failed: Missing or invalid name`,
+      );
+      return false;
+    }
+
+    // Agent should have a description
+    if (
+      !agentConfig.description ||
+      typeof agentConfig.description !== 'string' ||
+      agentConfig.description.trim() === ''
+    ) {
+      console.warn(
+        `[SubagentRouter] Agent validation failed: Missing or invalid description for agent ${agentConfig.name}`,
+      );
+      return false;
+    }
+
+    // Basic validation passed
+    return true;
   }
 
   private logDebug(message: string): void {
