@@ -423,11 +423,11 @@ function getShellToolDescription(): string {
 - The command argument is required.
 - It is very helpful if you write a clear, concise description of what this command does in 5-10 words.
 - Avoid using shell with the \`find\`, \`grep\`, \`cat\`, \`head\`, \`tail\`, \`sed\`, \`awk\`, or \`echo\` commands, unless explicitly instructed or when these commands are truly necessary for the task. Instead, always prefer using the dedicated tools for these commands:
-  - File search: Use ${ToolNames.FD} (NOT find)
-  - Content search: Use ${ToolNames.GREP} (grep or rg)
+  - File search: Use ${ToolNames.NATIVE_FD} (NOT find)
+- Content search: Use ${ToolNames.RIPGREP} (grep or rg)
   - Read files: Use ${ToolNames.READ_FILE} (NOT cat/head/tail)
-  - Edit files: Use edit (NOT sed/awk)
-  - Write files: Use write_file (NOT echo >/cat <<EOF)
+  - Edit files: Use ${ToolNames.SMART_EDIT} (NOT sed/awk)
+  - Write files: Use ${ToolNames.WRITE_FILE} (NOT echo >/cat <<EOF)
   - Communication: Output text directly (NOT echo/printf)
 - When issuing multiple commands:
   - If the commands are independent and can run in parallel, make multiple shell tool calls in a single message. For example, if you need to run "git status" and "git diff", send a single message with two shell tool calls in parallel.
