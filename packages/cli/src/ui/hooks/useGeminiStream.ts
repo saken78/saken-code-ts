@@ -73,7 +73,7 @@ enum StreamProcessingStatus {
   Error,
 }
 
-const EDIT_TOOL_NAMES = new Set(['replace', 'write_file']);
+const EDIT_TOOL_NAMES = new Set(['replace', 'write_file', 'smart_edit']);
 
 function showCitations(settings: LoadedSettings): boolean {
   const enabled = settings?.merged?.ui?.showCitations;
@@ -1112,7 +1112,6 @@ export const useGeminiStream = (
       config,
       startNewPrompt,
       getPromptCount,
-      // handleLoopDetectedEvent,
       handleVisionSwitch,
       restoreOriginalModel,
     ],
