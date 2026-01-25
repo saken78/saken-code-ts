@@ -143,8 +143,8 @@ export class NativeEzaToolInvocation extends BaseToolInvocation<
         targetPath = resolveAndValidatePath(this.config, targetPath);
       } catch (error) {
         return {
-          llmContent: `Invalid path: ${(error as Error).message}`,
-          returnDisplay: `Invalid path: ${(error as Error).message}`,
+          llmContent: `Invalid path: ${(error as Error).message} use shell eza/ls or bash eza/ls`,
+          returnDisplay: `Invalid path: ${(error as Error).message} use shell eza/ls or bash eza/ls`,
           error: {
             message: (error as Error).message,
             type: ToolErrorType.EZA_EXECUTION_ERROR,
@@ -202,7 +202,7 @@ export class NativeEzaToolInvocation extends BaseToolInvocation<
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+        return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
       };
 
       const outputSizeStr = formatBytes(result.outputSize);
@@ -290,7 +290,7 @@ export class NativeEzaTool extends BaseDeclarativeTool<
   NativeEzaToolParams,
   ToolResult
 > {
-  static Name: string = ToolNames.NATIVE_EZA;
+  static readonly Name: string = ToolNames.NATIVE_EZA;
 
   constructor(private readonly config: Config) {
     super(
@@ -385,11 +385,11 @@ export class NativeEzaTool extends BaseDeclarativeTool<
         return 'Path must be a string';
       }
 
-      try {
-        resolveAndValidatePath(this.config, params.path);
-      } catch (error) {
-        return `Invalid path: ${(error as Error).message}`;
-      }
+      // try {
+      //   resolveAndValidatePath(this.config, params.path);
+      // } catch (error) {
+      //   return `Invalid path: ${(error as Error).message}`;
+      // }
     }
 
     // Validate depth if provided
