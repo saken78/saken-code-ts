@@ -27,6 +27,8 @@ import { technicalResearcherAgent } from './builtin/technical-researcher-agent.j
 import { dataAnalystAgent } from './builtin/data-analyst-agent.js';
 import { researchSynthesizerAgent } from './builtin/research-synthesizer-agent.js';
 import { reportGeneratorAgent } from './builtin/report-generator-agent.js';
+import { githubPrImplementationAgent } from './builtin/github-pr-implementation-agent.js';
+import { inkToOpentuiMigratorAgent } from './builtin/ink-to-opentui-migrator-agent.js';
 
 /**
  * Registry of built-in subagents that are always available to all users.
@@ -87,6 +89,8 @@ Notes:
     dataAnalystAgent,
     researchSynthesizerAgent,
     reportGeneratorAgent,
+    githubPrImplementationAgent,
+    inkToOpentuiMigratorAgent,
   ];
 
   /**

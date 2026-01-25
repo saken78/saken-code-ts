@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /**
  * @license
  * Copyright 2025 Google LLC
@@ -22,7 +22,6 @@ import { formatMemoryUsage } from '../utils/formatters.js';
 import type { AnsiOutput } from '../utils/terminalSerializer.js';
 import { checkForDeprecatedCommands } from '../utils/deprecated-command-validator.js';
 import { validateCommandOptimality } from '../utils/command-enforcement.js';
-// import type pattern from 'ajv/dist/vocabularies/validation/pattern.js';
 
 export const BASH_OUTPUT_UPDATE_INTERVAL_MS = 1000;
 
@@ -844,7 +843,7 @@ Environment variables:
 }
 
 export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
-  static Name: string = ToolNames.BASH;
+  static readonly Name: string = ToolNames.BASH;
 
   constructor(private readonly config: Config) {
     super(
@@ -927,12 +926,12 @@ export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
 
     // Block sed (stream editor)
     if (/\bsed\b/.test(trimmed)) {
-      return `Use edit tool instead of sed for file modifications.`;
+      return `Use edit & smart_edit tool instead of sed for file modifications.`;
     }
 
     // Block awk file operations
     if (/\bawk\b.*>/.test(trimmed)) {
-      return `Use edit tool instead of awk for file modifications.`;
+      return `Use edit & smart_edit tool instead of awk for file modifications.`;
     }
 
     // Block tee (write to file)
@@ -944,7 +943,7 @@ export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
         !teeArgs.startsWith('|') &&
         !teeArgs.includes('-')
       ) {
-        return `Use edit tool instead of tee for writing to files.`;
+        return `Use edit & smart_edit tool instead of tee for writing to files.`;
       }
     }
 
@@ -983,17 +982,8 @@ export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
           return `Path exists but is not a directory: ${params.cwd}`;
         }
       } catch (err) {
+        console.log(`Directory does not exits ${err}`);
         return `Directory does not exist: ${params.cwd}`;
-      }
-
-      // Check if within workspace
-      const workspaceDirs = this.config.getWorkspaceContext().getDirectories();
-      const isWithinWorkspace = workspaceDirs.some((wsDir) =>
-        params.cwd!.startsWith(wsDir),
-      );
-
-      if (!isWithinWorkspace) {
-        return `Directory is not within workspace: ${params.cwd}`;
       }
     }
 

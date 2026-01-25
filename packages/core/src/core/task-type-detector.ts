@@ -761,12 +761,12 @@ export function getRecommendedAgent(
       'code-review': 'reviewer',
       planning: 'planner',
       deepthink: 'deepthink',
-      research: 'researchOrchestratorAgent',
-      'content-analysis': 'contentAnalyzerAgent',
-      'tool-creation': 'toolCreatorAgent',
-      'technical-research': 'technicalResearcherAgent',
-      'prompt-engineering': 'promptEngineerAgent',
-      'data-analysis': 'dataAnalystAgent',
+      research: 'research-orchestrator',
+      'content-analysis': 'content-analyzer',
+      'tool-creation': 'tool-creator',
+      'technical-research': 'technical-researcher',
+      'prompt-engineering': 'prompt-engineer',
+      'data-analysis': 'data-analyst',
       general: null, // No agent needed
     };
     return defaultAgentMap[taskType];
@@ -786,21 +786,35 @@ export function getRecommendedAgent(
     planning: ['planner', 'plan', 'design', 'architecture'],
     deepthink: ['deepthink', 'deep', 'think', 'analyze', 'reasoning'],
     research: [
+      'research-orchestrator',
       'research',
       'researcher',
       'academic',
       'investigate',
       'coordinator',
+      'research-brief-generator',
+      'research-coordinator',
+      'academic-researcher',
+      'research-synthesizer',
     ],
     'content-analysis': [
+      'content-analyzer',
       'analyzer',
       'analysis',
       'content',
       'synthesizer',
       'evaluate',
     ],
-    'tool-creation': ['tool', 'creator', 'generator', 'builder', 'automation'],
+    'tool-creation': [
+      'tool-creator',
+      'tool',
+      'creator',
+      'generator',
+      'builder',
+      'automation',
+    ],
     'technical-research': [
+      'technical-researcher',
       'technical',
       'researcher',
       'performance',
@@ -808,18 +822,22 @@ export function getRecommendedAgent(
       'system',
     ],
     'prompt-engineering': [
+      'prompt-engineer',
       'engineer',
       'prompt',
       'instruction',
       'optimization',
       'clarifier',
+      'query-clarifier',
     ],
     'data-analysis': [
+      'data-analyst',
       'analyst',
       'data',
       'visualization',
       'report',
       'generator',
+      'report-generator',
     ],
     general: [],
   };
@@ -835,13 +853,24 @@ export function getRecommendedAgent(
     const lowerName = agent.name.toLowerCase();
     const lowerDescription = agent.description.toLowerCase();
 
-    // Check for keyword matches
+    // Check for keyword matches with scoring
     for (const keyword of keywords) {
-      if (lowerName.includes(keyword)) {
-        score += 3; // Higher weight for name match
+      // Exact matches in name get highest score
+      if (lowerName === keyword) {
+        score += 10;
       }
+      // Check for keyword as a complete part separated by hyphens (for kebab-case agent names)
+      else if (lowerName.split('-').includes(keyword)) {
+        score += 7;
+      }
+      // Partial matches in name get higher score
+      else if (lowerName.includes(keyword)) {
+        score += 3;
+      }
+
+      // Matches in description get lower score
       if (lowerDescription.includes(keyword)) {
-        score += 1; // Lower weight for description match
+        score += 1;
       }
     }
 
