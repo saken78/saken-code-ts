@@ -222,7 +222,7 @@ export class FdNativeTool extends BaseDeclarativeTool<
   constructor(private readonly config: Config) {
     super(
       FdNativeTool.Name,
-      ToolDisplayNames.FD,
+      ToolDisplayNames.NATIVE_FD,
       getFdNativeToolDescription(),
       Kind.Search,
       {
