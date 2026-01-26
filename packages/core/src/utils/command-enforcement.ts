@@ -28,37 +28,37 @@ const NON_OPTIMAL_PATTERNS: Array<{
   toolDescription: string;
   reason: string;
 }> = [
-  {
-    pattern: /\bfind\s+/,
-    commands: ['find'],
-    suggestedTool: 'FD',
-    toolDescription: 'fd - Fast and user-friendly file finder',
-    reason:
-      'find is slow and has complex syntax. fd is faster and more intuitive.',
-  },
-  {
-    pattern: /\bgrep\s+/,
-    commands: ['grep'],
-    suggestedTool: 'GREP',
-    toolDescription: 'grep/rg - Fast content search tool',
-    reason: 'grep is slow. rg (ripgrep) is 10x faster and has better syntax.',
-  },
-  {
-    pattern: /\bcat\s+/,
-    commands: ['cat'],
-    suggestedTool: 'READ_FILE or BAT',
-    toolDescription: 'read_file tool or bat command',
-    reason:
-      'cat is limited. Use read_file tool for file viewing, or bat for syntax highlighting.',
-  },
-  {
-    pattern: /\b(head|tail)\s+/,
-    commands: ['head', 'tail'],
-    suggestedTool: 'READ_FILE',
-    toolDescription: 'read_file tool with line-based reading',
-    reason:
-      'head/tail are limited. Use read_file tool for intelligent file reading with getFileReadingStrategy().',
-  },
+  // {
+  //   pattern: /\bfind\s+/,
+  //   commands: ['find'],
+  //   suggestedTool: 'FD',
+  //   toolDescription: 'fd - Fast and user-friendly file finder',
+  //   reason:
+  //     'find is slow and has complex syntax. fd is faster and more intuitive.',
+  // },
+  // {
+  //   pattern: /\bgrep\s+/,
+  //   commands: ['grep'],
+  //   suggestedTool: 'rg',
+  //   toolDescription: 'rg - Fast content search tool',
+  //   reason: 'use bash rg or rg tool <USE BASH RG> </USE>',
+  // },
+  // {
+  //   pattern: /\bcat\s+/,
+  //   commands: ['cat'],
+  //   suggestedTool: 'BAT',
+  //   toolDescription: 'bat command',
+  //   reason:
+  //     'cat is limited. Use read_file tool for file viewing, or bat for syntax highlighting.',
+  // },
+  // {
+  //   pattern: /\b(head|tail)\s+/,
+  //   commands: ['head', 'tail'],
+  //   suggestedTool: 'READ_FILE',
+  //   toolDescription: 'read_file tool with line-based reading',
+  //   reason:
+  //     'head/tail are limited. Use read_file tool for intelligent file reading with getFileReadingStrategy().',
+  // },
   {
     pattern: /\bsed\s+/,
     commands: ['sed'],
