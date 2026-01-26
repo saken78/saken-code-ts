@@ -55,10 +55,13 @@ export class ConsolePatcher {
           this.originalConsoleError(this.formatArgs(args));
         }
       } else {
+        // Always output to console when in debug mode, regardless of focus state
         if (this.params.debugMode) {
           originalMethod.apply(console, args);
         }
 
+        // For debug messages, show them regardless of focus state when debug mode is enabled
+        // This ensures debug logs remain visible even when terminal is minimized
         if (type !== 'debug' || this.params.debugMode) {
           this.params.onNewMessage?.({
             type,
