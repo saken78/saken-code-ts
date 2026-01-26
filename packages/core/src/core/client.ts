@@ -334,7 +334,12 @@ export class GeminiClient {
 
       // ✨ Load and inject saken.md memory - always fresh per turn
       try {
-        const sakenPath = path.join(process.cwd(), 'saken.md');
+        // Buat config file untuk path
+        const config = {
+          sakenPath: '../../.qwen/saken.md', // Make it relative to project root
+        };
+
+        const sakenPath = path.join(process.cwd(), config.sakenPath);
         const sakenMemory = await fs.readFile(sakenPath, 'utf-8');
         if (sakenMemory.trim()) {
           systemReminders.push(
@@ -359,18 +364,15 @@ export class GeminiClient {
         const toolRegistry = this.config.getToolRegistry();
         const allTools = toolRegistry.getAllToolNames();
 
-        // Check for CodebaseInvestigator agent
-        const hasCodebaseInvestigator = allTools.includes(
-          'codebase-investigator',
-        );
+        // Check for Deepthink agent
+        const hasDeepthink = subagents.includes('deepthink');
 
         // Check for WriteTodos tool
         const hasWriteTodos = allTools.includes('todo_write');
 
-        if (hasCodebaseInvestigator || hasWriteTodos) {
+        if (hasDeepthink || hasWriteTodos) {
           const availableFeatures = [];
-          if (hasCodebaseInvestigator)
-            availableFeatures.push('codebase-investigator');
+          if (hasDeepthink) availableFeatures.push('deepthink');
           if (hasWriteTodos) availableFeatures.push('todo_write');
 
           systemReminders.push(
@@ -460,7 +462,7 @@ export class GeminiClient {
           nextRequest,
           signal,
           prompt_id,
-          options,
+          { ...options, isContinuation: true },
           boundedTurns - 1,
         );
       }
