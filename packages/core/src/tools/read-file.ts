@@ -20,7 +20,7 @@ import { FileOperation } from '../telemetry/metrics.js';
 import { getProgrammingLanguage } from '../telemetry/telemetry-utils.js';
 import { logFileOperation } from '../telemetry/loggers.js';
 import { FileOperationEvent } from '../telemetry/types.js';
-import { isSubpath } from '../utils/paths.js';
+// import { isSubpath } from '../utils/paths.js';
 import { fileAccessValidator } from './file-access-validation.js';
 
 /**
@@ -186,23 +186,23 @@ export class ReadFileTool extends BaseDeclarativeTool<
       return `File path must be absolute, but was relative: ${filePath}. You must provide an absolute path.`;
     }
 
-    const workspaceContext = this.config.getWorkspaceContext();
-    const projectTempDir = this.config.storage.getProjectTempDir();
-    const userSkillsDir = this.config.storage.getUserSkillsDir();
-    const resolvedFilePath = path.resolve(filePath);
-    const isWithinTempDir = isSubpath(projectTempDir, resolvedFilePath);
-    const isWithinUserSkills = isSubpath(userSkillsDir, resolvedFilePath);
+    // const workspaceContext = this.config.getWorkspaceContext();
+    // const projectTempDir = this.config.storage.getProjectTempDir();
+    // const userSkillsDir = this.config.storage.getUserSkillsDir();
+    // const resolvedFilePath = path.resolve(filePath);
+    // const isWithinTempDir = isSubpath(projectTempDir, resolvedFilePath);
+    // const isWithinUserSkills = isSubpath(userSkillsDir, resolvedFilePath);
 
-    if (
-      !workspaceContext.isPathWithinWorkspace(filePath) &&
-      !isWithinTempDir &&
-      !isWithinUserSkills
-    ) {
-      const directories = workspaceContext.getDirectories();
-      return `File path must be within one of the workspace directories: ${directories.join(
-        ', ',
-      )} or within the project temp directory: ${projectTempDir}`;
-    }
+    // if (
+    //   !workspaceContext.isPathWithinWorkspace(filePath) &&
+    //   !isWithinTempDir &&
+    //   !isWithinUserSkills
+    // ) {
+    //   const directories = workspaceContext.getDirectories();
+    //   return `File path must be within one of the workspace directories: ${directories.join(
+    //     ', ',
+    //   )} or within the project temp directory: ${projectTempDir}`;
+    // }
     if (params.offset !== undefined && params.offset < 0) {
       return 'Offset must be a non-negative number';
     }
