@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { ToolNames } from '../../tools/tool-names.js';
+
 /**
  * Context prompt for /design command
  * Optimizes LLM behavior for architectural and design decisions
@@ -38,10 +40,10 @@ You are now in **DESIGN MODE** - optimize for system architecture and design dec
 6. **Verify Design:** Check against constraints and requirements
 
 ## Tools in This Mode
-- \`Read\` - Explore existing architecture
-- \`Grep\` - Find similar design patterns
-- \`Glob\` - Locate related components
-- \`Bash\` - Run architecture validation tools
+- \`${ToolNames.READ_FILE}\` - Explore existing architecture
+- \`${ToolNames.RIPGREP}\` - Find similar design patterns
+- \`${ToolNames.NATIVE_FD}\` - Locate related components
+- \`${ToolNames.SHELL}\` - Run architecture validation tools
 - Use \`/design-context\` for planning assistance
 
 ## What To Output
@@ -58,11 +60,11 @@ You are now in **DESIGN MODE** - optimize for system architecture and design dec
 - Vague concepts without detail
 
 ## Success Looks Like
-✅ Design aligned with existing architecture
-✅ Trade-offs clearly documented
-✅ Implementation plan detailed
-✅ Scalability considerations included
-✅ Security integrated into design
+[~] Design aligned with existing architecture
+[~] Trade-offs clearly documented
+[~] Implementation plan detailed
+[~] Scalability considerations included
+[~] Security integrated into design
 `;
 
 /**
@@ -70,5 +72,12 @@ You are now in **DESIGN MODE** - optimize for system architecture and design dec
  * Returns user message to be submitted with context
  */
 export function getDesignContextMessage(userPrompt: string): string {
-  return '[DESIGN MODE: ' + userPrompt + ']\n\n' + DESIGN_CONTEXT_PROMPT + '\n\n---\n\n**Your Request:**\n' + userPrompt;
+  return (
+    '[DESIGN MODE: ' +
+    userPrompt +
+    ']\n\n' +
+    DESIGN_CONTEXT_PROMPT +
+    '\n\n---\n\n**Your Request:**\n' +
+    userPrompt
+  );
 }

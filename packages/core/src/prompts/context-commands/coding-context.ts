@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { ToolNames } from '../../tools/tool-names.js';
+
 /**
  * Context prompt for /coding command
  * Optimizes LLM behavior for focused implementation tasks
@@ -17,7 +19,7 @@ You are now in **CODING MODE** - optimize for fast, focused implementation.
 
 ## Priority Actions (In Order)
 1. **Understand Requirements:** Read what needs to be implemented
-2. **Find Patterns:** Check existing code for similar patterns (use Glob/Grep)
+2. **Find Patterns:** Check existing code for similar patterns (use ${ToolNames.NATIVE_FD}/${ToolNames.RIPGREP})
 3. **Implement:** Write code following discovered patterns
 4. **Test:** Add tests for new code (80%+ coverage target)
 5. **Verify:** Run type-check and tests before finishing
@@ -30,12 +32,12 @@ You are now in **CODING MODE** - optimize for fast, focused implementation.
 - **Test Everything:** New features need tests
 
 ## Tools in This Mode
-- 'Read' - Understand existing patterns
-- 'Glob' - Find similar files quickly
-- 'Grep' - Search for patterns
-- 'Edit' - Make precise changes
-- 'Write' - Create new files (only if necessary)
-- 'Bash' - Run tests and build
+- '${ToolNames.READ_FILE}' - Understand existing patterns
+- '${ToolNames.NATIVE_FD}' - Find similar files quickly
+- '${ToolNames.RIPGREP}' - Search for patterns
+- '${ToolNames.SMART_EDIT}/${ToolNames.EDIT}' - Make precise changes
+- '${ToolNames.WRITE_FILE}' - Create new files (only if necessary)
+- '${ToolNames.SHELL}' - Run tests and build
 
 ## What To Output
 - File changes you're making
@@ -48,11 +50,11 @@ You are now in **CODING MODE** - optimize for fast, focused implementation.
 - Summaries of changes (unless asked)
 
 ## Success Looks Like
-✅ Code compiles without errors
-✅ All tests pass
-✅ Follows project conventions
-✅ Minimal changes (no over-engineering)
-✅ Clear commit messages
+[~] Code compiles without errors
+[~] All tests pass
+[~] Follows project conventions
+[~] Minimal changes (no over-engineering)
+[~] Clear commit messages
 `;
 
 /**
@@ -60,5 +62,12 @@ You are now in **CODING MODE** - optimize for fast, focused implementation.
  * Returns user message to be submitted with context
  */
 export function getCodingContextMessage(userPrompt: string): string {
-  return '[CODING MODE: ' + userPrompt + ']\n\n' + CODING_CONTEXT_PROMPT + '\n\n---\n\n**Your Request:**\n' + userPrompt;
+  return (
+    '[CODING MODE: ' +
+    userPrompt +
+    ']\n\n' +
+    CODING_CONTEXT_PROMPT +
+    '\n\n---\n\n**Your Request:**\n' +
+    userPrompt
+  );
 }

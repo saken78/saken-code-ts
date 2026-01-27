@@ -3,7 +3,7 @@
  * Copyright 2025 Qwen
  * SPDX-License-Identifier: Apache-2.0
  */
-
+import { ToolNames } from '../../tools/tool-names.js';
 /**
  * Context prompt for /review command
  * Optimizes LLM behavior for code quality and security reviews
@@ -40,11 +40,9 @@ You are now in **REVIEW MODE** - evaluate code quality, architecture, and securi
 - **No Nitpicks:** Focus on substantive issues
 
 ## Tools in This Mode
-- \`Read\` - Read code being reviewed
-- \`Grep\` - Find similar patterns in codebase
-- \`Bash\` - Run tests, check coverage
-- Use \`/security-audit\` for security analysis
-- Use \`/type-safety-analyzer\` for type issues
+- \`${ToolNames.READ_FILE}\` - Read code being reviewed
+- \`${ToolNames.RIPGREP}\` - Find similar patterns in codebase
+- \`${ToolNames.SHELL}\` - Run tests, check coverage
 
 ## What To Output
 For each issue found:
@@ -61,11 +59,11 @@ For each issue found:
 - Personal preferences
 
 ## Success Looks Like
-✅ All substantive issues identified
-✅ Security concerns highlighted
-✅ Performance problems noted
-✅ Actionable suggestions provided
-✅ Code better after review
+[~] All substantive issues identified
+[~] Security concerns highlighted
+[~] Performance problems noted
+[~] Actionable suggestions provided
+[~] Code better after review
 `;
 
 /**
@@ -73,5 +71,12 @@ For each issue found:
  * Returns user message to be submitted with context
  */
 export function getReviewContextMessage(userPrompt: string): string {
-  return '[REVIEW MODE: ' + userPrompt + ']\n\n' + REVIEW_CONTEXT_PROMPT + '\n\n---\n\n**Specific Request:**\n' + userPrompt;
+  return (
+    '[REVIEW MODE: ' +
+    userPrompt +
+    ']\n\n' +
+    REVIEW_CONTEXT_PROMPT +
+    '\n\n---\n\n**Specific Request:**\n' +
+    userPrompt
+  );
 }
