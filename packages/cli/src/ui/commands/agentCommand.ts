@@ -28,6 +28,7 @@ export const agentCommand: SlashCommand = {
   action: async (context: CommandContext, args?: string) => {
     const fullArgs = (args ?? '').trim();
 
+    //validate
     if (!fullArgs) {
       context.ui.addItem(
         {
