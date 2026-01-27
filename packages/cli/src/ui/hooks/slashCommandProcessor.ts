@@ -243,27 +243,27 @@ export const useSlashCommandProcessor = (
     ],
   );
 
-  useEffect(() => {
-    if (!config) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!config) {
+  //     return;
+  //   }
 
-    // const listener = () => {
-    //   reloadCommands();
-    // };
+  //   // const listener = () => {
+  //   //   reloadCommands();
+  //   // };
 
-    // (async () => {
-    //   const ideClient = await IdeClient.getInstance();
-    //   ideClient.addStatusChangeListener(listener);
-    // })();
+  //   // (async () => {
+  //   //   const ideClient = await IdeClient.getInstance();
+  //   //   ideClient.addStatusChangeListener(listener);
+  //   // })();
 
-    return () => {
-      // (async () => {
-      //   const ideClient = await IdeClient.getInstance();
-      //   ideClient.removeStatusChangeListener(listener);
-      // })();
-    };
-  }, [config, reloadCommands]);
+  //   return () => {
+  //     // (async () => {
+  //     //   const ideClient = await IdeClient.getInstance();
+  //     //   ideClient.removeStatusChangeListener(listener);
+  //     // })();
+  //   };
+  // }, [config, reloadCommands]);
 
   useEffect(() => {
     const controller = new AbortController();

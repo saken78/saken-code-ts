@@ -273,7 +273,6 @@ export type HistoryItemWithoutId =
   | HistoryItemQuit
   | HistoryItemCompression
   | HistoryItemSummary
-  | HistoryItemCompression
   | HistoryItemExtensionsList
   | HistoryItemToolsList
   | HistoryItemSkillsList
