@@ -3,7 +3,7 @@
  * Copyright 2025 Qwen
  * SPDX-License-Identifier: Apache-2.0
  */
-
+import { ToolNames } from '../../tools/tool-names.js';
 /**
  * Context prompt for /debug command
  * Optimizes LLM behavior for focused debugging tasks
@@ -30,10 +30,10 @@ You are now in **DEBUG MODE** - optimize for systematic root cause analysis and 
 - **Verification:** Always suggest how to test the fix
 
 ## Tools in This Mode
-- \`Read\` - Examine problematic code
-- \`Grep\` - Search for related code patterns
-- \`Bash\` - Run tests, reproduce issue
-- \`Write\` - Create temporary debugging aids
+- \`${ToolNames.READ_FILE}\` - Examine problematic code
+- \`${ToolNames.NATIVE_FD}/${ToolNames.RIPGREP}\` - Search for related code patterns
+- \`${ToolNames.SHELL}\` - Run tests, reproduce issue
+- \`${ToolNames.WRITE_FILE}\` - Create temporary debugging aids
 - Use error logs and stack traces as evidence
 
 ## What To Output
@@ -49,10 +49,10 @@ You are now in **DEBUG MODE** - optimize for systematic root cause analysis and 
 - General debugging advice without context
 
 ## Success Looks Like
-✅ Root cause identified with evidence
-✅ Minimal fix that addresses cause
-✅ Verification steps provided
-✅ Problem resolved without side effects
+[~] Root cause identified with evidence
+[~] Minimal fix that addresses cause
+[~] Verification steps provided
+[~] Problem resolved without side effects
 `;
 
 /**
@@ -60,5 +60,12 @@ You are now in **DEBUG MODE** - optimize for systematic root cause analysis and 
  * Returns user message to be submitted with context
  */
 export function getDebugContextMessage(userPrompt: string): string {
-  return '[DEBUG MODE: ' + userPrompt + ']\n\n' + DEBUG_CONTEXT_PROMPT + '\n\n---\n\n**Your Request:**\n' + userPrompt;
+  return (
+    '[DEBUG MODE: ' +
+    userPrompt +
+    ']\n\n' +
+    DEBUG_CONTEXT_PROMPT +
+    '\n\n---\n\n**Your Request:**\n' +
+    userPrompt
+  );
 }
