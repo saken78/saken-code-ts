@@ -1,4 +1,3 @@
- 
 /**
  * @license
  * Copyright 2025 Google LLC
@@ -7,11 +6,25 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import os, { EOL } from 'node:os';
+import crypto from 'node:crypto';
 import type { Config } from '../config/config.js';
 import { ToolNames, ToolDisplayNames } from './tool-names.js';
 import { ToolErrorType } from './tool-error.js';
-import type { ToolInvocation, ToolResult, ToolResultDisplay } from './tools.js';
-import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
+import type {
+  ToolInvocation,
+  ToolResult,
+  ToolResultDisplay,
+  ToolCallConfirmationDetails,
+  ToolExecuteConfirmationDetails,
+  ToolConfirmationPayload,
+} from './tools.js';
+import {
+  BaseDeclarativeTool,
+  BaseToolInvocation,
+  Kind,
+  ToolConfirmationOutcome,
+} from './tools.js';
 import { getErrorMessage } from '../utils/errors.js';
 import type {
   ShellExecutionConfig,
@@ -20,22 +33,32 @@ import type {
 import { ShellExecutionService } from '../services/shellExecutionService.js';
 import { formatMemoryUsage } from '../utils/formatters.js';
 import type { AnsiOutput } from '../utils/terminalSerializer.js';
-import { checkForDeprecatedCommands } from '../utils/deprecated-command-validator.js';
+import {
+  checkForDeprecatedCommands,
+  getRecommendedTool,
+} from '../utils/deprecated-command-validator.js';
 import { validateCommandOptimality } from '../utils/command-enforcement.js';
+import {
+  stripShellWrapper,
+  getCommandRoots,
+  isCommandNeedsPermission,
+  OUTPUT_UPDATE_INTERVAL_MS,
+  readFileViaBash,
+} from '../index.js';
+import {
+  generateStatistics,
+  formatStatisticsFooter,
+} from '../utils/bash-statistics.js';
 
 export const BASH_OUTPUT_UPDATE_INTERVAL_MS = 1000;
+const DEFAULT_FOREGROUND_TIMEOUT_MS = 120000;
 
 export interface BashToolParams {
   command: string;
-  cwd?: string;
-  env?: Record<string, string>;
+  directory?: string;
+  timeout?: number;
   is_background?: boolean;
   description?: string;
-  terminal?: {
-    width?: number;
-    height?: number;
-    showColor?: boolean;
-  };
 }
 
 export class BashToolInvocation extends BaseToolInvocation<
@@ -45,6 +68,7 @@ export class BashToolInvocation extends BaseToolInvocation<
   constructor(
     private readonly config: Config,
     params: BashToolParams,
+    private readonly allowlist: Set<string>,
   ) {
     super(params);
   }
@@ -52,12 +76,15 @@ export class BashToolInvocation extends BaseToolInvocation<
   getDescription(): string {
     let description = `${this.params.command}`;
 
-    if (this.params.cwd) {
-      description += ` [in ${this.params.cwd}]`;
+    if (this.params.directory) {
+      description += ` [in ${this.params.directory}]`;
     }
 
     if (this.params.is_background) {
       description += ` [background]`;
+    } else if (this.params.timeout) {
+      // append timeout for foreground commands
+      description += ` [timeout: ${this.params.timeout}ms]`;
     }
 
     if (this.params.description) {
@@ -67,10 +94,46 @@ export class BashToolInvocation extends BaseToolInvocation<
     return description;
   }
 
+  override async shouldConfirmExecute(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    const command = stripShellWrapper(this.params.command);
+    const rootCommands = [...new Set(getCommandRoots(command))];
+    const commandsToConfirm = rootCommands.filter(
+      (command) => !this.allowlist.has(command),
+    );
+
+    if (commandsToConfirm.length === 0) {
+      return false; // already approved and allowlisted
+    }
+
+    const permissionCheck = isCommandNeedsPermission(command);
+    if (!permissionCheck.requiresPermission) {
+      return false;
+    }
+
+    const confirmationDetails: ToolExecuteConfirmationDetails = {
+      type: 'exec',
+      title: 'Confirm Shell Command',
+      command: this.params.command,
+      rootCommand: commandsToConfirm.join(', '),
+      onConfirm: async (
+        outcome: ToolConfirmationOutcome,
+        _payload?: ToolConfirmationPayload,
+      ) => {
+        if (outcome === ToolConfirmationOutcome.ProceedAlways) {
+          commandsToConfirm.forEach((command) => this.allowlist.add(command));
+        }
+      },
+    };
+    return confirmationDetails;
+  }
+
   async execute(
     signal: AbortSignal,
     updateOutput?: (output: ToolResultDisplay) => void,
     shellExecutionConfig?: ShellExecutionConfig,
+    setPidCallback?: (pid: number) => void,
   ): Promise<ToolResult> {
     // ✨ STRICT ENFORCEMENT: Check for non-optimal command patterns
     const optimalityCheck = validateCommandOptimality(this.params.command);
@@ -89,7 +152,7 @@ export class BashToolInvocation extends BaseToolInvocation<
     // Check for deprecated commands
     const deprecatedCheck = checkForDeprecatedCommands(this.params.command);
     if (deprecatedCheck) {
-      const tool = deprecatedCheck.recommendedTool;
+      const tool = getRecommendedTool(deprecatedCheck.command);
       const errorMessage = `Use ${tool} tool instead of '${deprecatedCheck.command}'. ${deprecatedCheck.reason}`;
       return {
         llmContent: errorMessage,
@@ -101,145 +164,322 @@ export class BashToolInvocation extends BaseToolInvocation<
       };
     }
 
+    const strippedCommand = stripShellWrapper(this.params.command);
+
     if (signal.aborted) {
       return {
-        llmContent: 'Command was cancelled before execution.',
-        returnDisplay: 'Cancelled',
+        llmContent: 'Command was cancelled by user before it could start.',
+        returnDisplay: 'Command cancelled by user.',
       };
     }
 
-    const cwd = this.params.cwd || this.config.getTargetDir();
-    const shouldRunInBackground = this.params.is_background ?? false;
+    const effectiveTimeout = this.params.is_background
+      ? undefined
+      : (this.params.timeout ?? DEFAULT_FOREGROUND_TIMEOUT_MS);
 
-    // Prepare command for background execution
-    let commandToExecute = this.params.command.trim();
-    if (shouldRunInBackground && !commandToExecute.endsWith('&')) {
-      commandToExecute = commandToExecute + ' &';
+    // Create combined signal with timeout for foreground execution
+    let combinedSignal = signal;
+    if (effectiveTimeout) {
+      const timeoutSignal = AbortSignal.timeout(effectiveTimeout);
+      combinedSignal = AbortSignal.any([signal, timeoutSignal]);
     }
 
-    // Merge terminal configuration
-    const baseConfig = this.config.getShellExecutionConfig();
-    const terminalConfig: ShellExecutionConfig = {
-      terminalWidth:
-        this.params.terminal?.width ??
-        shellExecutionConfig?.terminalWidth ??
-        baseConfig.terminalWidth,
-      terminalHeight:
-        this.params.terminal?.height ??
-        shellExecutionConfig?.terminalHeight ??
-        baseConfig.terminalHeight,
-      showColor:
-        this.params.terminal?.showColor ??
-        shellExecutionConfig?.showColor ??
-        baseConfig.showColor,
-      pager: shellExecutionConfig?.pager ?? baseConfig.pager,
-    };
+    const tempFileName = `shell_pgrep_${crypto
+      .randomBytes(6)
+      .toString('hex')}.tmp`;
+    const tempFilePath = path.join(os.tmpdir(), tempFileName);
 
-    let cumulativeOutput: string | AnsiOutput = '';
-    let lastUpdateTime = Date.now();
-    let isBinaryStream = false;
+    try {
+      // Add co-author to git commit commands
+      const processedCommand = this.addCoAuthorToGitCommit(strippedCommand);
 
-    const { result: resultPromise, pid } = await ShellExecutionService.execute(
-      commandToExecute,
-      cwd,
-      (event: ShellOutputEvent) => {
-        let shouldUpdate = false;
+      const shouldRunInBackground = this.params.is_background;
+      let finalCommand = processedCommand;
 
-        switch (event.type) {
-          case 'data':
-            if (isBinaryStream) break;
-            cumulativeOutput = event.chunk;
-            shouldUpdate = true;
-            break;
-          case 'binary_detected':
-            isBinaryStream = true;
-            cumulativeOutput = '[Binary output detected. Halting stream...]';
-            shouldUpdate = true;
-            break;
-          case 'binary_progress':
-            isBinaryStream = true;
-            cumulativeOutput = `[Receiving binary output... ${formatMemoryUsage(
-              event.bytesReceived,
-            )} received]`;
-            if (Date.now() - lastUpdateTime > BASH_OUTPUT_UPDATE_INTERVAL_MS) {
-              shouldUpdate = true;
-            }
-            break;
-          default:
-            throw new Error('Unhandled ShellOutputEvent type');
-        }
-
-        if (shouldUpdate && updateOutput) {
-          updateOutput(
-            typeof cumulativeOutput === 'string'
-              ? cumulativeOutput
-              : { ansiOutput: cumulativeOutput },
-          );
-          lastUpdateTime = Date.now();
-        }
-      },
-      signal,
-      this.config.getShouldUseNodePtyShell(),
-      terminalConfig,
-    );
-
-    // Handle background execution
-    if (shouldRunInBackground) {
-      const pidMsg = pid ? ` PID: ${pid}` : '';
-      const killHint = ' (Use kill <pid> to stop)';
-      return {
-        llmContent: `Background command started.${pidMsg}${killHint}`,
-        returnDisplay: `Background command started.${pidMsg}${killHint}`,
-      };
-    }
-
-    // Wait for foreground execution
-    const result = await resultPromise;
-
-    // Build result
-    let llmContent = '';
-    if (result.aborted) {
-      llmContent = 'Command was cancelled by user.';
-      if (result.output.trim()) {
-        llmContent += ` Output before cancellation:\n${result.output}`;
+      // Use & to run in background on Linux
+      if (shouldRunInBackground && !finalCommand.trim().endsWith('&')) {
+        finalCommand = finalCommand.trim() + ' &';
       }
-    } else {
-      llmContent = [
-        `Command: ${this.params.command}`,
-        `Directory: ${cwd}`,
-        `Output: ${result.output || '(empty)'}`,
-        `Exit Code: ${result.exitCode ?? '(none)'}`,
-        `Signal: ${result.signal ?? '(none)'}`,
-      ].join('\n');
-    }
 
-    let returnDisplay = '';
-    if (result.output.trim()) {
-      returnDisplay = result.output;
-    } else if (result.aborted) {
-      returnDisplay = 'Command cancelled';
-    } else if (result.signal) {
-      returnDisplay = `Terminated by signal: ${result.signal}`;
-    } else if (result.error) {
-      returnDisplay = `Error: ${getErrorMessage(result.error)}`;
-    } else if (result.exitCode !== null && result.exitCode !== 0) {
-      returnDisplay = `Exited with code: ${result.exitCode}`;
-    }
+      // Wrap command to append subprocess pids (via pgrep) to temporary file
+      let commandToExecute = finalCommand.trim();
+      if (!commandToExecute.endsWith('&')) commandToExecute += ';';
+      commandToExecute = `{ ${commandToExecute} }; __code=$?; pgrep -g 0 >${tempFilePath} 2>&1; exit $__code;`;
 
-    const executionError = result.error
-      ? {
-          error: {
-            message: result.error.message,
-            type: ToolErrorType.SHELL_EXECUTE_ERROR,
+      const cwd = this.params.directory || this.config.getTargetDir();
+
+      let cumulativeOutput: string | AnsiOutput = '';
+      let lastUpdateTime = Date.now();
+      let isBinaryStream = false;
+      let isBinaryOutput = false;
+
+      const executionStartTime = Date.now();
+
+      const { result: resultPromise, pid } =
+        await ShellExecutionService.execute(
+          commandToExecute,
+          cwd,
+          (event: ShellOutputEvent) => {
+            let shouldUpdate = false;
+
+            switch (event.type) {
+              case 'data':
+                if (isBinaryStream) break;
+                cumulativeOutput = event.chunk;
+                shouldUpdate = true;
+                break;
+              case 'binary_detected':
+                isBinaryStream = true;
+                isBinaryOutput = true;
+                cumulativeOutput =
+                  '[Binary output detected. Halting stream...]';
+                shouldUpdate = true;
+                break;
+              case 'binary_progress':
+                isBinaryStream = true;
+                cumulativeOutput = `[Receiving binary output... ${formatMemoryUsage(
+                  event.bytesReceived,
+                )} received]`;
+                if (Date.now() - lastUpdateTime > OUTPUT_UPDATE_INTERVAL_MS) {
+                  shouldUpdate = true;
+                }
+                break;
+              default: {
+                throw new Error('An unhandled ShellOutputEvent was found.');
+              }
+            }
+
+            if (shouldUpdate && updateOutput) {
+              updateOutput(
+                typeof cumulativeOutput === 'string'
+                  ? cumulativeOutput
+                  : { ansiOutput: cumulativeOutput },
+              );
+              lastUpdateTime = Date.now();
+            }
           },
-        }
-      : {};
+          combinedSignal,
+          this.config.getShouldUseNodePtyShell(),
+          shellExecutionConfig ?? {},
+        );
 
-    return {
-      llmContent,
-      returnDisplay,
-      ...executionError,
-    };
+      if (pid && setPidCallback) {
+        setPidCallback(pid);
+      }
+
+      if (shouldRunInBackground) {
+        // For background tasks, return immediately with PID info
+        // Note: We cannot reliably detect startup errors for background processes
+        // since their stdio is typically detached/ignored
+        const pidMsg = pid ? ` PID: ${pid}` : '';
+        const killHint = ' (Use kill <pid> to stop)';
+
+        return {
+          llmContent: `Background command started.${pidMsg}${killHint}`,
+          returnDisplay: `Background command started.${pidMsg}${killHint}`,
+        };
+      }
+
+      const result = await resultPromise;
+      const executionTimeMs = Date.now() - executionStartTime;
+
+      const backgroundPIDs: number[] = [];
+      if (fs.existsSync(tempFilePath)) {
+        // ✨ Use bash cat for file reading (lower overhead than fs API)
+        const pgrepContent = readFileViaBash(tempFilePath);
+        const pgrepLines = pgrepContent.split(EOL).filter(Boolean);
+        for (const line of pgrepLines) {
+          if (!/^\d+$/.test(line)) {
+            console.error(`pgrep: ${line}`);
+          }
+          const pid = Number(line);
+          if (pid !== result.pid) {
+            backgroundPIDs.push(pid);
+          }
+        }
+      } else {
+        if (!signal.aborted) {
+          console.error('missing pgrep output');
+        }
+      }
+
+      let llmContent = '';
+      if (result.aborted) {
+        // Check if it was a timeout or user cancellation
+        const wasTimeout =
+          !this.params.is_background &&
+          effectiveTimeout &&
+          combinedSignal.aborted &&
+          !signal.aborted;
+
+        if (wasTimeout) {
+          llmContent = `Command timed out after ${effectiveTimeout}ms before it could complete.`;
+          if (result.output.trim()) {
+            llmContent += ` Below is the output before it timed out:\n${result.output}`;
+          } else {
+            llmContent += ' There was no output before it timed out.';
+          }
+        } else {
+          llmContent =
+            'Command was cancelled by user before it could complete.';
+          if (result.output.trim()) {
+            llmContent += ` Below is the output before it was cancelled:\n${result.output}`;
+          } else {
+            llmContent += ' There was no output before it was cancelled.';
+          }
+        }
+      } else {
+        // Create a formatted error string for display, replacing the wrapper command
+        // with the user-facing command.
+        const finalError = result.error
+          ? result.error.message.replace(commandToExecute, this.params.command)
+          : '(none)';
+
+        llmContent = [
+          `Command: ${this.params.command}`,
+          `Directory: ${this.params.directory || '(root)'}`,
+          `Output: ${result.output || '(empty)'}`,
+          `Error: ${finalError}`, // Use the cleaned error string.
+          `Exit Code: ${result.exitCode ?? '(none)'}`,
+          `Signal: ${result.signal ?? '(none)'}`,
+          `Background PIDs: ${
+            backgroundPIDs.length ? backgroundPIDs.join(', ') : '(none)'
+          }`,
+          `Process Group PGID: ${result.pid ?? '(none)'}`,
+        ].join('\n');
+      }
+
+      let returnDisplayMessage = '';
+      if (this.config.getDebugMode()) {
+        returnDisplayMessage = llmContent;
+      } else {
+        if (result.output.trim()) {
+          returnDisplayMessage = '';
+        } else {
+          if (result.aborted) {
+            // Check if it was a timeout or user cancellation
+            const wasTimeout =
+              !this.params.is_background &&
+              effectiveTimeout &&
+              combinedSignal.aborted &&
+              !signal.aborted;
+
+            returnDisplayMessage = wasTimeout
+              ? `Command timed out after ${effectiveTimeout}ms.`
+              : 'Command cancelled by user.';
+          } else if (result.signal) {
+            returnDisplayMessage = `Command terminated by signal: ${result.signal}`;
+          } else if (result.error) {
+            returnDisplayMessage = `Command failed: ${getErrorMessage(
+              result.error,
+            )}`;
+          } else if (result.exitCode !== null && result.exitCode !== 0) {
+            returnDisplayMessage = `Command exited with code: ${result.exitCode}`;
+          }
+          // If output is empty and command succeeded (code 0, no error/signal/abort),
+          // returnDisplayMessage will remain empty, which is fine.
+        }
+      }
+
+      // Generate and append execution statistics (ALWAYS shown)
+      try {
+        const wasAborted = result.aborted;
+        const outputForStats = result.output || '';
+
+        const { statistics } = generateStatistics(
+          this.params.command,
+          outputForStats,
+          executionTimeMs,
+          isBinaryOutput,
+          wasAborted,
+        );
+
+        const statsFooter = formatStatisticsFooter(statistics, wasAborted);
+
+        // Append statistics to return display message
+        // If message is empty, just show stats; otherwise add separator
+        if (returnDisplayMessage.trim()) {
+          returnDisplayMessage += `\n\n---\n${statsFooter}`;
+        } else {
+          returnDisplayMessage = statsFooter;
+        }
+      } catch (statsError) {
+        // On error generating statistics, show basic stats with error message
+        const basicStats = `Lines: ${result.output.split('\n').length}, Time: ${executionTimeMs}ms [Stats Error: ${getErrorMessage(statsError)}]`;
+        if (returnDisplayMessage.trim()) {
+          returnDisplayMessage += `\n\n---\n${basicStats}`;
+        } else {
+          returnDisplayMessage = basicStats;
+        }
+      }
+
+      const executionError = result.error
+        ? {
+            error: {
+              message: result.error.message,
+              type: ToolErrorType.SHELL_EXECUTE_ERROR,
+            },
+          }
+        : {};
+
+      return {
+        llmContent,
+        returnDisplay: returnDisplayMessage,
+        ...executionError,
+      };
+    } finally {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+    }
+  }
+  private addCoAuthorToGitCommit(command: string): string {
+    // Check if co-author feature is enabled
+    const gitCoAuthorSettings = this.config.getGitCoAuthor();
+
+    if (!gitCoAuthorSettings.enabled) {
+      return command;
+    }
+
+    // Check if this is a git commit command (anywhere in the command, e.g., after "cd /path &&")
+    const gitCommitPattern = /\bgit\s+commit\b/;
+    if (!gitCommitPattern.test(command)) {
+      return command;
+    }
+
+    // Define the co-author line using configuration
+    const coAuthor = `
+
+Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
+
+    // Handle different git commit patterns:
+    // Match -m "message" or -m 'message', including combined flags like -am
+    // Use separate patterns to avoid ReDoS (catastrophic backtracking)
+    //
+    // Pattern breakdown:
+    //   -[a-zA-Z]*m  matches -m, -am, -nm, etc. (combined short flags)
+    //   \s+          matches whitespace after the flag
+    //   [^"\\]       matches any char except double-quote and backslash
+    //   \\.          matches escape sequences like \" or \\
+    //   (?:...|...)* matches normal chars or escapes, repeated
+    const doubleQuotePattern = /(-[a-zA-Z]*m\s+)"((?:[^"\\]|\\.)*)"/;
+    const singleQuotePattern = /(-[a-zA-Z]*m\s+)'((?:[^'\\]|\\.)*)'/;
+    const doubleMatch = command.match(doubleQuotePattern);
+    const singleMatch = command.match(singleQuotePattern);
+    const match = doubleMatch ?? singleMatch;
+    const quote = doubleMatch ? '"' : "'";
+
+    if (match) {
+      const [fullMatch, prefix, existingMessage] = match;
+      const newMessage = existingMessage + coAuthor;
+      const replacement = prefix + quote + newMessage + quote;
+
+      return command.replace(fullMatch, replacement);
+    }
+
+    // If no -m flag found, the command might open an editor
+    // In this case, we can't easily modify it, so return as-is
+    return command;
   }
 }
 
@@ -269,11 +509,10 @@ function getBashToolDescription(): string {
   - Large files (>500 lines): Read in chunks with \`sed -n '1,100p file\` then \`sed -n '100,200p file\` to avoid context overload
 
 **Preferred modern CLI tools (already installed):**
-- File listing: \`eza\` (instead of \`ls\`)
+- File listing: \`${ToolNames.NATIVE_EZA}\` (instead of \`ls\`)
 - File viewing: \`bat\` (instead of \`cat\`)
-- File search: \`fd\` (instead of \`find\`)
-- Text search: \`rg\` (ripgrep, instead of \`grep\`)
-- Disk usage: \`dust\` (instead of \`du\`)
+- File search: \`${ToolNames.NATIVE_FD}\` (instead of \`find\`)
+- Text search: \`${ToolNames.RIPGREP}\` (ripgrep, instead of \`grep\`)
 - Process list: \`procs\` (instead of \`ps\`/top)
 - HTTP requests: \`xh\` (instead of \`curl\`/wget)
 - Diff viewer: \`delta\` (instead of plain \`diff\`)
@@ -844,6 +1083,7 @@ Environment variables:
 
 export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
   static readonly Name: string = ToolNames.BASH;
+  private allowlist: Set<string> = new Set();
 
   constructor(private readonly config: Config) {
     super(
@@ -873,6 +1113,10 @@ export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
             description:
               'Run in background. Default: false. Set to true for long-running processes.',
           },
+          timeout: {
+            type: 'number',
+            description: 'Optional timeout in milliseconds (max 600000)',
+          },
           description: {
             type: 'string',
             description: 'Brief description of command purpose',
@@ -896,7 +1140,7 @@ export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
             },
           },
         },
-        required: ['command'],
+        required: ['command', 'is_background'],
       } as Record<string, unknown>,
       false, // not markdown
       true, // can update output
@@ -969,30 +1213,12 @@ export class BashTool extends BaseDeclarativeTool<BashToolParams, ToolResult> {
       return fileOpError;
     }
 
-    // Validate cwd if provided
-    if (params.cwd) {
-      if (!path.isAbsolute(params.cwd)) {
-        return 'Working directory must be an absolute path';
-      }
-
-      // Check if directory exists
-      try {
-        const stats = fs.statSync(params.cwd);
-        if (!stats.isDirectory()) {
-          return `Path exists but is not a directory: ${params.cwd}`;
-        }
-      } catch (err) {
-        console.log(`Directory does not exits ${err}`);
-        return `Directory does not exist: ${params.cwd}`;
-      }
-    }
-
     return null;
   }
 
   protected createInvocation(
     params: BashToolParams,
   ): ToolInvocation<BashToolParams, ToolResult> {
-    return new BashToolInvocation(this.config, params);
+    return new BashToolInvocation(this.config, params, this.allowlist);
   }
 }
