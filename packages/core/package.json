@@ -7,6 +7,9 @@
     "type": "git",
     "url": "git+https://github.com/QwenLM/qwen-code.git"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
