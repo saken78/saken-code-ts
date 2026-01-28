@@ -30,6 +30,8 @@ import {
   TOOL_STATUS,
 } from '../../constants.js';
 import { theme } from '../../semantic-colors.js';
+import { useSettings } from '../../contexts/SettingsContext.js';
+import type { LoadedSettings } from '../../../config/settings.js';
 
 const STATIC_HEIGHT = 1;
 const RESERVED_LINE_COUNT = 5; // for tool name, status, padding etc.
@@ -175,17 +177,8 @@ const StringResultRenderer: React.FC<{
 }> = ({ data, renderAsMarkdown, availableHeight, childWidth }) => {
   let displayData = data;
 
-  // ✨ Hide large output, show summary + ctrl+o hint
-  const lines = data.split('\n').filter(Boolean);
-  const isLargeOutput = lines.length > 10 || data.length > 500;
-
-  if (isLargeOutput && !renderAsMarkdown) {
-    // For shell/bash command outputs - show first 3 lines + hint
-    const firstLines = lines.slice(0, 3).join('\n');
-    displayData = `${firstLines}
-   ... first ${lines.length} lines hidden ... (press Ctrl+O to view full output)`;
-  } else if (displayData.length > MAXIMUM_RESULT_DISPLAY_CHARACTERS) {
-    // Truncate if REALLY too long
+  // Truncate if too long
+  if (displayData.length > MAXIMUM_RESULT_DISPLAY_CHARACTERS) {
     displayData = '...' + displayData.slice(-MAXIMUM_RESULT_DISPLAY_CHARACTERS);
   }
 
@@ -220,12 +213,14 @@ const DiffResultRenderer: React.FC<{
   data: { fileDiff: string; fileName: string };
   availableHeight?: number;
   childWidth: number;
-}> = ({ data, availableHeight, childWidth }) => (
+  settings?: LoadedSettings;
+}> = ({ data, availableHeight, childWidth, settings }) => (
   <DiffRenderer
     diffContent={data.fileDiff}
     filename={data.fileName}
     availableTerminalHeight={availableHeight}
     terminalWidth={childWidth}
+    settings={settings}
   />
 );
 
@@ -253,8 +248,9 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
   ptyId,
   config,
 }) => {
+  const settings = useSettings();
   const isThisShellFocused =
-    (name === SHELL_COMMAND_NAME || name === 'Shell') &&
+    (name === SHELL_COMMAND_NAME || name === 'Shell' || name === 'Bash') &&
     status === ToolCallStatus.Executing &&
     ptyId === activeShellPtyId &&
     embeddedShellFocused;
@@ -359,6 +355,7 @@ export const ToolMessage: React.FC<ToolMessageProps> = ({
                 data={displayRenderer.data}
                 availableHeight={availableHeight}
                 childWidth={childWidth}
+                settings={settings}
               />
             )}
             {displayRenderer.type === 'ansi' && (
