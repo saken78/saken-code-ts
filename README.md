@@ -3,9 +3,9 @@
 # Saken Code - TypeScript Development
 
 ![GitHub Stars](https://img.shields.io/github/stars/saken78/saken-code-ts.svg)
-![License](https://img.shields.io/github/license/saken78/saken-code-ts.svg)
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
 ![Latest Release](https://img.shields.io/github/v/release/saken78/saken-code-ts.svg)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **A personalized development fork of [Qwen Code](https://github.com/QwenLM/qwen-code) with enhanced agents, custom skills, and advanced features.**
 
