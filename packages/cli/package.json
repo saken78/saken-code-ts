@@ -1,6 +1,7 @@
 {
-  "name": "@saken78/saken-code",
+  "name": "saken-code",
   "version": "0.7.1",
+  "private": false,
   "description": "Qwen Code",
   "license": "Apache-2.0",
   "repository": {
