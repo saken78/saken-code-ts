@@ -1,5 +1,5 @@
 {
-  "name": "@qwen-code/qwen-code",
+  "name": "@sakenc/saken-code",
   "version": "0.7.1",
   "description": "Qwen Code",
   "license": "Apache-2.0",
@@ -11,6 +11,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
+    "saken-code": "dist/index.js",
+    "saken": "dist/index.js",
+    "sc": "dist/index.js",
     "qwen": "dist/index.js"
   },
   "exports": {
