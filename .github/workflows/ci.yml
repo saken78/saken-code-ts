@@ -3,22 +3,23 @@
 name: 'Qwen Code CI'
 
 on:
-  push:
-    branches:
-      - 'main'
-      - 'release/**'
-  pull_request:
-    branches:
-      - 'main'
-      - 'release/**'
-  merge_group:
-  workflow_dispatch:
-    inputs:
-      branch_ref:
-        description: 'Branch to run on'
-        required: true
-        default: 'main'
-        type: 'string'
+  # CI disabled - uncomment below to re-enable
+  # push:
+  #   branches:
+  #     - 'main'
+  #     - 'release/**'
+  # pull_request:
+  #   branches:
+  #     - 'main'
+  #     - 'release/**'
+  # merge_group:
+  # workflow_dispatch:
+  #   inputs:
+  #     branch_ref:
+  #       description: 'Branch to run on'
+  #       required: true
+  #       default: 'main'
+  #       type: 'string'
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
