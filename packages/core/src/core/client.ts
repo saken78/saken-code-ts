@@ -13,7 +13,6 @@ import type {
   Tool,
 } from '@google/genai';
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
 
 // Config
 import { ApprovalMode, type Config } from '../config/config.js';
@@ -336,11 +335,10 @@ export class GeminiClient {
       try {
         // Buat config file untuk path
         const config = {
-          sakenPath: '../../.qwen/saken.md', // Make it relative to project root
+          sakenPath: '/home/saken/.qwen/saken.md', // Absolute path
         };
 
-        const sakenPath = path.join(process.cwd(), config.sakenPath);
-        const sakenMemory = await fs.readFile(sakenPath, 'utf-8');
+        const sakenMemory = await fs.readFile(config.sakenPath, 'utf-8');
         if (sakenMemory.trim()) {
           systemReminders.push(
             `<system-reminder type="project-memory">\n## Qwen Project Memory (saken.md)\n\n${sakenMemory}\n</system-reminder>`,
