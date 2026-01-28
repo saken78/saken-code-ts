@@ -5,114 +5,26 @@
 ![GitHub Stars](https://img.shields.io/github/stars/saken78/saken-code-ts.svg)
 ![License](https://img.shields.io/github/license/saken78/saken-code-ts.svg)
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
-![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)
+![Latest Release](https://img.shields.io/github/v/release/saken78/saken-code-ts.svg)
 
-**A personalized development fork of Qwen Code with custom agents, skills, and intelligent prompt injection.**
+**A personalized development fork of [Qwen Code](https://github.com/QwenLM/qwen-code) with enhanced agents, custom skills, and advanced features.**
 
 </div>
 
 ## About This Project
 
-This is a **personal development repository** for experimenting with Qwen Code enhancements, including:
+Saken Code is a development-focused fork of Qwen Code that includes:
 
-- ✅ **Custom Agents & Skills Integration** - High-priority agents/skills in core system prompt
-- ✅ **Intelligent Prompt Injection** - Multi-factor analysis replaces naive "every 20 turns" approach
-- ✅ **Hallucination Detection** - Pattern-based detection for speculation without data
-- ✅ **Advanced Metrics Tracking** - Conversation complexity, error patterns, tool usage
-- ✅ **Data-Driven Responses** - Critical protocol for config files (YAML/TOML/XML)
+- ✅ **Custom Agents & Skills** - Enhanced agents with specialized capabilities
+- ✅ **Intelligent Prompt Injection** - Smart context management based on conversation complexity
+- ✅ **Hallucination Detection** - Pattern-based detection for speculative responses
+- ✅ **Advanced Metrics Tracking** - Conversation analysis and performance monitoring
 - ✅ **Enhanced Built-in Agents** - Improved deepthink, react-best-practise, and technical-researcher agents
+- ✅ **Data-Driven Responses** - Critical protocol for config file analysis
 
-**Status:** Development phase - testing and optimizing core enhancements
+## Quick Start
 
-## Quick Links
-
-- 📄 [Development Summary](./plans/SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md) - Complete implementation details
-- 🔧 [Installation Guide](#installation)
-- 📖 [Usage](#usage)
-- 🎯 [Development Goals](#development-goals)
-
-## Features
-
-### 1. Intelligent Prompt Injection Service
-
-Replaces naive "every 20 turns" with multi-factor analysis:
-
-- **Conversation Depth** - Detects 4+ consecutive assistant turns
-- **Complexity Spike** - Monitors complexity score (threshold: 50)
-- **Error Pattern** - Tracks 2+ errors encountered
-- **Hallucination Indicators** - Detects 5 pattern types (speculation, config analysis, etc.)
-- **Tool Usage Spike** - Alerts on 8+ tools used rapidly
-- **Extended Conversation** - Fallback injection at ~25 turns
-
-### 2. Custom Agents (HIGH PRIORITY)
-
-```
-explorer           - Codebase navigation & discovery
-planner            - Task decomposition & planning
-debugger           - Error analysis & fixing
-reviewer           - Code quality & security review
-content-analyzer   - Config file analysis
-shadcn-migrator    - Component migration
-java-gui           - Java GUI development
-deepthink          - Deep analysis and problem solving
-react-best-practise - React/Next.js performance optimization
-technical-researcher - Code repository analysis
-```
-
-### 3. Custom Skills (Data-Driven)
-
-```
-/format-validator       - Config validation (YAML/TOML/XML)
-/git-analyzer          - Git history analysis
-/error-parser          - Stack trace parsing
-/type-safety-analyzer  - TypeScript type checking
-/security-audit        - Vulnerability scanning
-/file-structure-analyzer - Architecture analysis
-```
-
-### 4. Enhanced Built-in Agents
-
-#### Deep Think Agent
-
-- Comprehensive multi-dimensional analysis
-- Strategic planning and problem solving
-- Multi-perspective evaluation (technical, business, user, system)
-- Structured recommendations with risk assessment
-
-#### React Best Practices Agent
-
-- Performance optimization for React/Next.js applications
-- Bundle size reduction and waterfall elimination
-- Rendering optimization and re-render minimization
-- 40+ optimization rules across 8 categories
-
-#### Technical Researcher Agent
-
-- Code repository analysis and evaluation
-- Technical documentation review
-- Implementation comparison and solution evaluation
-- Architecture and code quality assessment
-
-### 5. Hallucination Prevention
-
-Detects patterns that indicate speculation:
-
-- Speculation without verification
-- Config analysis without validation
-- Error analysis without /error-parser
-- Type claims without /type-safety-analyzer
-- Security claims without /security-audit
-
-## Installation
-
-### Prerequisites
-
-```bash
-# Node.js 20+
-node --version
-```
-
-### Development Setup
+### Installation
 
 ```bash
 # Clone the repository
@@ -135,27 +47,18 @@ npm link
 npm install -g @qwen-code/qwen-code@latest
 ```
 
-## Usage
-
-### Interactive Mode
+### Usage
 
 ```bash
+# Interactive mode
 cd your-project/
 qwen
-```
 
-### Headless Mode
-
-```bash
+# Headless mode
 qwen -p "your question"
-```
 
-### Quick Commands
-
-```bash
-qwen --help          # Show all commands
-qwen --version       # Show version
-qwen --clear-cache   # Clear cache
+# Help
+qwen --help
 ```
 
 ### Session Commands
@@ -163,7 +66,7 @@ qwen --clear-cache   # Clear cache
 - `/help` - Display available commands
 - `/clear` - Clear conversation history
 - `/compress` - Compress history to save tokens
-- `/stats` - Show current session information
+- `/stats` - Show session information
 - `/auth` - Switch authentication methods
 - `/exit` - Exit Qwen Code
 
@@ -190,132 +93,55 @@ export OPENAI_BASE_URL="https://api.openai.com/v1"
 export OPENAI_MODEL="gpt-4o"
 
 # Qwen OAuth (if using Qwen API)
-# Sign in with /auth command
+# Use /auth command to configure
 ```
 
-## Development Goals
+## Features
 
-### Phase 1: Core Implementation ✅
+### Custom Agents
 
-- [x] Integrate agents/skills into system prompt
-- [x] Implement prompt injection service
-- [x] Add hallucination pattern detection
-- [x] Create metrics tracking system
-- [x] Document architecture
-- [x] Enhance built-in agents with proper descriptions and capabilities
+- `explorer` - Codebase navigation & discovery
+- `planner` - Task decomposition & planning
+- `debugger` - Error analysis & fixing
+- `reviewer` - Code quality & security review
+- `content-analyzer` - Config file analysis
+- `deepthink` - Deep analysis and problem solving
+- `react-best-practise` - React/Next.js performance optimization
+- `technical-researcher` - Code repository analysis
 
-### Phase 2: Testing & Validation (In Progress)
+### Custom Skills
 
-- [ ] Unit tests for PromptInjectionService
-- [ ] Integration tests for client
-- [ ] Manual testing scenarios
-- [ ] Performance profiling
-- [ ] Threshold tuning
-
-### Phase 3: Monitoring & Optimization
-
-- [ ] Add metrics logging
-- [ ] Performance monitoring dashboard
-- [ ] Adaptive threshold learning
-- [ ] User feedback loop
-
-### Phase 4: Documentation & Release
-
-- [ ] Developer guide
-- [ ] User guide for agents/skills
-- [ ] Best practices documentation
-- [ ] Release notes
+- `/format-validator` - Config validation (YAML/TOML/XML)
+- `/git-analyzer` - Git history analysis
+- `/error-parser` - Stack trace parsing
+- `/type-safety-analyzer` - TypeScript type checking
+- `/security-audit` - Vulnerability scanning
+- `/file-structure-analyzer` - Architecture analysis
 
 ## Project Structure
 
 ```
 saken-code-ts/
 ├── packages/
-│   ├── cli/                    # Command-line interface
-│   ├── core/                   # Core agent logic
-│   │   ├── src/
-│   │   │   ├── core/
-│   │   │   │   ├── client.ts           # Main client with injection
-│   │   │   │   └── prompts.ts          # System prompt integration
-│   │   │   ├── prompts/
-│   │   │   │   ├── agents-skills/      # NEW: Agents/skills docs
-│   │   │   │   └── reminders/          # Reminder system
-│   │   │   ├── services/
-│   │   │   │   └── promptInjectionService.ts  # NEW: Injection logic
-│   │   │   └── subagents/              # Agent definitions
-│   │   │   │   └── builtin/           # Built-in agent definitions
-│   │   │   │       ├── deepthink-agent.ts
-│   │   │   │       ├── react-best-practise.ts
-│   │   │   │       ├── technical-researcher.ts
-│   │   │   │       └── ...
-│   │   │   └── utils/                 # Utility functions
-│   │   │   │   └── types/             # Type definitions
-│   │   └── dist/                       # Compiled output
-│   └── sdk-typescript/         # TypeScript SDK
-├── plans/
-│   └── SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md
-└── README.md                   # This file
+│   ├── cli/                 # Command-line interface
+│   ├── core/                # Core agent logic and services
+│   └── sdk-typescript/      # TypeScript SDK
+├── scripts/                 # Build and development scripts
+├── plans/                   # Development documentation
+├── LICENSE                  # Apache 2.0 License
+├── NOTICE                   # Attribution and copyright notices
+└── README.md
 ```
 
-## Key Files
+## Development
 
-### Core Implementation
-
-- **`packages/core/src/services/promptInjectionService.ts`**
-  - Multi-factor hallucination detection
-  - Metrics tracking
-  - Smart injection logic
-
-- **`packages/core/src/prompts/agents-skills/index.ts`**
-  - HIGH PRIORITY agents documentation
-  - Custom skills reference
-  - Critical protocol for config files
-
-- **`packages/core/src/core/client.ts`**
-  - Integration point for prompt injection
-  - Metrics collection
-  - Tool usage tracking
-
-- **`packages/core/src/core/prompts.ts`**
-  - Core system prompt
-  - Agents/skills integration
-  - Data-driven response protocol
-
-- **`packages/core/src/subagents/builtin/`**
-  - Built-in agent configurations
-  - Enhanced deepthink, react-best-practise, technical-researcher agents
-  - Proper descriptions, capabilities, and trigger keywords
-
-## Metrics & Thresholds
-
-### Prompt Injection Triggers
-
-```typescript
-MIN_TURNS_BETWEEN_INJECTION = 5
-COMPLEXITY_THRESHOLD = 50
-ERROR_THRESHOLD = 2
-CONSECUTIVE_ASSISTANT_TURNS_THRESHOLD = 4
-TOOL_USAGE_SPIKE_THRESHOLD = 8
-EXTENDED_CONVERSATION_FALLBACK = ~25 turns
-```
-
-### Complexity Score Calculation
-
-```
-Base: conversation_length (max 50 points)
-+ Complex keywords × 5 points each
-+ Tool usage × 2 points
-+ Agent delegation × 3 points
-= Final score (capped at 100)
-```
-
-## Building from Source
+### Build from Source
 
 ```bash
 # Install dependencies
 npm install
 
-# Build TypeScript
+# Build all packages
 npm run build
 
 # Build specific package
@@ -332,24 +158,6 @@ npm run lint
 npm run test
 ```
 
-## Contributing
-
-This is a personal development project. If you want to:
-
-- **Fork**: Create your own fork and make improvements
-- **Share Ideas**: Open an issue with suggestions
-- **Report Issues**: Use GitHub issues for bugs
-
-## Progress Tracking
-
-**Goal:** 1000 GitHub contributions by maintaining active development
-
-**Current Stats:**
-
-- Repository: saken-code-ts
-- Active Development: Yes
-- Focus: Agent/skill integration + intelligent prompt injection + enhanced built-in agents
-
 ## License
 
 This project is licensed under the **Apache License 2.0**. See [LICENSE](./LICENSE) file for details.
@@ -363,40 +171,30 @@ This project is based on [Qwen Code](https://github.com/QwenLM/qwen-code) by Qwe
 
 For detailed copyright and attribution information, see [NOTICE](./NOTICE) file.
 
+## Contributing
+
+This is a personal development project. To contribute:
+
+- **Fork** - Create your own fork and make improvements
+- **Issues** - Report bugs or suggest features
+- **Ideas** - Share ideas in discussions
+
 ## Resources
 
 - 📖 [Qwen Code Documentation](https://qwenlm.github.io/qwen-code-docs/)
 - 🔗 [Original Qwen Code Repository](https://github.com/QwenLM/qwen-code)
-- 💬 [Qwen Team Discussion](https://github.com/QwenLM/Qwen3-Coder)
-
-## Session Notes
-
-### Latest Session (January 17, 2026)
-
-**Status:** Enhancement Complete
-
-**Achievements:**
-
-- ✅ Enhanced deepthink agent with proper description and capabilities
-- ✅ Updated react-best-practise agent focusing on React/Next.js performance
-- ✅ Improved technical-researcher agent for code repository analysis
-- ✅ Added utility types and performance monitoring tools
-- ✅ Updated builtin-agent-creator with correct functionality
-- ✅ Comprehensive documentation updates
-
-**Next:** Testing, validation, and performance tuning
-
-See [Full Session Summary](./plans/SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md) for details.
+- 💬 [Qwen Team Discussions](https://github.com/QwenLM/Qwen3-Coder)
 
 ## Support
 
-For questions about this personal development project:
+For questions about this project:
 
-- Check the [Session Summary](./plans/SESSION_2025_01_14_COMPREHENSIVE_SUMMARY.md)
+- Check GitHub issues for existing answers
 - Review code comments and documentation
-- Check GitHub issues
+- See implementation examples in `packages/`
 
 ---
 
-**Last Updated:** January 17, 2026
-**Maintained by:** saken78
+**Maintained by:** [@saken78](https://github.com/saken78)
+**License:** Apache 2.0
+**Last Updated:** January 28, 2026
