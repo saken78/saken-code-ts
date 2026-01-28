@@ -119,7 +119,7 @@ export function validateCommandOptimality(
       return {
         isValid: false,
         error: {
-          message: `❌ Non-optimal command detected: "${pattern.commands[0]}" is not the best choice here.`,
+          message: ` Non-optimal command detected: "${pattern.commands[0]}" is not the best choice here.`,
           suggestion,
           suggestedTool: pattern.suggestedTool,
         },
@@ -182,9 +182,9 @@ function generateSmartSuggestion(
     return `Use 'write_file' tool instead\nwrite_file tool handles encoding, permissions, and safety\nReason: ${pattern.reason}`;
   }
 
-  if (cmdName === 'ls') {
-    return `Use 'eza' command: eza -la /path\nOr use native file discovery tools\nReason: ${pattern.reason}`;
-  }
+  // if (cmdName === 'ls') {
+  //   return `Use 'eza' command: eza -la /path\nOr use native file discovery tools\nReason: ${pattern.reason}`;
+  // }
 
   // Default suggestion
   return `Use '${pattern.suggestedTool}' tool (${pattern.toolDescription})\nReason: ${pattern.reason}`;
