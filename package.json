@@ -68,7 +68,7 @@
     }
   },
   "bin": {
-    "saken": "dist/cli.js"
+    "scode": "dist/cli.js"
   },
   "files": [
     "dist/",
