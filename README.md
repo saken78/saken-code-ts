@@ -352,9 +352,16 @@ This is a personal development project. If you want to:
 
 ## License
 
+This project is licensed under the **Apache License 2.0**. See [LICENSE](./LICENSE) file for details.
+
+### Attribution
+
 This project is based on [Qwen Code](https://github.com/QwenLM/qwen-code) by QwenLM.
 
-Modifications and enhancements are personal development work.
+- **Original Work:** Copyright © 2025 Qwen Team
+- **Modifications:** Personal development enhancements
+
+For detailed copyright and attribution information, see [NOTICE](./NOTICE) file.
 
 ## Resources
 
