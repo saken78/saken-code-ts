@@ -35,6 +35,8 @@ export const ToolNames = {
   RIPGREP: 'rg',
   JQ: 'jq',
   YQ: 'yq',
+  /** Unified LSP tool supporting all LSP operations. */
+  LSP: 'lsp',
 } as const;
 
 /**
@@ -46,7 +48,7 @@ export const ToolDisplayNames = {
   SMART_EDIT: 'SmartEdit',
   EDIT: 'Edit',
   WRITE_FILE: 'WriteFile',
-  READ_FILE: 'ReadFile',
+  READ_FILE: 'Read',
   READ_MANY_FILES: 'ReadManyFiles',
   GREP: 'Grep',
   GLOB: 'Glob',
@@ -68,6 +70,7 @@ export const ToolDisplayNames = {
   RIPGREP: 'Ripgrep',
   JQ: 'Jq',
   YQ: 'Yq',
+  LSP: 'Lsp',
 } as const;
 
 // Migration from old tool names to new tool names

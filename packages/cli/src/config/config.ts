@@ -7,7 +7,6 @@
 import {
   ApprovalMode,
   AuthType,
-  Config,
   DEFAULT_QWEN_EMBEDDING_MODEL,
   DEFAULT_MEMORY_FILE_FILTERING_OPTIONS,
   FileDiscoveryService,
@@ -25,9 +24,11 @@ import {
   type FileFilteringOptions,
   type MCPServerConfig,
   type ToolName,
+  type LspClient,
   EditTool,
   ShellTool,
   WriteFileTool,
+  Config,
 } from '@qwen-code/qwen-code-core';
 import { extensionsCommand } from '../commands/extensions.js';
 import type { Settings } from './settings.js';
@@ -48,6 +49,8 @@ import { annotateActiveExtensions } from './extension.js';
 
 import { appEvents } from '../utils/events.js';
 import { mcpCommand } from '../commands/mcp.js';
+import { NativeLspService } from '../services/lsp/NativeLspService.js';
+import { NativeLspClient } from '../services/lsp/NativeLspClient.js';
 
 import type { ExtensionEnablementManager } from './extensions/extensionEnablement.js';
 import { buildWebSearchConfig } from './webSearch.js';
@@ -117,6 +120,7 @@ export interface CliArgs {
   acp: boolean | undefined;
   experimentalAcp: boolean | undefined;
   experimentalSkills: boolean | undefined;
+  experimentalLsp: boolean | undefined;
   extensions: string[] | undefined;
   listExtensions: boolean | undefined;
   openaiLogging: boolean | undefined;
@@ -200,6 +204,12 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
       type: 'boolean',
       description:
         'Enable or disable logging of user prompts for telemetry. Overrides settings files.',
+    })
+    .option('experimental-lsp', {
+      type: 'boolean',
+      description:
+        'Enable experimental LSP (Language Server Protocol) feature for code intelligence',
+      default: true,
     })
     .option('telemetry-outfile', {
       type: 'string',
@@ -676,6 +686,7 @@ export async function loadCliConfig(
   extensionEnablementManager: ExtensionEnablementManager,
   argv: CliArgs,
   cwd: string = process.cwd(),
+  _overrideExtensions?: string[],
 ): Promise<Config> {
   const debugMode = isDebugMode(argv);
 
@@ -752,6 +763,8 @@ export async function loadCliConfig(
   );
 
   let mcpServers = mergeMcpServers(settings, activeExtensions);
+  const lspEnabled = argv.experimentalLsp === true;
+  let lspClient: LspClient | undefined;
   const question = argv.promptInteractive || argv.prompt || '';
   const inputFormat: InputFormat =
     (argv.inputFormat as InputFormat | undefined) ?? InputFormat.TEXT;
@@ -980,7 +993,7 @@ export async function loadCliConfig(
 
   const modelProvidersConfig = settings.modelProviders;
 
-  return new Config({
+  const config = new Config({
     sessionId,
     sessionData,
     embeddingModel: DEFAULT_QWEN_EMBEDDING_MODEL,
@@ -1070,7 +1083,30 @@ export async function loadCliConfig(
     // always be true and the settings file can never disable recording.
     chatRecording:
       argv.chatRecording ?? settings.general?.chatRecording ?? true,
+    lsp: {
+      enabled: lspEnabled,
+    },
   });
+  if (lspEnabled) {
+    try {
+      const lspService = new NativeLspService(
+        config,
+        config.getWorkspaceContext(),
+        appEvents,
+        fileService,
+        {
+          requireTrustedWorkspace: folderTrust,
+        },
+      );
+      await lspService.discoverAndPrepare();
+      await lspService.start();
+      lspClient = new NativeLspClient(lspService);
+      config.setLspClient(lspClient);
+    } catch (err) {
+      logger.warn('Failed to initialize native LSP service:', err);
+    }
+  }
+  return config;
 }
 
 function allowedMcpServers(

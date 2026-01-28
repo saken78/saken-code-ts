@@ -173,6 +173,10 @@ export * from './tools/validation-wrapper.js';
 export * from './tools/file-access-validation.js';
 export * from './core/priority-rules-enforcer.js';
 
+// Export LSP types and tools
+export * from './lsp/types.js';
+export * from './tools/lsp.js';
+
 // MCP OAuth
 export { MCPOAuthProvider } from './mcp/oauth-provider.js';
 export type {
