@@ -19,10 +19,12 @@ class JsonRpcConnection {
   private requestHandlers: Array<
     (request: JsonRpcMessage) => Promise<unknown>
   > = [];
+
   constructor(
     private readonly writer: (data: string) => void,
     private readonly disposer?: () => void,
   ) {}
+
   listen(readable: NodeJS.ReadableStream): void {
     readable.on('data', (chunk: Buffer) => this.handleData(chunk));
     readable.on('error', (error) =>
@@ -31,18 +33,23 @@ class JsonRpcConnection {
       ),
     );
   }
+
   send(message: JsonRpcMessage): void {
     this.writeMessage(message);
   }
+
   onNotification(handler: (notification: JsonRpcMessage) => void): void {
     this.notificationHandlers.push(handler);
   }
+
   onRequest(handler: (request: JsonRpcMessage) => Promise<unknown>): void {
     this.requestHandlers.push(handler);
   }
+
   async initialize(params: unknown): Promise<unknown> {
     return this.sendRequest('initialize', params);
   }
+
   async shutdown(): Promise<void> {
     try {
       await this.sendRequest('shutdown', {});
@@ -52,9 +59,11 @@ class JsonRpcConnection {
       this.end();
     }
   }
+
   request(method: string, params: unknown): Promise<unknown> {
     return this.sendRequest(method, params);
   }
+
   end(): void {
     if (this.disposed) {
       return;
@@ -63,6 +72,7 @@ class JsonRpcConnection {
     this.disposePending();
     this.disposer?.();
   }
+
   private sendRequest(method: string, params: unknown): Promise<unknown> {
     if (this.disposed) {
       return Promise.resolve(undefined);
@@ -74,6 +84,7 @@ class JsonRpcConnection {
       method,
       params,
     };
+
     const requestPromise = new Promise<unknown>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pendingRequests.delete(id);
@@ -84,6 +95,7 @@ class JsonRpcConnection {
     this.writeMessage(payload);
     return requestPromise;
   }
+
   private async handleServerRequest(message: JsonRpcMessage): Promise<void> {
     const handler = this.requestHandlers[this.requestHandlers.length - 1];
     if (!handler) {
@@ -97,6 +109,7 @@ class JsonRpcConnection {
       });
       return;
     }
+
     try {
       const result = await handler(message);
       this.writeMessage({
@@ -115,6 +128,7 @@ class JsonRpcConnection {
       });
     }
   }
+
   private handleData(chunk: Buffer): void {
     if (this.disposed) {
       return;
@@ -147,6 +161,7 @@ class JsonRpcConnection {
       }
     }
   }
+
   private routeMessage(message: JsonRpcMessage): void {
     if (typeof message?.id !== 'undefined' && !message.method) {
       const pending = this.pendingRequests.get(message.id);
@@ -194,6 +209,7 @@ class JsonRpcConnection {
     this.pendingRequests.clear();
   }
 }
+
 interface LspConnection {
   connection: JsonRpcConnection;
   process?: cp.ChildProcess;
@@ -315,6 +331,7 @@ export class LspConnectionFactory {
       });
     });
   }
+
   /**
    * 关闭 LSP 连接
    */

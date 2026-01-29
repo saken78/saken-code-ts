@@ -147,6 +147,8 @@ export interface LspServerHandle {
   restartAttempts?: number;
   /** Lock to prevent concurrent startup attempts */
   startingPromise?: Promise<void>;
+  /** Set of file URIs that have been opened in this server */
+  openedFiles?: Set<string>;
 }
 // ============================================================================
 // LSP Service Options
