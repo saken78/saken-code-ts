@@ -13,7 +13,7 @@ import { ToolNames, ToolDisplayNames } from './tool-names.js';
 import { ToolErrorType } from './tool-error.js';
 import type { ToolInvocation, ToolResult, ToolResultDisplay } from './tools.js';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
-import { resolveAndValidatePath } from '../utils/paths.js';
+// import { resolveAndValidatePath } from '../utils/paths.js';
 import {
   NativeEzaExecutor,
   type EzaListOptions,
@@ -98,11 +98,8 @@ export class NativeEzaToolInvocation extends BaseToolInvocation<
   NativeEzaToolParams,
   ToolResult
 > {
-  private readonly config: Config;
-
   constructor(config: Config, params: NativeEzaToolParams) {
     super(params);
-    this.config = config;
   }
 
   getDescription(): string {
@@ -138,19 +135,19 @@ export class NativeEzaToolInvocation extends BaseToolInvocation<
   ): Promise<ToolResult> {
     try {
       // Resolve the path
-      let targetPath = this.params.path || '.';
-      try {
-        targetPath = resolveAndValidatePath(this.config, targetPath);
-      } catch (error) {
-        return {
-          llmContent: `Invalid path: ${(error as Error).message} use shell eza/ls or bash eza/ls`,
-          returnDisplay: `Invalid path: ${(error as Error).message} use shell eza/ls or bash eza/ls`,
-          error: {
-            message: (error as Error).message,
-            type: ToolErrorType.EZA_EXECUTION_ERROR,
-          },
-        };
-      }
+      const targetPath = this.params.path || '.';
+      // try {
+      //   targetPath = resolveAndValidatePath(this.config, targetPath);
+      // } catch (error) {
+      //   return {
+      //     llmContent: `Invalid path: ${(error as Error).message} use shell eza/ls or bash eza/ls`,
+      //     returnDisplay: `Invalid path: ${(error as Error).message} use shell eza/ls or bash eza/ls`,
+      //     error: {
+      //       message: (error as Error).message,
+      //       type: ToolErrorType.EZA_EXECUTION_ERROR,
+      //     },
+      //   };
+      // }
 
       const executor = new NativeEzaExecutor();
 
