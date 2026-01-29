@@ -160,10 +160,10 @@ export const ToolConfirmationMessage: React.FC<
 
     // Calculate the vertical space (in lines) consumed by UI elements
     // surrounding the main body content.
-    const PADDING_OUTER_Y = 2; // Main container has `padding={1}` (top & bottom).
-    const MARGIN_BODY_BOTTOM = 1; // margin on the body container.
+    const PADDING_OUTER_Y = 1; // Reduced from 2 to 1 to give more space to diff (top & bottom).
+    const MARGIN_BODY_BOTTOM = 0; // Reduced from 1 to 0 to give more space to diff.
     const HEIGHT_QUESTION = 1; // The question text is one line.
-    const MARGIN_QUESTION_BOTTOM = 1; // Margin on the question container.
+    const MARGIN_QUESTION_BOTTOM = 0; // Reduced from 1 to 0 to give more space to diff.
     const HEIGHT_OPTIONS = options.length; // Each option in the radio select takes one line.
 
     const surroundingElementsHeight =
@@ -172,7 +172,7 @@ export const ToolConfirmationMessage: React.FC<
       HEIGHT_QUESTION +
       MARGIN_QUESTION_BOTTOM +
       HEIGHT_OPTIONS;
-    return Math.max(availableTerminalHeight - surroundingElementsHeight, 1);
+    return Math.max(availableTerminalHeight - surroundingElementsHeight, 3); // Increased minimum from 1 to 3
   }
 
   if (confirmationDetails.type === 'edit') {

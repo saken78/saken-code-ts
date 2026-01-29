@@ -5,6 +5,7 @@
  */
 
 import path from 'node:path';
+import fs from 'node:fs';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import type { ToolInvocation, ToolLocation, ToolResult } from './tools.js';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
@@ -99,13 +100,44 @@ class ReadFileToolInvocation extends BaseToolInvocation<
     // Catat bahwa file telah diakses
     fileAccessValidator.recordFileAccess(this.params.absolute_path);
 
+    // Get total line count for validation and logging
+    const totalLines = result.originalLineCount || 0;
+    const linesRead = result.linesShown
+      ? result.linesShown[1] - result.linesShown[0] + 1
+      : totalLines;
+    const startLine = result.linesShown ? result.linesShown[0] : 0;
+    const endLine = result.linesShown ? result.linesShown[1] : totalLines - 1;
+
+    // Log with format: *{FILENAME} {LINES_READ}/{TOTAL_LINES}
+    const relativePathForLogging = makeRelative(
+      this.params.absolute_path,
+      this.config.getTargetDir(),
+    );
+    const logMessage = `*${relativePathForLogging} ${linesRead}/${totalLines}`;
+    console.log(logMessage);
+
+    // Validate that for important files, we're reading enough context
+    // If file is truncated, add a validation note
+    const validationNote = this.getValidationNote(
+      totalLines,
+      startLine,
+      endLine,
+    );
+
     let llmContent: PartUnion;
     if (result.isTruncated) {
       const [start, end] = result.linesShown!;
       const total = result.originalLineCount!;
-      llmContent = `Showing lines ${start}-${end} of ${total} total lines.\n\n---\n\n${result.llmContent}`;
+      const truncationWarning =
+        `⚠️  File truncated: showing lines ${start + 1}-${end + 1} of ${total} total lines.\n` +
+        `To see full file context, use: read_file(absolute_path="${this.params.absolute_path}")\n` +
+        `${validationNote ? `\n${validationNote}\n` : ''}\n---\n\n`;
+      llmContent = truncationWarning + (result.llmContent || '');
     } else {
       llmContent = result.llmContent || '';
+      if (validationNote) {
+        llmContent = `${validationNote}\n\n${llmContent}`;
+      }
     }
 
     const lines =
@@ -128,10 +160,167 @@ class ReadFileToolInvocation extends BaseToolInvocation<
       ),
     );
 
+    // Trigger LSP operations on the file to enhance understanding
+    // Try to get symbols synchronously for LLM context
+    let symbolsInfo = '';
+    try {
+      const lspSymbols = await this.getLspSymbolsForContext();
+      if (lspSymbols) {
+        symbolsInfo = lspSymbols;
+      }
+    } catch (error) {
+      console.debug('[LSP] Failed to get symbols for context:', error);
+      // Silently fail - symbols are optional enhancement
+    }
+
+    // Append symbols info to llmContent if available
+    if (symbolsInfo) {
+      if (typeof llmContent === 'string') {
+        llmContent = `${llmContent}\n\n${symbolsInfo}`;
+      }
+    }
+
     return {
       llmContent,
-      returnDisplay: result.returnDisplay || '',
+      returnDisplay: logMessage || '',
     };
+  }
+
+  /**
+   * Get LSP symbols for the file and format as context for LLM
+   * This provides structural information about the file
+   */
+  private async getLspSymbolsForContext(): Promise<string> {
+    try {
+      const lspClient = this.config.getLspClient?.();
+      if (!lspClient) {
+        return '';
+      }
+
+      const filePath = this.params.absolute_path;
+      const isSourceFile = ['.ts', '.tsx', '.js', '.jsx'].includes(
+        path.extname(filePath).toLowerCase(),
+      );
+
+      if (!isSourceFile || !fs.existsSync(filePath)) {
+        return '';
+      }
+
+      // Convert path to file:// URI for LSP
+      let fileUri = `file://${filePath}`;
+      if (process.platform === 'win32') {
+        fileUri = `file:///${filePath.replace(/\\/g, '/')}`;
+      }
+
+      // Get document symbols
+      const symbols = await lspClient.documentSymbols(fileUri);
+      if (!symbols || symbols.length === 0) {
+        return '';
+      }
+
+      // Format symbols for LLM
+      const symbolsByType = new Map<string, typeof symbols>();
+      for (const symbol of symbols) {
+        const kind = symbol.kind || 'Unknown';
+        if (!symbolsByType.has(kind)) {
+          symbolsByType.set(kind, []);
+        }
+        symbolsByType.get(kind)!.push(symbol);
+      }
+
+      // Build formatted output
+      let output = '\n## File Structure (LSP Symbols)\n\n';
+
+      // Group by kind for readability
+      const groupOrder = [
+        'Class',
+        'Interface',
+        'Type',
+        'Function',
+        'Constant',
+        'Variable',
+        'Property',
+        'Method',
+        'Enum',
+        'Module',
+      ];
+      for (const kind of groupOrder) {
+        const items = symbolsByType.get(kind);
+        if (items) {
+          output += `### ${kind}s (${items.length})\n`;
+          for (const item of items.slice(0, 10)) {
+            // Limit to 10 items per type
+            output +=
+              `- \`${item.name}\`` +
+              (item.containerName ? ` (in ${item.containerName})` : '') +
+              '\n';
+          }
+          if (items.length > 10) {
+            output += `- ... and ${items.length - 10} more\n`;
+          }
+          output += '\n';
+        }
+      }
+
+      // Add any remaining types
+      for (const [kind, items] of symbolsByType.entries()) {
+        if (!groupOrder.includes(kind)) {
+          output += `### ${kind}s (${items.length})\n`;
+          for (const item of items.slice(0, 5)) {
+            output += `- \`${item.name}\`\n`;
+          }
+          if (items.length > 5) {
+            output += `- ... and ${items.length - 5} more\n`;
+          }
+          output += '\n';
+        }
+      }
+
+      output += `**Total symbols found: ${symbols.length}**\n`;
+      return output;
+    } catch (error) {
+      console.debug(
+        '[LSP] Error getting symbols for context:',
+        error instanceof Error ? error.message : error,
+      );
+      return '';
+    }
+  }
+
+  /**
+   * Get validation note for LLM about reading full file context
+   */
+  private getValidationNote(
+    totalLines: number,
+    startLine: number,
+    endLine: number,
+  ): string {
+    const isSourceFile = [
+      '.ts',
+      '.tsx',
+      '.js',
+      '.jsx',
+      '.py',
+      '.java',
+      '.go',
+      '.rs',
+      '.cpp',
+    ].includes(path.extname(this.params.absolute_path).toLowerCase());
+
+    if (!isSourceFile || totalLines <= 20) {
+      return '';
+    }
+
+    // If we're only reading a small portion of a large file
+    const readPercentage = ((endLine - startLine + 1) / totalLines) * 100;
+    if (readPercentage < 30) {
+      return (
+        `📝 Note: Reading only ${Math.round(readPercentage)}% of this file (${totalLines} lines total). ` +
+        `Consider reading the full file for better context understanding, especially for imports, type definitions, and dependencies.`
+      );
+    }
+
+    return '';
   }
 }
 

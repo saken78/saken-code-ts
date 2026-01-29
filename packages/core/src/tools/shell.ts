@@ -49,10 +49,12 @@ import {
 import { validateCommandOptimality } from '../utils/command-enforcement.js';
 
 export const OUTPUT_UPDATE_INTERVAL_MS = 1000;
+const DEFAULT_FOREGROUND_TIMEOUT_MS = 120000;
 
 export interface ShellToolParams {
   command: string;
   is_background: boolean;
+  timeout?: number;
   description?: string;
   directory?: string;
 }
@@ -79,6 +81,9 @@ export class ShellToolInvocation extends BaseToolInvocation<
     // append background indicator
     if (this.params.is_background) {
       description += ` [background]`;
+    } else if (this.params.timeout) {
+      // append timeout for foreground commands
+      description += ` [timeout: ${this.params.timeout}ms]`;
     }
     // append optional (description), replacing any line breaks with spaces
     if (this.params.description) {
@@ -166,6 +171,17 @@ export class ShellToolInvocation extends BaseToolInvocation<
       };
     }
 
+    const effectiveTimeout = this.params.is_background
+      ? undefined
+      : (this.params.timeout ?? DEFAULT_FOREGROUND_TIMEOUT_MS);
+
+    // Create combined signal with timeout for foreground execution
+    let combinedSignal = signal;
+    if (effectiveTimeout) {
+      const timeoutSignal = AbortSignal.timeout(effectiveTimeout);
+      combinedSignal = AbortSignal.any([signal, timeoutSignal]);
+    }
+
     const tempFileName = `shell_pgrep_${crypto
       .randomBytes(6)
       .toString('hex')}.tmp`;
@@ -236,7 +252,7 @@ export class ShellToolInvocation extends BaseToolInvocation<
               lastUpdateTime = Date.now();
             }
           },
-          signal,
+          combinedSignal,
           this.config.getShouldUseNodePtyShell(),
           shellExecutionConfig ?? {},
         );
@@ -282,11 +298,28 @@ export class ShellToolInvocation extends BaseToolInvocation<
 
       let llmContent = '';
       if (result.aborted) {
-        llmContent = 'Command was cancelled by user before it could complete.';
-        if (result.output.trim()) {
-          llmContent += ` Below is the output before it was cancelled:\n${result.output}`;
+        // Check if it was a timeout or user cancellation
+        const wasTimeout =
+          !this.params.is_background &&
+          effectiveTimeout &&
+          combinedSignal.aborted &&
+          !signal.aborted;
+
+        if (wasTimeout) {
+          llmContent = `Command timed out after ${effectiveTimeout}ms before it could complete.`;
+          if (result.output.trim()) {
+            llmContent += ` Below is the output before it timed out:\n${result.output}`;
+          } else {
+            llmContent += ' There was no output before it timed out.';
+          }
         } else {
-          llmContent += ' There was no output before it was cancelled.';
+          llmContent =
+            'Command was cancelled by user before it could complete.';
+          if (result.output.trim()) {
+            llmContent += ` Below is the output before it was cancelled:\n${result.output}`;
+          } else {
+            llmContent += ' There was no output before it was cancelled.';
+          }
         }
       } else {
         // Create a formatted error string for display, replacing the wrapper command
@@ -317,7 +350,16 @@ export class ShellToolInvocation extends BaseToolInvocation<
           returnDisplayMessage = result.output;
         } else {
           if (result.aborted) {
-            returnDisplayMessage = 'Command cancelled by user.';
+            // Check if it was a timeout or user cancellation
+            const wasTimeout =
+              !this.params.is_background &&
+              effectiveTimeout &&
+              combinedSignal.aborted &&
+              !signal.aborted;
+
+            returnDisplayMessage = wasTimeout
+              ? `Command timed out after ${effectiveTimeout}ms.`
+              : 'Command cancelled by user.';
           } else if (result.signal) {
             returnDisplayMessage = `Command terminated by signal: ${result.signal}`;
           } else if (result.error) {
@@ -419,9 +461,14 @@ Co-authored-by: ${gitCoAuthorSettings.name} <${gitCoAuthorSettings.email}>`;
 
 function getShellToolDescription(): string {
   const toolDescription = `
+
+IMPORTANT: This tool is for terminal operations like git, npm, docker, etc. DO NOT use it for file operations (reading, writing, editing, searching, finding files) - use the specialized tools for this instead.
+
 **Usage notes**:
 - The command argument is required.
+- You can specify an optional timeout in milliseconds (up to 600000ms / 10 minutes). If not specified, commands will timeout after 120000ms (2 minutes).
 - It is very helpful if you write a clear, concise description of what this command does in 5-10 words.
+
 - Avoid using shell with the \`find\`, \`grep\`, \`cat\`, \`head\`, \`tail\`, \`sed\`, \`awk\`, or \`echo\` commands, unless explicitly instructed or when these commands are truly necessary for the task. Instead, always prefer using the dedicated tools for these commands:
   - File search: Use ${ToolNames.NATIVE_FD} (NOT find)
 - Content search: Use ${ToolNames.RIPGREP} (grep or rg)
@@ -446,6 +493,7 @@ function getShellToolDescription(): string {
   <bad-example>
   cd /foo/bar && pytest tests
   </bad-example>
+
 **Background vs Foreground Execution:**
 You should decide whether commands should run in background or foreground based on their nature:
 **Use background execution (is_background: true) for:**
@@ -497,6 +545,10 @@ export class ShellTool extends BaseDeclarativeTool<
             description:
               'Whether to run the command in background. Default is false. Set to true for long-running processes like development servers, watchers, or daemons that should continue running without blocking further commands.',
           },
+          timeout: {
+            type: 'number',
+            description: 'Optional timeout in milliseconds (max 600000)',
+          },
           description: {
             type: 'string',
             description:
@@ -534,10 +586,25 @@ export class ShellTool extends BaseDeclarativeTool<
     if (getCommandRoots(params.command).length === 0) {
       return 'Could not identify command root to obtain permission from user.';
     }
+    if (params.timeout !== undefined) {
+      if (
+        typeof params.timeout !== 'number' ||
+        !Number.isInteger(params.timeout)
+      ) {
+        return 'Timeout must be an integer number of milliseconds.';
+      }
+      if (params.timeout <= 0) {
+        return 'Timeout must be a positive number.';
+      }
+      if (params.timeout > 600000) {
+        return 'Timeout cannot exceed 600000ms (10 minutes).';
+      }
+    }
     if (params.directory) {
       if (!path.isAbsolute(params.directory)) {
         return 'Directory must be an absolute path.';
       }
+
       const userSkillsDir = this.config.storage.getUserSkillsDir();
       const resolvedDirectoryPath = path.resolve(params.directory);
       const isWithinUserSkills = isSubpath(
