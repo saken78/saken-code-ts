@@ -224,14 +224,14 @@ describe('SettingsSchema', () => {
         },
         context: {
           includeDirectories: ['/path/to/dir'],
-          loadMemoryFromIncludeDirectories: true,
+          loadFromIncludeDirectories: true,
         },
       };
 
       // TypeScript should not complain about these properties
       expect(settings.ui?.theme).toBe('dark');
       expect(settings.context?.includeDirectories).toEqual(['/path/to/dir']);
-      expect(settings.context?.loadMemoryFromIncludeDirectories).toBe(true);
+      expect(settings.context?.loadFromIncludeDirectories).toBe(true);
     });
 
     it('should have includeDirectories setting in schema', () => {
@@ -251,19 +251,17 @@ describe('SettingsSchema', () => {
 
     it('should have loadMemoryFromIncludeDirectories setting in schema', () => {
       expect(
-        getSettingsSchema().context?.properties
-          .loadMemoryFromIncludeDirectories,
+        getSettingsSchema().context?.properties.loadFromIncludeDirectories,
       ).toBeDefined();
       expect(
-        getSettingsSchema().context?.properties.loadMemoryFromIncludeDirectories
-          .type,
+        getSettingsSchema().context?.properties.loadFromIncludeDirectories.type,
       ).toBe('boolean');
       expect(
-        getSettingsSchema().context?.properties.loadMemoryFromIncludeDirectories
+        getSettingsSchema().context?.properties.loadFromIncludeDirectories
           .category,
       ).toBe('Context');
       expect(
-        getSettingsSchema().context?.properties.loadMemoryFromIncludeDirectories
+        getSettingsSchema().context?.properties.loadFromIncludeDirectories
           .default,
       ).toBe(false);
     });
