@@ -742,9 +742,7 @@ export async function loadCliConfig(
   // Call the (now wrapper) loadHierarchicalGeminiMemory which calls the server's version
   const { memoryContent, fileCount } = await loadHierarchicalGeminiMemory(
     cwd,
-    settings.context?.loadMemoryFromIncludeDirectories
-      ? includeDirectories
-      : [],
+    settings.context?.loadFromIncludeDirectories ? includeDirectories : [],
     debugMode,
     fileService,
     settings,
@@ -992,7 +990,7 @@ export async function loadCliConfig(
     targetDir: cwd,
     includeDirectories,
     loadMemoryFromIncludeDirectories:
-      settings.context?.loadMemoryFromIncludeDirectories || false,
+      settings.context?.loadFromIncludeDirectories || true,
     debugMode,
     question,
     fullContext: argv.allFiles || false,
