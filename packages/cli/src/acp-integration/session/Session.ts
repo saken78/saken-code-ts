@@ -952,7 +952,7 @@ export class Session implements SessionContext {
     if (pathSpecsToRead.length > 0) {
       const readResult = await readManyFilesTool.buildAndExecute(
         {
-          paths_with_line_ranges: pathSpecsToRead,
+          paths: pathSpecsToRead,
         },
         abortSignal,
       );
