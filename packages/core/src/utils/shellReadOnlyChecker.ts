@@ -11,6 +11,34 @@ import {
   stripShellWrapper,
 } from './shell-utils.js';
 
+/**
+ * Interface for deprecated commands with recommendations
+ */
+export interface DeprecatedCommandMapping {
+  command: string;
+  recommendedTool: string;
+  reason: string;
+}
+
+/**
+ * Interface for command optimization warnings
+ */
+export interface CommandOptimizationWarning {
+  type: 'deprecated' | 'suboptimal';
+  message: string;
+  suggestion: string;
+  suggestedTool: string;
+}
+
+/**
+ * Complete security check result with blocking status and warnings
+ */
+export interface CommandSecurityCheckResult {
+  isReadOnly: boolean;
+  blockReason?: string;
+  warnings?: CommandOptimizationWarning[];
+}
+
 const READ_ONLY_ROOT_COMMANDS = new Set([
   'awk',
   'basename',
@@ -93,6 +121,82 @@ const BLOCKED_GIT_BRANCH_FLAGS = new Set([
 const BLOCKED_SED_PREFIXES = ['-i'];
 
 const ENV_ASSIGNMENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*=/;
+
+/**
+ * Deprecated commands mapping (for warnings only, not blocking)
+ */
+const DEPRECATED_COMMANDS: DeprecatedCommandMapping[] = [
+  {
+    command: 'ls',
+    recommendedTool: 'EZA',
+    reason: 'Use enhanced directory listing with EZA tool',
+  },
+  {
+    command: 'grep',
+    recommendedTool: 'GREP',
+    reason: 'Use enhanced search with GREP tool',
+  },
+  {
+    command: 'fd',
+    recommendedTool: 'FD',
+    reason: 'Use enhanced file discovery with FD tool',
+  },
+  {
+    command: 'du',
+    recommendedTool: 'DUST',
+    reason: 'Use dust for human-friendly disk usage display',
+  },
+];
+
+/**
+ * Non-optimal command patterns (warnings only, not blocking)
+ */
+const NON_OPTIMAL_PATTERNS: Array<{
+  pattern: RegExp;
+  commands: string[];
+  suggestedTool: string;
+  toolDescription: string;
+  reason: string;
+}> = [
+  {
+    pattern: /\bsed\s+/,
+    commands: ['sed'],
+    suggestedTool: 'EDIT or SMART_EDIT',
+    toolDescription: 'edit or smart_edit tool',
+    reason:
+      'sed (without -i) is error-prone. Use edit/smart_edit tools for safe file modifications.',
+  },
+  {
+    pattern: /\bawk\s+/,
+    commands: ['awk'],
+    suggestedTool: 'GREP or custom processing',
+    toolDescription: 'grep tool or script-based processing',
+    reason: 'awk is complex. Use grep for filtering, or write a proper script.',
+  },
+  {
+    pattern: /\becho\s+/,
+    commands: ['echo'],
+    suggestedTool: 'WRITE_FILE',
+    toolDescription: 'write_file tool',
+    reason:
+      'echo is fragile for text processing. Use write_file tool for safe file writing.',
+  },
+  {
+    pattern: /\bcat\s+/,
+    commands: ['cat'],
+    suggestedTool: 'BAT',
+    toolDescription: 'bat command for syntax highlighting',
+    reason: 'cat is limited. Use bat for syntax-highlighted viewing.',
+  },
+  {
+    pattern: /\bfind\s+/,
+    commands: ['find'],
+    suggestedTool: 'FD',
+    toolDescription: 'fd - Fast and user-friendly file finder',
+    reason:
+      'find is slow and has complex syntax. fd is faster and more intuitive.',
+  },
+];
 
 function containsWriteRedirection(command: string): boolean {
   let inSingleQuotes = false;
@@ -235,66 +339,227 @@ function evaluateGitCommand(tokens: string[]): boolean {
   return true;
 }
 
-function evaluateShellSegment(segment: string): boolean {
+/**
+ * Check if a command is deprecated and return the mapping
+ */
+function checkForDeprecatedCommand(
+  command: string,
+): DeprecatedCommandMapping | null {
+  const commandParts = command.trim().split(/\s+/);
+  const primaryCommand = commandParts[0]?.split('/').pop();
+
+  return (
+    DEPRECATED_COMMANDS.find((item) => item.command === primaryCommand) || null
+  );
+}
+
+/**
+ * Generate optimization warnings for a command
+ */
+function getOptimizationWarnings(
+  command: string,
+  rootCommand: string,
+): CommandOptimizationWarning[] {
+  const warnings: CommandOptimizationWarning[] = [];
+
+  // Check for deprecated command
+  const deprecatedMapping = checkForDeprecatedCommand(rootCommand);
+  if (deprecatedMapping) {
+    warnings.push({
+      type: 'deprecated',
+      message: `Command '${rootCommand}' is available but consider using '${deprecatedMapping.recommendedTool}'`,
+      suggestion: `Use '${deprecatedMapping.recommendedTool}' tool instead`,
+      suggestedTool: deprecatedMapping.recommendedTool,
+    });
+  }
+
+  // Check for non-optimal patterns
+  for (const pattern of NON_OPTIMAL_PATTERNS) {
+    if (pattern.pattern.test(command)) {
+      // Skip if already reported as deprecated
+      if (deprecatedMapping) continue;
+
+      warnings.push({
+        type: 'suboptimal',
+        message: `Command pattern '${pattern.commands[0]}' detected - consider using a better tool`,
+        suggestion: `Use '${pattern.suggestedTool}' (${pattern.toolDescription})\nReason: ${pattern.reason}`,
+        suggestedTool: pattern.suggestedTool,
+      });
+      break;
+    }
+  }
+
+  return warnings;
+}
+
+function evaluateShellSegment(segment: string): {
+  isReadOnly: boolean;
+  blockReason?: string;
+  warnings?: CommandOptimizationWarning[];
+} {
   if (!segment.trim()) {
-    return true;
+    return { isReadOnly: true };
   }
 
   const stripped = stripShellWrapper(segment);
   if (!stripped) {
-    return true;
+    return { isReadOnly: true };
   }
 
   if (detectCommandSubstitution(stripped)) {
-    return false;
+    return {
+      isReadOnly: false,
+      blockReason:
+        'Command substitution using $(), `` ` ``, <(), or >() is not allowed for security reasons',
+    };
   }
 
   if (containsWriteRedirection(stripped)) {
-    return false;
+    return {
+      isReadOnly: false,
+      blockReason:
+        'Write redirection (>, >>) is not allowed for security reasons',
+    };
   }
 
   const tokens = normalizeTokens(stripped);
   if (tokens.length === 0) {
-    return true;
+    return { isReadOnly: true };
   }
 
   const { root, args } = skipEnvironmentAssignments(tokens);
   if (!root) {
-    return true;
+    return { isReadOnly: true };
   }
 
   const normalizedRoot = root.toLowerCase();
   if (!READ_ONLY_ROOT_COMMANDS.has(normalizedRoot)) {
-    return false;
+    return {
+      isReadOnly: false,
+      blockReason: `Command '${normalizedRoot}' is not in the allowed read-only command list`,
+    };
   }
 
+  // Check command-specific security rules
+  let isAllowed = true;
   if (normalizedRoot === 'find') {
-    return evaluateFindCommand([normalizedRoot, ...args]);
+    isAllowed = evaluateFindCommand([normalizedRoot, ...args]);
+  } else if (normalizedRoot === 'sed') {
+    isAllowed = evaluateSedCommand([normalizedRoot, ...args]);
+  } else if (normalizedRoot === 'git') {
+    isAllowed = evaluateGitCommand([normalizedRoot, ...args]);
   }
 
-  if (normalizedRoot === 'sed') {
-    return evaluateSedCommand([normalizedRoot, ...args]);
+  if (!isAllowed) {
+    return {
+      isReadOnly: false,
+      blockReason: `Command '${normalizedRoot}' contains dangerous flags or operations`,
+    };
   }
 
-  if (normalizedRoot === 'git') {
-    return evaluateGitCommand([normalizedRoot, ...args]);
-  }
+  // Generate optimization warnings (non-blocking)
+  const warnings = getOptimizationWarnings(stripped, normalizedRoot);
 
-  return true;
+  return {
+    isReadOnly: true,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
 }
 
-export function isShellCommandReadOnly(command: string): boolean {
+/**
+ * Comprehensive shell command security check with warnings
+ * Returns detailed result including security status and optimization warnings
+ */
+export function checkShellCommandSecurity(
+  command: string,
+): CommandSecurityCheckResult {
   if (typeof command !== 'string' || !command.trim()) {
-    return false;
+    return {
+      isReadOnly: false,
+      blockReason: 'Invalid command: empty or not a string',
+    };
   }
 
   const segments = splitCommands(command);
+  const allWarnings: CommandOptimizationWarning[] = [];
+
   for (const segment of segments) {
-    const isAllowed = evaluateShellSegment(segment);
-    if (!isAllowed) {
-      return false;
+    const result = evaluateShellSegment(segment);
+    if (!result.isReadOnly) {
+      return {
+        isReadOnly: false,
+        blockReason: result.blockReason,
+      };
+    }
+    if (result.warnings) {
+      allWarnings.push(...result.warnings);
     }
   }
 
-  return true;
+  return {
+    isReadOnly: true,
+    warnings: allWarnings.length > 0 ? allWarnings : undefined,
+  };
+}
+
+/**
+ * Legacy function for backward compatibility
+ * Returns true if command is read-only (ignores warnings)
+ */
+export function isShellCommandReadOnly(command: string): boolean {
+  const result = checkShellCommandSecurity(command);
+  return result.isReadOnly;
+}
+
+/**
+ * Public functions for deprecated command validation (for compatibility)
+ */
+export function checkForDeprecatedCommands(
+  command: string,
+): DeprecatedCommandMapping | null {
+  return checkForDeprecatedCommand(command);
+}
+
+export function getRecommendedTool(command: string): string {
+  const mapping = checkForDeprecatedCommand(command);
+  return mapping ? mapping.recommendedTool : 'appropriate tool';
+}
+
+/**
+ * Get optimization guide for all patterns
+ */
+export function getCommandOptimizationGuide(): string {
+  const commands = Array.from(
+    new Set(NON_OPTIMAL_PATTERNS.flatMap((p) => p.commands)),
+  );
+  const guide = commands
+    .map((cmd) => {
+      const pattern = NON_OPTIMAL_PATTERNS.find((p) =>
+        p.commands.includes(cmd),
+      );
+      if (!pattern) return '';
+
+      return `${cmd} → ${pattern.suggestedTool}
+   Tool: ${pattern.toolDescription}
+   Reason: ${pattern.reason}`;
+    })
+    .filter(Boolean)
+    .join('\n\n');
+
+  return `
+🚫 COMMAND OPTIMIZATION SUGGESTIONS
+
+These commands are allowed but consider using better alternatives:
+
+${guide}
+
+Modern CLI tool alternatives (pre-installed):
+- File listing: eza (instead of ls)
+- File viewing: bat (instead of cat)
+- File finding: fd (instead of find)
+- Text search: rg/grep (instead of grep)
+- File modification: edit/smart_edit (instead of sed)
+- File writing: write_file (instead of echo >)
+- Disk usage: dust (instead of du)
+`;
 }

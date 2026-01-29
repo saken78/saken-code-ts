@@ -9,7 +9,10 @@ import type { Config } from '../config/config.js';
 import os from 'node:os';
 import { quote } from 'shell-quote';
 import { doesToolInvocationMatch } from './tool-utils.js';
-import { isShellCommandReadOnly } from './shellReadOnlyChecker.js';
+import {
+  isShellCommandReadOnly,
+  checkShellCommandSecurity,
+} from './shellReadOnlyChecker.js';
 import {
   execFile,
   execFileSync,
@@ -758,3 +761,8 @@ export function readFileLines(
     return '';
   }
 }
+
+/**
+ * Re-export shell command security check functions from shellReadOnlyChecker
+ */
+export { checkShellCommandSecurity };
