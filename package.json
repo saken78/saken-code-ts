@@ -17,7 +17,7 @@
     "sandboxImageUri": "ghcr.io/qwenlm/qwen-code:0.7.1"
   },
   "scripts": {
-    "start": "cross-env node scripts/start.js --debug --experimental-skills --experimental-lsp",
+    "start": "cross-env node scripts/start.js --debug",
     "debug": "cross-env DEBUG=1 node --inspect-brk scripts/start.js",
     "generate": "node scripts/generate-git-commit-info.js",
     "build": "node scripts/build.js",
